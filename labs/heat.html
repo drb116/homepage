@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Energy Transfer by Light</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #eef6fb;
+      color: #1f2933;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+    }
+
+    .instructions {
+      max-width: 780px;
+      margin: 0 auto 18px;
+      font-size: 18px;
+      line-height: 1.45;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 28px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .control-box {
+      min-width: 220px;
+      padding: 14px 18px;
+      background: white;
+      border: 1px solid #b9c7d3;
+      border-radius: 12px;
+    }
+
+    .control-title {
+      display: block;
+      margin-bottom: 10px;
+      font-weight: bold;
+      font-size: 17px;
+    }
+
+    .power-row {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 12px;
+    }
+
+    #powerButton {
+      padding: 10px 22px;
+      border: none;
+      border-radius: 8px;
+      background: #555;
+      color: white;
+      font-size: 18px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #powerButton.on {
+      background: #d83b2d;
+    }
+
+    .dial {
+      position: relative;
+      width: 110px;
+      height: 110px;
+      margin: 0 auto;
+      border: 4px solid #536471;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 40% 35%, #ffffff, #cfd8df 72%);
+      cursor: grab;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .dial:active {
+      cursor: grabbing;
+    }
+
+    .dial-line {
+      position: absolute;
+      left: 50%;
+      top: 10px;
+      width: 5px;
+      height: 42px;
+      border-radius: 4px;
+      background: #d83b2d;
+      transform-origin: 50% 45px;
+      transform: translateX(-50%) rotate(-135deg);
+    }
+
+    .dial-center {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #536471;
+      transform: translate(-50%, -50%);
+    }
+
+    .dial-labels {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 4px;
+      padding: 0 5px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    #intensityReadout {
+      margin-top: 8px;
+      font-size: 18px;
+      font-weight: bold;
+    }
+
+    canvas {
+      display: block;
+      width: min(900px, 100%);
+      height: auto;
+      margin: 0 auto;
+      background: white;
+      border: 3px solid #344955;
+      border-radius: 12px;
+      touch-action: none;
+    }
+
+    #message {
+      min-height: 52px;
+      max-width: 760px;
+      margin: 14px auto 0;
+      font-size: 20px;
+      font-weight: bold;
+    }
+
+    .question {
+      max-width: 760px;
+      margin: 18px auto 0;
+      padding: 15px 18px;
+      background: #fff7d6;
+      border-left: 6px solid #dda900;
+      border-radius: 6px;
+      text-align: left;
+      font-size: 18px;
+      line-height: 1.45;
+    }
+
+    .legend {
+      max-width: 760px;
+      margin: 12px auto 0;
+      font-size: 15px;
+      color: #52616b;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Energy Transfer by Light</h1>
+
+  <p class="instructions">
+    Turn on the heat lamp, adjust its intensity, and drag it closer to or
+    farther from the thermometer. Observe how light from the lamp transfers
+    energy and changes the temperature.
+  </p>
+
+  <div class="controls">
+    <div class="control-box">
+      <span class="control-title">Heat Lamp Power</span>
+
+      <div class="power-row">
+        <button id="powerButton" type="button">OFF</button>
+        <span id="powerStatus">Lamp is off</span>
+      </div>
+    </div>
+
+    <div class="control-box">
+      <span class="control-title">Intensity Dial</span>
+
+      <div
+        id="dial"
+        class="dial"
+        role="slider"
+        aria-label="Heat lamp intensity"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="50"
+        tabindex="0"
+      >
+        <div id="dialLine" class="dial-line"></div>
+        <div class="dial-center"></div>
+      </div>
+
+      <div class="dial-labels">
+        <span>LOW</span>
+        <span>HIGH</span>
+      </div>
+
+      <div id="intensityReadout">Intensity: 50%</div>
+    </div>
+  </div>
+
+  <canvas id="canvas" width="900" height="390"></canvas>
+
+  <div id="message">
+    Turn on the lamp and drag it toward the thermometer.
+  </div>
+
+  <div class="legend">
+    Drag the lamp by clicking or touching its stand or shade.
+  </div>
+
+  <div class="question">
+    <strong>Think about it:</strong>
+    How does moving the lamp closer affect the thermometer? How does changing
+    the lamp intensity affect the rate at which the temperature rises? What
+    evidence shows that energy moved from the lamp to the thermometer?
+  </div>
+
+  <script>
+    "use strict";
+
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const powerButton = document.getElementById("powerButton");
+    const powerStatus = document.getElementById("powerStatus");
+    const message = document.getElementById("message");
+
+    const dial = document.getElementById("dial");
+    const dialLine = document.getElementById("dialLine");
+    const intensityReadout =
+      document.getElementById("intensityReadout");
+
+    const roomTemperature = 70;
+    const maximumTemperature = 130;
+
+    let lampOn = false;
+    let intensity = 50;
+    let temperature = roomTemperature;
+
+    let lampX = 190;
+    const lampY = 245;
+
+    const thermometerX = 760;
+    const thermometerY = 205;
+
+    let draggingLamp = false;
+    let turningDial = false;
+    let lastTime = performance.now();
+
+    function clamp(value, minimum, maximum) {
+      return Math.max(minimum, Math.min(maximum, value));
+    }
+
+    function getDistance() {
+      return Math.max(110, thermometerX - lampX);
+    }
+
+    function getHeatingStrength() {
+      if (!lampOn || intensity === 0) {
+        return 0;
+      }
+
+      const distance = getDistance();
+
+      /*
+        This is a simplified classroom model.
+
+        The heating effect gets stronger when:
+        1. Lamp intensity increases.
+        2. Distance decreases.
+      */
+      const intensityFactor = intensity / 100;
+      const distanceFactor = Math.pow(260 / distance, 1.5);
+
+      return clamp(intensityFactor * distanceFactor, 0, 2.2);
+    }
+
+    function getTargetTemperature() {
+      const heatingStrength = getHeatingStrength();
+
+      return clamp(
+        roomTemperature + heatingStrength * 38,
+        roomTemperature,
+        maximumTemperature
+      );
+    }
+
+    function updateTemperature(deltaTime) {
+      const targetTemperature = getTargetTemperature();
+
+      /*
+        The thermometer changes gradually instead of jumping
+        immediately to the target temperature.
+      */
+      const warmingRate = lampOn ? 0.38 : 0.18;
+      const difference = targetTemperature - temperature;
+
+      temperature += difference * warmingRate * deltaTime;
+
+      if (Math.abs(difference) < 0.01) {
+        temperature = targetTemperature;
+      }
+    }
+
+    function drawRoom() {
+      ctx.fillStyle = "#f8fbfd";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#dce8ee";
+      ctx.fillRect(0, 320, canvas.width, 70);
+
+      ctx.strokeStyle = "#8aa0ad";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(0, 320);
+      ctx.lineTo(canvas.width, 320);
+      ctx.stroke();
+    }
+
+    function drawLightBeams() {
+      if (!lampOn || intensity === 0) {
+        return;
+      }
+
+      const alpha = 0.08 + (intensity / 100) * 0.25;
+
+      ctx.save();
+
+      ctx.fillStyle = `rgba(255, 205, 55, ${alpha})`;
+
+      ctx.beginPath();
+      ctx.moveTo(lampX + 73, lampY - 58);
+      ctx.lineTo(thermometerX - 28, thermometerY - 70);
+      ctx.lineTo(thermometerX - 28, thermometerY + 85);
+      ctx.lineTo(lampX + 73, lampY - 12);
+      ctx.closePath();
+      ctx.fill();
+
+      const beamCount = 3 + Math.round(intensity / 25);
+
+      ctx.strokeStyle =
+        `rgba(245, 170, 25, ${0.25 + intensity / 250})`;
+      ctx.lineWidth = 3;
+
+      for (let i = 0; i < beamCount; i++) {
+        const startY =
+          lampY - 54 + (i / Math.max(1, beamCount - 1)) * 38;
+
+        const endY =
+          thermometerY - 45 +
+          (i / Math.max(1, beamCount - 1)) * 90;
+
+        ctx.beginPath();
+        ctx.moveTo(lampX + 68, startY);
+        ctx.lineTo(thermometerX - 30, endY);
+        ctx.stroke();
+      }
+
+      ctx.restore();
+    }
+
+    function drawLamp() {
+      ctx.save();
+
+      ctx.strokeStyle = "#394955";
+      ctx.lineWidth = 8;
+      ctx.lineCap = "round";
+
+      // Stand
+      ctx.beginPath();
+      ctx.moveTo(lampX, lampY + 20);
+      ctx.lineTo(lampX, 312);
+      ctx.stroke();
+
+      // Base
+      ctx.fillStyle = "#4c5d68";
+      ctx.beginPath();
+      ctx.ellipse(lampX, 316, 55, 12, 0, 0, Math.PI * 2);
+      ctx.fill();
+
+      // Lamp arm
+      ctx.strokeStyle = "#4c5d68";
+      ctx.lineWidth = 10;
+
+      ctx.beginPath();
+      ctx.moveTo(lampX, lampY + 10);
+      ctx.lineTo(lampX + 28, lampY - 45);
+      ctx.stroke();
+
+      // Shade
+      ctx.fillStyle = lampOn ? "#e6a126" : "#71808a";
+      ctx.strokeStyle = "#384852";
+      ctx.lineWidth = 4;
+
+      ctx.beginPath();
+      ctx.moveTo(lampX + 18, lampY - 70);
+      ctx.lineTo(lampX + 77, lampY - 54);
+      ctx.lineTo(lampX + 68, lampY - 9);
+      ctx.lineTo(lampX + 27, lampY - 22);
+      ctx.closePath();
+      ctx.fill();
+      ctx.stroke();
+
+      // Bulb
+      ctx.fillStyle = lampOn
+        ? `rgba(255, 239, 126, ${0.55 + intensity / 220})`
+        : "#b8c0c5";
+
+      ctx.beginPath();
+      ctx.ellipse(
+        lampX + 70,
+        lampY - 32,
+        11,
+        19,
+        -0.2,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+
+      if (lampOn) {
+        ctx.shadowBlur = 18 + intensity / 3;
+        ctx.shadowColor = "#ffd24d";
+        ctx.fillStyle =
+          `rgba(255, 220, 80, ${0.22 + intensity / 200})`;
+
+        ctx.beginPath();
+        ctx.arc(lampX + 70, lampY - 32, 18, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      ctx.restore();
+
+      ctx.fillStyle = "#263640";
+      ctx.font = "bold 17px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("HEAT LAMP", lampX + 20, 350);
+
+      ctx.font = "15px Arial";
+      ctx.fillText(
+        lampOn ? `${intensity}% intensity` : "Off",
+        lampX + 20,
+        372
+      );
+    }
+
+    function temperatureToMercuryHeight() {
+      const fraction =
+        (temperature - roomTemperature) /
+        (maximumTemperature - roomTemperature);
+
+      return clamp(fraction, 0, 1) * 190;
+    }
+
+    function drawThermometer() {
+      const tubeTop = 70;
+      const tubeBottom = 280;
+      const tubeWidth = 28;
+      const mercuryHeight = temperatureToMercuryHeight();
+
+      // Thermometer backing
+      ctx.fillStyle = "#f1f3f4";
+      ctx.strokeStyle = "#445761";
+      ctx.lineWidth = 4;
+
+      ctx.beginPath();
+      ctx.roundRect(
+        thermometerX - 42,
+        tubeTop - 18,
+        84,
+        278,
+        22
+      );
+      ctx.fill();
+      ctx.stroke();
+
+      // Tube
+      ctx.fillStyle = "white";
+      ctx.strokeStyle = "#667983";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.roundRect(
+        thermometerX - tubeWidth / 2,
+        tubeTop,
+        tubeWidth,
+        tubeBottom - tubeTop,
+        14
+      );
+      ctx.fill();
+      ctx.stroke();
+
+      // Mercury
+      const mercuryTop = tubeBottom - mercuryHeight;
+
+      ctx.fillStyle = "#e43d30";
+
+      ctx.beginPath();
+      ctx.roundRect(
+        thermometerX - 8,
+        mercuryTop,
+        16,
+        tubeBottom - mercuryTop + 8,
+        8
+      );
+      ctx.fill();
+
+      // Bulb
+      ctx.beginPath();
+      ctx.arc(thermometerX, 292, 31, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.strokeStyle = "#667983";
+      ctx.lineWidth = 3;
+      ctx.stroke();
+
+      // Scale marks
+      ctx.strokeStyle = "#40535d";
+      ctx.fillStyle = "#40535d";
+      ctx.lineWidth = 2;
+      ctx.font = "13px Arial";
+      ctx.textAlign = "left";
+
+      const scaleValues = [70, 80, 90, 100, 110, 120, 130];
+
+      for (const value of scaleValues) {
+        const fraction =
+          (value - roomTemperature) /
+          (maximumTemperature - roomTemperature);
+
+        const y =
+          tubeBottom -
+          fraction * (tubeBottom - tubeTop);
+
+        ctx.beginPath();
+        ctx.moveTo(thermometerX + 18, y);
+        ctx.lineTo(thermometerX + 29, y);
+        ctx.stroke();
+
+        ctx.fillText(`${value}°`, thermometerX + 33, y + 4);
+      }
+
+      ctx.fillStyle = "#263640";
+      ctx.font = "bold 20px Arial";
+      ctx.textAlign = "center";
+
+      ctx.fillText(
+        `${temperature.toFixed(1)}°F`,
+        thermometerX,
+        32
+      );
+
+      ctx.font = "bold 16px Arial";
+      ctx.fillText("THERMOMETER", thermometerX, 372);
+    }
+
+    function drawDistanceIndicator() {
+      const startX = lampX + 90;
+      const endX = thermometerX - 55;
+      const y = 52;
+
+      ctx.strokeStyle = "#51656f";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(startX, y);
+      ctx.lineTo(endX, y);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(startX, y);
+      ctx.lineTo(startX + 10, y - 6);
+      ctx.lineTo(startX + 10, y + 6);
+      ctx.closePath();
+      ctx.fillStyle = "#51656f";
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(endX, y);
+      ctx.lineTo(endX - 10, y - 6);
+      ctx.lineTo(endX - 10, y + 6);
+      ctx.closePath();
+      ctx.fill();
+
+      const distance = Math.round(getDistance());
+
+      ctx.fillStyle = "#263640";
+      ctx.font = "bold 15px Arial";
+      ctx.textAlign = "center";
+
+      ctx.fillText(
+        `Distance: ${distance} units`,
+        (startX + endX) / 2,
+        y - 10
+      );
+    }
+
+    function draw() {
+      drawRoom();
+      drawLightBeams();
+      drawDistanceIndicator();
+      drawLamp();
+      drawThermometer();
+    }
+
+    function updateMessage() {
+      if (!lampOn) {
+        message.textContent =
+          "The lamp is off. The thermometer is cooling toward room temperature.";
+        return;
+      }
+
+      const distance = getDistance();
+
+      if (intensity < 25) {
+        message.textContent =
+          "The lamp is on at low intensity, so the temperature changes slowly.";
+      } else if (distance < 300) {
+        message.textContent =
+          "The lamp is close. More energy reaches the thermometer, so it warms faster.";
+      } else if (distance > 500) {
+        message.textContent =
+          "The lamp is far away. Less energy reaches the thermometer.";
+      } else {
+        message.textContent =
+          "Light from the lamp is transferring energy to the thermometer.";
+      }
+    }
+
+    function animate(currentTime) {
+      const deltaTime = Math.min(
+        (currentTime - lastTime) / 1000,
+        0.05
+      );
+
+      lastTime = currentTime;
+
+      updateTemperature(deltaTime);
+      updateMessage();
+      draw();
+
+      requestAnimationFrame(animate);
+    }
+
+    function updatePowerDisplay() {
+      powerButton.textContent = lampOn ? "ON" : "OFF";
+      powerButton.classList.toggle("on", lampOn);
+
+      powerStatus.textContent =
+        lampOn ? "Lamp is on" : "Lamp is off";
+    }
+
+    function setIntensity(newIntensity) {
+      intensity = Math.round(clamp(newIntensity, 0, 100));
+
+      const angle = -135 + intensity * 2.7;
+
+      dialLine.style.transform =
+        `translateX(-50%) rotate(${angle}deg)`;
+
+      intensityReadout.textContent =
+        `Intensity: ${intensity}%`;
+
+      dial.setAttribute("aria-valuenow", intensity);
+    }
+
+    function updateDialFromPointer(event) {
+      const rectangle = dial.getBoundingClientRect();
+
+      const centerX = rectangle.left + rectangle.width / 2;
+      const centerY = rectangle.top + rectangle.height / 2;
+
+      const dx = event.clientX - centerX;
+      const dy = event.clientY - centerY;
+
+      let angle =
+        Math.atan2(dy, dx) * 180 / Math.PI + 90;
+
+      if (angle < -180) {
+        angle += 360;
+      }
+
+      if (angle > 180) {
+        angle -= 360;
+      }
+
+      const clampedAngle = clamp(angle, -135, 135);
+      const newIntensity =
+        ((clampedAngle + 135) / 270) * 100;
+
+      setIntensity(newIntensity);
+    }
+
+    function canvasCoordinates(event) {
+      const rectangle = canvas.getBoundingClientRect();
+
+      return {
+        x:
+          (event.clientX - rectangle.left) *
+          (canvas.width / rectangle.width),
+
+        y:
+          (event.clientY - rectangle.top) *
+          (canvas.height / rectangle.height)
+      };
+    }
+
+    function pointerIsOnLamp(x, y) {
+      return (
+        x >= lampX - 65 &&
+        x <= lampX + 100 &&
+        y >= lampY - 100 &&
+        y <= 335
+      );
+    }
+
+    powerButton.addEventListener("click", function () {
+      lampOn = !lampOn;
+      updatePowerDisplay();
+    });
+
+    dial.addEventListener("pointerdown", function (event) {
+      turningDial = true;
+      dial.setPointerCapture(event.pointerId);
+      updateDialFromPointer(event);
+    });
+
+    dial.addEventListener("pointermove", function (event) {
+      if (turningDial) {
+        updateDialFromPointer(event);
+      }
+    });
+
+    dial.addEventListener("pointerup", function (event) {
+      turningDial = false;
+      dial.releasePointerCapture(event.pointerId);
+    });
+
+    dial.addEventListener("pointercancel", function () {
+      turningDial = false;
+    });
+
+    dial.addEventListener("keydown", function (event) {
+      if (
+        event.key === "ArrowRight" ||
+        event.key === "ArrowUp"
+      ) {
+        event.preventDefault();
+        setIntensity(intensity + 5);
+      }
+
+      if (
+        event.key === "ArrowLeft" ||
+        event.key === "ArrowDown"
+      ) {
+        event.preventDefault();
+        setIntensity(intensity - 5);
+      }
+    });
+
+    canvas.addEventListener("pointerdown", function (event) {
+      const point = canvasCoordinates(event);
+
+      if (pointerIsOnLamp(point.x, point.y)) {
+        draggingLamp = true;
+        canvas.setPointerCapture(event.pointerId);
+      }
+    });
+
+    canvas.addEventListener("pointermove", function (event) {
+      if (!draggingLamp) {
+        return;
+      }
+
+      const point = canvasCoordinates(event);
+
+      /*
+        Keep the lamp on the left side and prevent it from
+        overlapping the thermometer.
+      */
+      lampX = clamp(point.x - 20, 80, thermometerX - 150);
+    });
+
+    canvas.addEventListener("pointerup", function (event) {
+      draggingLamp = false;
+      canvas.releasePointerCapture(event.pointerId);
+    });
+
+    canvas.addEventListener("pointercancel", function () {
+      draggingLamp = false;
+    });
+
+    setIntensity(50);
+    updatePowerDisplay();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>

@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Energy Transfer During a Collision</title>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background: #f4f8fc;
+      margin: 0;
+      padding: 24px;
+    }
+
+    h1 {
+      margin-bottom: 8px;
+    }
+
+    .instructions {
+      max-width: 700px;
+      margin: 0 auto 18px;
+      font-size: 18px;
+      line-height: 1.4;
+    }
+
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background: white;
+      border: 3px solid #333;
+      border-radius: 10px;
+      max-width: 100%;
+    }
+
+    .controls {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      flex-wrap: wrap;
+      margin-bottom: 18px;
+    }
+
+    .control-box {
+      background: white;
+      border: 1px solid #bbb;
+      border-radius: 10px;
+      padding: 12px 18px;
+      min-width: 220px;
+    }
+
+    label {
+      display: block;
+      font-weight: bold;
+      margin-bottom: 8px;
+    }
+
+    input[type="range"] {
+      width: 200px;
+    }
+
+    button {
+      font-size: 18px;
+      padding: 10px 22px;
+      margin: 5px;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    #startButton {
+      background: #2e8b57;
+      color: white;
+    }
+
+    #resetButton {
+      background: #555;
+      color: white;
+    }
+
+    #message {
+      min-height: 52px;
+      font-size: 20px;
+      font-weight: bold;
+      margin-top: 12px;
+    }
+
+    .question {
+      max-width: 650px;
+      margin: 18px auto;
+      padding: 14px;
+      background: #fff7d6;
+      border-left: 6px solid #e0ad00;
+      text-align: left;
+      font-size: 18px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Energy Transfer During a Collision</h1>
+
+  <p class="instructions">
+    Change the starting speeds of the two spheres. Then press
+    <strong>Start Collision</strong>. Watch how each sphere changes speed
+    when the spheres collide.
+  </p>
+
+  <div class="controls">
+    <div class="control-box">
+      <label for="blueSpeed">
+        Blue sphere speed:
+        <span id="blueSpeedValue">4</span>
+      </label>
+
+      <input
+        id="blueSpeed"
+        type="range"
+        min="0"
+        max="8"
+        value="4"
+        step="1"
+      />
+    </div>
+
+    <div class="control-box">
+      <label for="orangeSpeed">
+        Orange sphere speed:
+        <span id="orangeSpeedValue">0</span>
+      </label>
+
+      <input
+        id="orangeSpeed"
+        type="range"
+        min="0"
+        max="8"
+        value="0"
+        step="1"
+      />
+    </div>
+  </div>
+
+  <button id="startButton">Start Collision</button>
+  <button id="resetButton">Reset</button>
+
+  <canvas id="canvas" width="800" height="260"></canvas>
+
+  <div id="message">
+    Make a prediction before starting the collision.
+  </div>
+
+  <div class="question">
+    <strong>Think about it:</strong>
+    How did the speed of each sphere change after each collision?
+    What evidence shows that energy was transferred?
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+
+    const blueSpeedSlider = document.getElementById("blueSpeed");
+    const orangeSpeedSlider = document.getElementById("orangeSpeed");
+
+    const blueSpeedValue = document.getElementById("blueSpeedValue");
+    const orangeSpeedValue = document.getElementById("orangeSpeedValue");
+
+    const startButton = document.getElementById("startButton");
+    const resetButton = document.getElementById("resetButton");
+    const message = document.getElementById("message");
+
+    const radius = 32;
+    const trackY = 150;
+
+    let running = false;
+    let spheresTouching = false;
+    let collisionCount = 0;
+    let animationFrameId = null;
+
+    const blueSphere = {
+      x: 140,
+      y: trackY,
+      vx: 4,
+      color: "#2676d9",
+      label: "Blue"
+    };
+
+    const orangeSphere = {
+      x: 560,
+      y: trackY,
+      vx: 0,
+      color: "#f28c28",
+      label: "Orange"
+    };
+
+    function updateSpeedLabels() {
+      blueSpeedValue.textContent = blueSpeedSlider.value;
+      orangeSpeedValue.textContent = orangeSpeedSlider.value;
+    }
+
+    function resetSimulation() {
+      running = false;
+      spheresTouching = false;
+      collisionCount = 0;
+
+      if (animationFrameId !== null) {
+        cancelAnimationFrame(animationFrameId);
+      }
+
+      blueSphere.x = 140;
+      orangeSphere.x = 560;
+
+      blueSphere.vx = Number(blueSpeedSlider.value);
+      orangeSphere.vx = -Number(orangeSpeedSlider.value);
+
+      message.textContent =
+        "Make a prediction before starting the collision.";
+
+      draw();
+    }
+
+    function drawTrack() {
+      ctx.strokeStyle = "#555";
+      ctx.lineWidth = 4;
+
+      ctx.beginPath();
+      ctx.moveTo(40, trackY + radius + 5);
+      ctx.lineTo(canvas.width - 40, trackY + radius + 5);
+      ctx.stroke();
+
+      ctx.strokeStyle = "#999";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(10, 80);
+      ctx.lineTo(10, 210);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(canvas.width - 10, 80);
+      ctx.lineTo(canvas.width - 10, 210);
+      ctx.stroke();
+    }
+
+    function drawArrow(sphere) {
+      if (Math.abs(sphere.vx) < 0.1) {
+        return;
+      }
+
+      const direction = Math.sign(sphere.vx);
+      const arrowLength = Math.abs(sphere.vx) * 10;
+      const startX = sphere.x;
+      const endX = startX + direction * arrowLength;
+      const arrowY = sphere.y - 55;
+
+      ctx.strokeStyle = "#222";
+      ctx.fillStyle = "#222";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.moveTo(startX, arrowY);
+      ctx.lineTo(endX, arrowY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(endX, arrowY);
+      ctx.lineTo(endX - direction * 10, arrowY - 6);
+      ctx.lineTo(endX - direction * 10, arrowY + 6);
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function drawSphere(sphere) {
+      ctx.beginPath();
+      ctx.arc(sphere.x, sphere.y, radius, 0, Math.PI * 2);
+      ctx.fillStyle = sphere.color;
+      ctx.fill();
+
+      ctx.strokeStyle = "#222";
+      ctx.lineWidth = 2;
+      ctx.stroke();
+
+      ctx.fillStyle = "white";
+      ctx.font = "bold 15px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "middle";
+      ctx.fillText(sphere.label, sphere.x, sphere.y);
+
+      ctx.fillStyle = "#222";
+      ctx.font = "16px Arial";
+
+      ctx.fillText(
+        "Speed: " + Math.abs(sphere.vx).toFixed(1),
+        sphere.x,
+        sphere.y + 55
+      );
+
+      drawArrow(sphere);
+    }
+
+    function drawTitle() {
+      ctx.fillStyle = "#222";
+      ctx.font = "bold 18px Arial";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "alphabetic";
+
+      ctx.fillText(
+        "Arrow length shows speed and direction",
+        canvas.width / 2,
+        28
+      );
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      drawTitle();
+      drawTrack();
+      drawSphere(blueSphere);
+      drawSphere(orangeSphere);
+    }
+
+    function getSphereDistance() {
+      return Math.abs(orangeSphere.x - blueSphere.x);
+    }
+
+    function spheresAreMovingTowardEachOther() {
+      if (blueSphere.x < orangeSphere.x) {
+        return blueSphere.vx > orangeSphere.vx;
+      }
+
+      return orangeSphere.vx > blueSphere.vx;
+    }
+
+    function separateSpheres() {
+      const minimumDistance = radius * 2;
+      const currentDistance = getSphereDistance();
+      const overlap = minimumDistance - currentDistance;
+
+      if (overlap <= 0) {
+        return;
+      }
+
+      if (blueSphere.x < orangeSphere.x) {
+        blueSphere.x -= overlap / 2;
+        orangeSphere.x += overlap / 2;
+      } else {
+        blueSphere.x += overlap / 2;
+        orangeSphere.x -= overlap / 2;
+      }
+    }
+
+    function handleSphereCollision() {
+      const distance = getSphereDistance();
+      const minimumDistance = radius * 2;
+
+      if (distance <= minimumDistance) {
+        if (!spheresTouching && spheresAreMovingTowardEachOther()) {
+          spheresTouching = true;
+          collisionCount++;
+
+          separateSpheres();
+
+          const oldBlueVelocity = blueSphere.vx;
+          blueSphere.vx = orangeSphere.vx;
+          orangeSphere.vx = oldBlueVelocity;
+
+          message.textContent =
+            "Collision " +
+            collisionCount +
+            "! The spheres changed speed and transferred energy.";
+        }
+      } else {
+        spheresTouching = false;
+      }
+    }
+
+    function keepInsideCanvas(sphere) {
+      const leftWall = 10;
+      const rightWall = canvas.width - 10;
+
+      if (sphere.x - radius <= leftWall && sphere.vx < 0) {
+        sphere.x = leftWall + radius;
+        sphere.vx *= -1;
+      }
+
+      if (sphere.x + radius >= rightWall && sphere.vx > 0) {
+        sphere.x = rightWall - radius;
+        sphere.vx *= -1;
+      }
+    }
+
+    function animate() {
+      if (!running) {
+        return;
+      }
+
+      blueSphere.x += blueSphere.vx;
+      orangeSphere.x += orangeSphere.vx;
+
+      keepInsideCanvas(blueSphere);
+      keepInsideCanvas(orangeSphere);
+      handleSphereCollision();
+
+      draw();
+
+      animationFrameId = requestAnimationFrame(animate);
+    }
+
+    startButton.addEventListener("click", function () {
+      if (running) {
+        return;
+      }
+
+      running = true;
+
+      message.textContent =
+        "Watch the arrows and speeds as the spheres collide.";
+
+      animate();
+    });
+
+    resetButton.addEventListener("click", resetSimulation);
+
+    blueSpeedSlider.addEventListener("input", function () {
+      updateSpeedLabels();
+
+      if (!running) {
+        blueSphere.vx = Number(blueSpeedSlider.value);
+        draw();
+      }
+    });
+
+    orangeSpeedSlider.addEventListener("input", function () {
+      updateSpeedLabels();
+
+      if (!running) {
+        orangeSphere.vx = -Number(orangeSpeedSlider.value);
+        draw();
+      }
+    });
+
+    updateSpeedLabels();
+    resetSimulation();
+  </script>
+</body>
+</html>
