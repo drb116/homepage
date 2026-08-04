@@ -1,0 +1,1720 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Energy Conversion Design Challenge</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      background: #eef5f8;
+      color: #20303a;
+    }
+
+    h1,
+    h2,
+    h3 {
+      margin-top: 0;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 8px;
+    }
+
+    .subtitle {
+      max-width: 900px;
+      margin: 0 auto 22px;
+      text-align: center;
+      font-size: 18px;
+      line-height: 1.45;
+    }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: minmax(260px, 340px) minmax(500px, 1fr);
+      gap: 20px;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    .panel {
+      background: white;
+      border: 2px solid #b8c8d1;
+      border-radius: 14px;
+      padding: 18px;
+      box-shadow: 0 3px 10px rgba(0, 0, 0, 0.06);
+    }
+
+    .challenge {
+      margin-bottom: 18px;
+      background: #fff8d8;
+      border-color: #e1b72c;
+    }
+
+    .challenge p {
+      line-height: 1.45;
+    }
+
+    .criteria-list {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      line-height: 1.55;
+    }
+
+    .budget-box {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      margin: 15px 0;
+      padding: 12px;
+      border-radius: 10px;
+      background: #edf7ff;
+      font-weight: bold;
+      font-size: 18px;
+    }
+
+    .over-budget {
+      color: #b42318;
+      background: #fff0ee;
+    }
+
+    .component-group {
+      margin-bottom: 18px;
+    }
+
+    .component-group h3 {
+      margin-bottom: 8px;
+      font-size: 18px;
+    }
+
+    .component-card {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      width: 100%;
+      margin: 8px 0;
+      padding: 10px 12px;
+      border: 2px solid #8fa6b2;
+      border-radius: 10px;
+      background: #f8fbfc;
+      cursor: grab;
+      user-select: none;
+    }
+
+    .component-card:hover {
+      background: #edf7fb;
+      border-color: #497c95;
+    }
+
+    .component-card:active {
+      cursor: grabbing;
+    }
+
+    .component-icon {
+      width: 42px;
+      font-size: 28px;
+      text-align: center;
+    }
+
+    .component-info {
+      flex: 1;
+    }
+
+    .component-name {
+      font-weight: bold;
+    }
+
+    .component-cost {
+      color: #526873;
+      font-size: 14px;
+      margin-top: 2px;
+    }
+
+    .workspace-panel {
+      min-height: 620px;
+    }
+
+    .instructions {
+      margin-top: -4px;
+      margin-bottom: 16px;
+      line-height: 1.45;
+    }
+
+    .design-stage {
+      position: relative;
+      min-height: 365px;
+      padding: 26px 20px 20px;
+      border: 3px dashed #9bb0bb;
+      border-radius: 14px;
+      background:
+        linear-gradient(#f9fcfd, #eef6f9);
+      overflow: hidden;
+    }
+
+    .slot-row {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(100px, 1fr));
+      gap: 16px;
+      align-items: center;
+      min-height: 190px;
+    }
+
+    .slot {
+      position: relative;
+      min-height: 145px;
+      padding: 12px;
+      border: 3px dashed #718995;
+      border-radius: 14px;
+      background: rgba(255, 255, 255, 0.85);
+      text-align: center;
+      transition: 0.2s;
+    }
+
+    .slot.drag-over {
+      background: #e0f4ff;
+      border-color: #1976a3;
+      transform: translateY(-3px);
+    }
+
+    .slot-title {
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #38505c;
+    }
+
+    .slot-placeholder {
+      margin-top: 28px;
+      color: #71838c;
+      line-height: 1.35;
+    }
+
+    .placed-component {
+      position: relative;
+      min-height: 96px;
+      padding: 8px;
+      border: 2px solid #426a7d;
+      border-radius: 10px;
+      background: white;
+    }
+
+    .placed-component .large-icon {
+      font-size: 38px;
+      margin-bottom: 4px;
+    }
+
+    .remove-button {
+      position: absolute;
+      top: -10px;
+      right: -10px;
+      width: 28px;
+      height: 28px;
+      border: none;
+      border-radius: 50%;
+      background: #b42318;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .wire {
+      position: absolute;
+      z-index: 1;
+      top: 111px;
+      height: 8px;
+      border-radius: 6px;
+      background: #6c757d;
+      opacity: 0.35;
+    }
+
+    .wire.active {
+      background: #e25822;
+      opacity: 1;
+      box-shadow: 0 0 10px #ffb347;
+    }
+
+    #wire1 {
+      left: 20%;
+      width: 11%;
+    }
+
+    #wire2 {
+      left: 44.5%;
+      width: 11%;
+    }
+
+    #wire3 {
+      left: 69%;
+      width: 11%;
+    }
+
+    .switch-control {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 14px;
+      margin-top: 18px;
+      padding: 12px;
+      border-radius: 10px;
+      background: #eaf1f4;
+    }
+
+    .switch-control button {
+      min-width: 130px;
+      padding: 10px 18px;
+      border: none;
+      border-radius: 8px;
+      background: #596b75;
+      color: white;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .switch-control button.closed {
+      background: #25834c;
+    }
+
+    .device-display {
+      min-height: 100px;
+      margin-top: 18px;
+      padding: 14px;
+      border: 2px solid #b3c3cb;
+      border-radius: 12px;
+      background: #263640;
+      color: white;
+      text-align: center;
+    }
+
+    .device-icon {
+      min-height: 55px;
+      font-size: 46px;
+      line-height: 1.1;
+    }
+
+    .glowing {
+      animation: glowPulse 0.8s infinite alternate;
+    }
+
+    .spinning {
+      display: inline-block;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .ringing {
+      display: inline-block;
+      animation: ring 0.25s infinite alternate;
+    }
+
+    @keyframes glowPulse {
+      from {
+        filter: drop-shadow(0 0 3px #fff38a);
+        transform: scale(1);
+      }
+
+      to {
+        filter: drop-shadow(0 0 18px #ffd21f);
+        transform: scale(1.08);
+      }
+    }
+
+    @keyframes spin {
+      from {
+        transform: rotate(0deg);
+      }
+
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    @keyframes ring {
+      from {
+        transform: rotate(-12deg);
+      }
+
+      to {
+        transform: rotate(12deg);
+      }
+    }
+
+    .energy-pathway {
+      margin-top: 14px;
+      padding: 13px;
+      border-radius: 10px;
+      background: #e9f5ed;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .prediction-area {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 14px;
+      margin-top: 18px;
+    }
+
+    .prediction-box {
+      padding: 13px;
+      border: 1px solid #b8c8d1;
+      border-radius: 10px;
+      background: #f8fbfc;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-weight: bold;
+    }
+
+    select,
+    textarea {
+      width: 100%;
+      padding: 9px;
+      border: 1px solid #8da0aa;
+      border-radius: 7px;
+      font: inherit;
+    }
+
+    textarea {
+      min-height: 78px;
+      resize: vertical;
+    }
+
+    .button-row {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+    }
+
+    .action-button {
+      padding: 11px 22px;
+      border: none;
+      border-radius: 9px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #testButton {
+      background: #176f9a;
+      color: white;
+    }
+
+    #saveButton {
+      background: #7b4f9d;
+      color: white;
+    }
+
+    #resetButton {
+      background: #596b75;
+      color: white;
+    }
+
+    .action-button:disabled {
+      cursor: not-allowed;
+      opacity: 0.45;
+    }
+
+    .results {
+      margin-top: 20px;
+      padding: 16px;
+      border-radius: 12px;
+      background: #f4f8fa;
+      border: 2px solid #aabcc5;
+    }
+
+    .results.hidden {
+      display: none;
+    }
+
+    .result-success {
+      border-color: #3a9960;
+      background: #effaf3;
+    }
+
+    .result-failure {
+      border-color: #ca5b4b;
+      background: #fff2ef;
+    }
+
+    .meter-row {
+      display: grid;
+      grid-template-columns: 110px 1fr 55px;
+      gap: 10px;
+      align-items: center;
+      margin: 10px 0;
+    }
+
+    .meter {
+      height: 18px;
+      overflow: hidden;
+      border-radius: 10px;
+      background: #dce5e9;
+    }
+
+    .meter-fill {
+      height: 100%;
+      width: 0;
+      background: #3084a5;
+      transition: width 0.5s;
+    }
+
+    .comparison-panel {
+      max-width: 1200px;
+      margin: 20px auto 0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 12px;
+      background: white;
+    }
+
+    th,
+    td {
+      padding: 10px;
+      border: 1px solid #aebdc5;
+      text-align: center;
+    }
+
+    th {
+      background: #dfeef5;
+    }
+
+    .reflection {
+      margin-top: 18px;
+    }
+
+    .reflection.hidden {
+      display: none;
+    }
+
+    .status-note {
+      margin-top: 12px;
+      min-height: 25px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    @media (max-width: 900px) {
+      .page-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .slot-row {
+        grid-template-columns: repeat(2, 1fr);
+      }
+
+      .wire {
+        display: none;
+      }
+
+      .prediction-area {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Energy Conversion Design Challenge</h1>
+
+  <p class="subtitle">
+    Design, test, and improve a warning device that changes electrical
+    energy into light, sound, or motion.
+  </p>
+
+  <div class="page-grid">
+    <aside>
+      <section class="panel challenge">
+        <h2>Your Challenge</h2>
+
+        <p>
+          A bicycle rider needs a warning device that other people can
+          notice. Build a device that creates a useful signal.
+        </p>
+
+        <strong>Criteria:</strong>
+
+        <ul class="criteria-list">
+          <li>The circuit must be complete.</li>
+          <li>The device must create light, sound, or motion.</li>
+          <li>The signal strength must reach at least 60.</li>
+        </ul>
+
+        <strong>Constraints:</strong>
+
+        <ul class="criteria-list">
+          <li>Use one power source.</li>
+          <li>Use one switch.</li>
+          <li>Use one output device.</li>
+          <li>Spend no more than 10 points.</li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <h2>Component Shop</h2>
+
+        <div id="budgetBox" class="budget-box">
+          <span>Budget used:</span>
+          <span><span id="budgetUsed">0</span> / 10</span>
+        </div>
+
+        <div class="component-group">
+          <h3>Power Source</h3>
+
+          <div
+            class="component-card"
+            draggable="true"
+            data-category="power"
+            data-id="smallBattery"
+          >
+            <div class="component-icon">🔋</div>
+
+            <div class="component-info">
+              <div class="component-name">Small Battery</div>
+              <div class="component-cost">
+                Cost: 2 · Power: 50
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="component-card"
+            draggable="true"
+            data-category="power"
+            data-id="largeBattery"
+          >
+            <div class="component-icon">🔋</div>
+
+            <div class="component-info">
+              <div class="component-name">Large Battery</div>
+              <div class="component-cost">
+                Cost: 4 · Power: 90
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-group">
+          <h3>Switch</h3>
+
+          <div
+            class="component-card"
+            draggable="true"
+            data-category="switch"
+            data-id="basicSwitch"
+          >
+            <div class="component-icon">🎚️</div>
+
+            <div class="component-info">
+              <div class="component-name">On/Off Switch</div>
+              <div class="component-cost">Cost: 1</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-group">
+          <h3>Output Device</h3>
+
+          <div
+            class="component-card"
+            draggable="true"
+            data-category="output"
+            data-id="bulb"
+          >
+            <div class="component-icon">💡</div>
+
+            <div class="component-info">
+              <div class="component-name">Light Bulb</div>
+              <div class="component-cost">
+                Cost: 3 · Creates light
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="component-card"
+            draggable="true"
+            data-category="output"
+            data-id="buzzer"
+          >
+            <div class="component-icon">🔔</div>
+
+            <div class="component-info">
+              <div class="component-name">Buzzer</div>
+              <div class="component-cost">
+                Cost: 3 · Creates sound
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="component-card"
+            draggable="true"
+            data-category="output"
+            data-id="motor"
+          >
+            <div class="component-icon">⚙️</div>
+
+            <div class="component-info">
+              <div class="component-name">Motor</div>
+              <div class="component-cost">
+                Cost: 3 · Creates motion
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="component-group">
+          <h3>Optional Improvement</h3>
+
+          <div
+            class="component-card"
+            draggable="true"
+            data-category="enhancement"
+            data-id="reflector"
+          >
+            <div class="component-icon">🪞</div>
+
+            <div class="component-info">
+              <div class="component-name">Light Reflector</div>
+              <div class="component-cost">
+                Cost: 2 · Makes light easier to see
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="component-card"
+            draggable="true"
+            data-category="enhancement"
+            data-id="horn"
+          >
+            <div class="component-icon">📣</div>
+
+            <div class="component-info">
+              <div class="component-name">Sound Horn</div>
+              <div class="component-cost">
+                Cost: 2 · Makes sound louder
+              </div>
+            </div>
+          </div>
+
+          <div
+            class="component-card"
+            draggable="true"
+            data-category="enhancement"
+            data-id="flag"
+          >
+            <div class="component-icon">🚩</div>
+
+            <div class="component-info">
+              <div class="component-name">Motor Flag</div>
+              <div class="component-cost">
+                Cost: 2 · Makes motion easier to see
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </aside>
+
+    <main class="panel workspace-panel">
+      <h2>Design Workspace</h2>
+
+      <p class="instructions">
+        Drag one component into each required slot. The improvement slot is
+        optional. Close the switch before testing the device.
+      </p>
+
+      <div class="design-stage">
+        <div id="wire1" class="wire"></div>
+        <div id="wire2" class="wire"></div>
+        <div id="wire3" class="wire"></div>
+
+        <div class="slot-row">
+          <div class="slot" data-slot="power">
+            <div class="slot-title">1. Power Source</div>
+            <div class="slot-content">
+              <div class="slot-placeholder">
+                Drag a battery here
+              </div>
+            </div>
+          </div>
+
+          <div class="slot" data-slot="switch">
+            <div class="slot-title">2. Switch</div>
+            <div class="slot-content">
+              <div class="slot-placeholder">
+                Drag a switch here
+              </div>
+            </div>
+          </div>
+
+          <div class="slot" data-slot="output">
+            <div class="slot-title">3. Output Device</div>
+            <div class="slot-content">
+              <div class="slot-placeholder">
+                Drag an output here
+              </div>
+            </div>
+          </div>
+
+          <div class="slot" data-slot="enhancement">
+            <div class="slot-title">4. Improvement</div>
+            <div class="slot-content">
+              <div class="slot-placeholder">
+                Optional component
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="switch-control">
+          <strong>Circuit switch:</strong>
+
+          <button id="switchButton" type="button">
+            OPEN
+          </button>
+
+          <span id="switchMessage">
+            No electricity can flow.
+          </span>
+        </div>
+
+        <div class="device-display">
+          <div id="deviceIcon" class="device-icon">⚡</div>
+
+          <div id="deviceMessage">
+            Build a device and press Test Design.
+          </div>
+        </div>
+      </div>
+
+      <div id="energyPathway" class="energy-pathway">
+        Electrical energy → Choose an output device
+      </div>
+
+      <div class="prediction-area">
+        <div class="prediction-box">
+          <label for="energyPrediction">
+            What energy output do you predict?
+          </label>
+
+          <select id="energyPrediction">
+            <option value="">Choose one</option>
+            <option value="light">Light energy</option>
+            <option value="sound">Sound energy</option>
+            <option value="motion">Motion energy</option>
+          </select>
+        </div>
+
+        <div class="prediction-box">
+          <label for="predictionReason">
+            Why do you think the device will produce that output?
+          </label>
+
+          <textarea
+            id="predictionReason"
+            placeholder="Explain your prediction..."
+          ></textarea>
+        </div>
+      </div>
+
+      <div class="button-row">
+        <button id="testButton" class="action-button" type="button">
+          Test Design
+        </button>
+
+        <button
+          id="saveButton"
+          class="action-button"
+          type="button"
+          disabled
+        >
+          Save Design
+        </button>
+
+        <button id="resetButton" class="action-button" type="button">
+          Start Over
+        </button>
+      </div>
+
+      <div id="statusNote" class="status-note"></div>
+
+      <section id="results" class="results hidden">
+        <h2>Test Results</h2>
+
+        <p id="resultSummary"></p>
+
+        <div class="meter-row">
+          <strong>Signal:</strong>
+
+          <div class="meter">
+            <div id="signalMeter" class="meter-fill"></div>
+          </div>
+
+          <span id="signalValue">0</span>
+        </div>
+
+        <div class="meter-row">
+          <strong>Power used:</strong>
+
+          <div class="meter">
+            <div id="powerMeter" class="meter-fill"></div>
+          </div>
+
+          <span id="powerValue">0</span>
+        </div>
+
+        <p id="improvementMessage"></p>
+      </section>
+    </main>
+  </div>
+
+  <section class="panel comparison-panel">
+    <h2>Design Comparison</h2>
+
+    <p>
+      Save your first tested design. Then change at least one component,
+      test the new design, and save it as your improved design.
+    </p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Design</th>
+          <th>Power Source</th>
+          <th>Output</th>
+          <th>Improvement</th>
+          <th>Cost</th>
+          <th>Signal Strength</th>
+          <th>Met Criteria?</th>
+        </tr>
+      </thead>
+
+      <tbody>
+        <tr id="firstDesignRow">
+          <td>First Design</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+        </tr>
+
+        <tr id="improvedDesignRow">
+          <td>Improved Design</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+          <td>—</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div id="reflection" class="reflection hidden">
+      <h3>Explain Your Improvement</h3>
+
+      <label for="reflectionText">
+        How did your device change energy from one form into another,
+        and what did you change to improve the design?
+      </label>
+
+      <textarea
+        id="reflectionText"
+        placeholder="My device changed electrical energy into..."
+      ></textarea>
+    </div>
+  </section>
+
+  <script>
+    "use strict";
+
+    const componentData = {
+      smallBattery: {
+        id: "smallBattery",
+        category: "power",
+        name: "Small Battery",
+        icon: "🔋",
+        cost: 2,
+        power: 50
+      },
+
+      largeBattery: {
+        id: "largeBattery",
+        category: "power",
+        name: "Large Battery",
+        icon: "🔋",
+        cost: 4,
+        power: 90
+      },
+
+      basicSwitch: {
+        id: "basicSwitch",
+        category: "switch",
+        name: "On/Off Switch",
+        icon: "🎚️",
+        cost: 1
+      },
+
+      bulb: {
+        id: "bulb",
+        category: "output",
+        name: "Light Bulb",
+        icon: "💡",
+        cost: 3,
+        energyOutput: "light",
+        baseEfficiency: 0.78
+      },
+
+      buzzer: {
+        id: "buzzer",
+        category: "output",
+        name: "Buzzer",
+        icon: "🔔",
+        cost: 3,
+        energyOutput: "sound",
+        baseEfficiency: 0.82
+      },
+
+      motor: {
+        id: "motor",
+        category: "output",
+        name: "Motor",
+        icon: "⚙️",
+        cost: 3,
+        energyOutput: "motion",
+        baseEfficiency: 0.72
+      },
+
+      reflector: {
+        id: "reflector",
+        category: "enhancement",
+        name: "Light Reflector",
+        icon: "🪞",
+        cost: 2,
+        matches: "light",
+        bonus: 25
+      },
+
+      horn: {
+        id: "horn",
+        category: "enhancement",
+        name: "Sound Horn",
+        icon: "📣",
+        cost: 2,
+        matches: "sound",
+        bonus: 25
+      },
+
+      flag: {
+        id: "flag",
+        category: "enhancement",
+        name: "Motor Flag",
+        icon: "🚩",
+        cost: 2,
+        matches: "motion",
+        bonus: 25
+      }
+    };
+
+    const design = {
+      power: null,
+      switch: null,
+      output: null,
+      enhancement: null
+    };
+
+    let switchClosed = false;
+    let lastTestResult = null;
+    let firstSavedDesign = null;
+    let improvedSavedDesign = null;
+    let draggedComponentId = null;
+
+    const slots = document.querySelectorAll(".slot");
+    const componentCards =
+      document.querySelectorAll(".component-card");
+
+    const budgetBox = document.getElementById("budgetBox");
+    const budgetUsed = document.getElementById("budgetUsed");
+
+    const switchButton = document.getElementById("switchButton");
+    const switchMessage = document.getElementById("switchMessage");
+
+    const testButton = document.getElementById("testButton");
+    const saveButton = document.getElementById("saveButton");
+    const resetButton = document.getElementById("resetButton");
+
+    const deviceIcon = document.getElementById("deviceIcon");
+    const deviceMessage = document.getElementById("deviceMessage");
+    const energyPathway =
+      document.getElementById("energyPathway");
+
+    const energyPrediction =
+      document.getElementById("energyPrediction");
+    const predictionReason =
+      document.getElementById("predictionReason");
+
+    const statusNote = document.getElementById("statusNote");
+    const results = document.getElementById("results");
+    const resultSummary =
+      document.getElementById("resultSummary");
+
+    const signalMeter = document.getElementById("signalMeter");
+    const powerMeter = document.getElementById("powerMeter");
+    const signalValue = document.getElementById("signalValue");
+    const powerValue = document.getElementById("powerValue");
+
+    const improvementMessage =
+      document.getElementById("improvementMessage");
+
+    const firstDesignRow =
+      document.getElementById("firstDesignRow");
+    const improvedDesignRow =
+      document.getElementById("improvedDesignRow");
+
+    const reflection = document.getElementById("reflection");
+
+    const wires = [
+      document.getElementById("wire1"),
+      document.getElementById("wire2"),
+      document.getElementById("wire3")
+    ];
+
+    function calculateCost() {
+      let total = 0;
+
+      for (const key of Object.keys(design)) {
+        if (design[key]) {
+          total += componentData[design[key]].cost;
+        }
+      }
+
+      return total;
+    }
+
+    function updateBudget() {
+      const total = calculateCost();
+
+      budgetUsed.textContent = total;
+      budgetBox.classList.toggle("over-budget", total > 10);
+    }
+
+    function getPlaceholder(slotName) {
+      const messages = {
+        power: "Drag a battery here",
+        switch: "Drag a switch here",
+        output: "Drag an output here",
+        enhancement: "Optional component"
+      };
+
+      return messages[slotName];
+    }
+
+    function renderSlot(slotName) {
+      const slot = document.querySelector(
+        `[data-slot="${slotName}"]`
+      );
+
+      const content = slot.querySelector(".slot-content");
+      const componentId = design[slotName];
+
+      if (!componentId) {
+        content.innerHTML = `
+          <div class="slot-placeholder">
+            ${getPlaceholder(slotName)}
+          </div>
+        `;
+
+        return;
+      }
+
+      const component = componentData[componentId];
+
+      content.innerHTML = `
+        <div class="placed-component">
+          <button
+            class="remove-button"
+            type="button"
+            aria-label="Remove ${component.name}"
+            data-remove="${slotName}"
+          >
+            ×
+          </button>
+
+          <div class="large-icon">${component.icon}</div>
+          <strong>${component.name}</strong>
+          <div>Cost: ${component.cost}</div>
+        </div>
+      `;
+
+      const removeButton =
+        content.querySelector(".remove-button");
+
+      removeButton.addEventListener("click", function () {
+        design[slotName] = null;
+
+        if (slotName === "switch") {
+          switchClosed = false;
+        }
+
+        lastTestResult = null;
+        saveButton.disabled = true;
+
+        renderAll();
+      });
+    }
+
+    function renderAll() {
+      renderSlot("power");
+      renderSlot("switch");
+      renderSlot("output");
+      renderSlot("enhancement");
+
+      updateBudget();
+      updateSwitchDisplay();
+      updateEnergyPathway();
+      updateWireDisplay();
+      resetTestDisplay();
+    }
+
+    function updateSwitchDisplay() {
+      const hasSwitch = Boolean(design.switch);
+
+      switchButton.disabled = !hasSwitch;
+      switchButton.classList.toggle(
+        "closed",
+        hasSwitch && switchClosed
+      );
+
+      if (!hasSwitch) {
+        switchButton.textContent = "NO SWITCH";
+        switchMessage.textContent =
+          "Add a switch to control the circuit.";
+      } else if (switchClosed) {
+        switchButton.textContent = "CLOSED";
+        switchMessage.textContent =
+          "The pathway is closed. Electricity can flow.";
+      } else {
+        switchButton.textContent = "OPEN";
+        switchMessage.textContent =
+          "The pathway is open. Electricity cannot flow.";
+      }
+    }
+
+    function updateEnergyPathway() {
+      if (!design.output) {
+        energyPathway.textContent =
+          "Electrical energy → Choose an output device";
+
+        return;
+      }
+
+      const output = componentData[design.output];
+      const outputLabels = {
+        light: "Light energy",
+        sound: "Sound energy",
+        motion: "Motion energy"
+      };
+
+      energyPathway.textContent =
+        `Electrical energy → ${outputLabels[output.energyOutput]}`;
+    }
+
+    function circuitIsComplete() {
+      return Boolean(
+        design.power &&
+        design.switch &&
+        design.output &&
+        switchClosed
+      );
+    }
+
+    function updateWireDisplay() {
+      const active = circuitIsComplete();
+
+      wires.forEach(function (wire) {
+        wire.classList.toggle("active", active);
+      });
+    }
+
+    function resetTestDisplay() {
+      results.classList.add("hidden");
+      results.classList.remove(
+        "result-success",
+        "result-failure"
+      );
+
+      deviceIcon.className = "device-icon";
+      deviceIcon.textContent = "⚡";
+
+      deviceMessage.textContent =
+        "Build a device and press Test Design.";
+
+      statusNote.textContent = "";
+    }
+
+    function placeComponent(componentId, slotName) {
+      const component = componentData[componentId];
+
+      if (component.category !== slotName) {
+        statusNote.textContent =
+          `${component.name} does not belong in that slot.`;
+
+        return;
+      }
+
+      design[slotName] = componentId;
+
+      if (slotName === "switch") {
+        switchClosed = false;
+      }
+
+      lastTestResult = null;
+      saveButton.disabled = true;
+
+      renderAll();
+    }
+
+    componentCards.forEach(function (card) {
+      card.addEventListener("dragstart", function () {
+        draggedComponentId = card.dataset.id;
+      });
+
+      card.addEventListener("dragend", function () {
+        draggedComponentId = null;
+      });
+    });
+
+    slots.forEach(function (slot) {
+      slot.addEventListener("dragover", function (event) {
+        event.preventDefault();
+        slot.classList.add("drag-over");
+      });
+
+      slot.addEventListener("dragleave", function () {
+        slot.classList.remove("drag-over");
+      });
+
+      slot.addEventListener("drop", function (event) {
+        event.preventDefault();
+        slot.classList.remove("drag-over");
+
+        if (!draggedComponentId) {
+          return;
+        }
+
+        placeComponent(
+          draggedComponentId,
+          slot.dataset.slot
+        );
+      });
+    });
+
+    switchButton.addEventListener("click", function () {
+      if (!design.switch) {
+        return;
+      }
+
+      switchClosed = !switchClosed;
+      lastTestResult = null;
+      saveButton.disabled = true;
+
+      updateSwitchDisplay();
+      updateWireDisplay();
+      resetTestDisplay();
+    });
+
+    function calculateSignalStrength() {
+      const power = componentData[design.power];
+      const output = componentData[design.output];
+
+      let signal = Math.round(
+        power.power * output.baseEfficiency
+      );
+
+      let enhancementWorks = false;
+
+      if (design.enhancement) {
+        const enhancement =
+          componentData[design.enhancement];
+
+        if (
+          enhancement.matches === output.energyOutput
+        ) {
+          signal += enhancement.bonus;
+          enhancementWorks = true;
+        }
+      }
+
+      signal = Math.min(signal, 100);
+
+      return {
+        signal,
+        enhancementWorks
+      };
+    }
+
+    function showDeviceAnimation(outputType, signal) {
+      const animationStrength =
+        signal >= 60 ? "strong" : "weak";
+
+      if (outputType === "light") {
+        deviceIcon.textContent = "💡";
+        deviceIcon.className =
+          "device-icon glowing";
+
+        deviceMessage.textContent =
+          animationStrength === "strong"
+            ? "The bulb produces a bright warning light."
+            : "The bulb lights, but the signal is dim.";
+      }
+
+      if (outputType === "sound") {
+        deviceIcon.textContent = "🔔";
+        deviceIcon.className =
+          "device-icon ringing";
+
+        deviceMessage.textContent =
+          animationStrength === "strong"
+            ? "The buzzer produces a loud warning sound."
+            : "The buzzer sounds, but it is difficult to hear.";
+      }
+
+      if (outputType === "motion") {
+        deviceIcon.textContent = "⚙️";
+        deviceIcon.className =
+          "device-icon spinning";
+
+        deviceMessage.textContent =
+          animationStrength === "strong"
+            ? "The motor creates easy-to-see motion."
+            : "The motor turns, but the motion is difficult to notice.";
+      }
+    }
+
+    function testDesign() {
+      statusNote.textContent = "";
+
+      if (!design.power) {
+        showFailure(
+          "The device has no power source."
+        );
+
+        return;
+      }
+
+      if (!design.switch) {
+        showFailure(
+          "The device needs a switch."
+        );
+
+        return;
+      }
+
+      if (!design.output) {
+        showFailure(
+          "The circuit has no output device."
+        );
+
+        return;
+      }
+
+      if (!switchClosed) {
+        showFailure(
+          "The switch is open, so electrical energy cannot move through the circuit."
+        );
+
+        return;
+      }
+
+      if (!energyPrediction.value) {
+        showFailure(
+          "Make an energy-output prediction before testing."
+        );
+
+        return;
+      }
+
+      if (predictionReason.value.trim().length < 5) {
+        showFailure(
+          "Explain why you made your prediction before testing."
+        );
+
+        return;
+      }
+
+      const cost = calculateCost();
+
+      if (cost > 10) {
+        showFailure(
+          "The circuit works, but it exceeds the 10-point budget."
+        );
+
+        return;
+      }
+
+      const power = componentData[design.power];
+      const output = componentData[design.output];
+      const signalResult = calculateSignalStrength();
+
+      const predictionCorrect =
+        energyPrediction.value === output.energyOutput;
+
+      const meetsCriteria =
+        signalResult.signal >= 60 &&
+        cost <= 10;
+
+      lastTestResult = {
+        powerId: design.power,
+        outputId: design.output,
+        enhancementId: design.enhancement,
+        powerName: power.name,
+        outputName: output.name,
+        enhancementName: design.enhancement
+          ? componentData[design.enhancement].name
+          : "None",
+        outputType: output.energyOutput,
+        cost,
+        signal: signalResult.signal,
+        enhancementWorks:
+          signalResult.enhancementWorks,
+        predictionCorrect,
+        meetsCriteria
+      };
+
+      results.classList.remove("hidden");
+      results.classList.toggle(
+        "result-success",
+        meetsCriteria
+      );
+
+      results.classList.toggle(
+        "result-failure",
+        !meetsCriteria
+      );
+
+      signalMeter.style.width =
+        `${signalResult.signal}%`;
+
+      powerMeter.style.width =
+        `${power.power}%`;
+
+      signalValue.textContent =
+        signalResult.signal;
+
+      powerValue.textContent =
+        power.power;
+
+      showDeviceAnimation(
+        output.energyOutput,
+        signalResult.signal
+      );
+
+      const predictionText = predictionCorrect
+        ? "Your energy-output prediction was correct."
+        : `Your prediction was not correct. The device produced ${output.energyOutput} energy.`;
+
+      if (meetsCriteria) {
+        resultSummary.textContent =
+          `Success! The device changed electrical energy into ${output.energyOutput} energy. Its signal strength was ${signalResult.signal}. ${predictionText}`;
+      } else {
+        resultSummary.textContent =
+          `The circuit worked and changed electrical energy into ${output.energyOutput} energy, but the signal strength was only ${signalResult.signal}. The design must reach 60. ${predictionText}`;
+      }
+
+      if (design.enhancement) {
+        if (signalResult.enhancementWorks) {
+          improvementMessage.textContent =
+            "The improvement matched the output device and increased the signal strength.";
+        } else {
+          improvementMessage.textContent =
+            "The improvement did not match the output device, so it did not make the signal stronger.";
+        }
+      } else {
+        improvementMessage.textContent =
+          "You did not use an optional improvement component.";
+      }
+
+      saveButton.disabled = false;
+      updateWireDisplay();
+    }
+
+    function showFailure(messageText) {
+      lastTestResult = null;
+      saveButton.disabled = true;
+
+      results.classList.remove("hidden");
+      results.classList.remove("result-success");
+      results.classList.add("result-failure");
+
+      resultSummary.textContent = messageText;
+      signalMeter.style.width = "0%";
+      powerMeter.style.width = "0%";
+      signalValue.textContent = "0";
+      powerValue.textContent = "0";
+      improvementMessage.textContent =
+        "Revise your design and test again.";
+
+      deviceIcon.className = "device-icon";
+      deviceIcon.textContent = "⚠️";
+      deviceMessage.textContent =
+        "The device did not complete the test.";
+    }
+
+    function designSignature(result) {
+      return [
+        result.powerId,
+        result.outputId,
+        result.enhancementId || "none"
+      ].join("|");
+    }
+
+    function fillComparisonRow(row, result) {
+      const cells = row.querySelectorAll("td");
+
+      cells[1].textContent = result.powerName;
+      cells[2].textContent = result.outputName;
+      cells[3].textContent = result.enhancementName;
+      cells[4].textContent = result.cost;
+      cells[5].textContent = result.signal;
+      cells[6].textContent =
+        result.meetsCriteria ? "Yes" : "No";
+    }
+
+    function saveCurrentDesign() {
+      if (!lastTestResult) {
+        return;
+      }
+
+      if (!firstSavedDesign) {
+        firstSavedDesign = {
+          ...lastTestResult
+        };
+
+        fillComparisonRow(
+          firstDesignRow,
+          firstSavedDesign
+        );
+
+        statusNote.textContent =
+          "First design saved. Change at least one component, then test and save your improved design.";
+
+        saveButton.disabled = true;
+        return;
+      }
+
+      if (
+        designSignature(lastTestResult) ===
+        designSignature(firstSavedDesign)
+      ) {
+        statusNote.textContent =
+          "Change at least one component before saving the improved design.";
+
+        return;
+      }
+
+      improvedSavedDesign = {
+        ...lastTestResult
+      };
+
+      fillComparisonRow(
+        improvedDesignRow,
+        improvedSavedDesign
+      );
+
+      reflection.classList.remove("hidden");
+
+      if (
+        improvedSavedDesign.signal >
+        firstSavedDesign.signal
+      ) {
+        statusNote.textContent =
+          `Improved design saved. The signal increased by ${
+            improvedSavedDesign.signal -
+            firstSavedDesign.signal
+          } points.`;
+      } else if (
+        improvedSavedDesign.signal ===
+        firstSavedDesign.signal
+      ) {
+        statusNote.textContent =
+          "Improved design saved. The signal stayed the same. Explain whether the redesign helped in another way.";
+      } else {
+        statusNote.textContent =
+          "Improved design saved. The signal decreased. Explain what you learned from the redesign.";
+      }
+
+      saveButton.disabled = true;
+    }
+
+    function resetEverything() {
+      design.power = null;
+      design.switch = null;
+      design.output = null;
+      design.enhancement = null;
+
+      switchClosed = false;
+      lastTestResult = null;
+      firstSavedDesign = null;
+      improvedSavedDesign = null;
+
+      energyPrediction.value = "";
+      predictionReason.value = "";
+      document.getElementById("reflectionText").value = "";
+
+      firstDesignRow.innerHTML = `
+        <td>First Design</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+      `;
+
+      improvedDesignRow.innerHTML = `
+        <td>Improved Design</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+        <td>—</td>
+      `;
+
+      reflection.classList.add("hidden");
+      saveButton.disabled = true;
+
+      renderAll();
+    }
+
+    testButton.addEventListener("click", testDesign);
+    saveButton.addEventListener("click", saveCurrentDesign);
+    resetButton.addEventListener("click", resetEverything);
+
+    renderAll();
+  </script>
+</body>
+</html>
