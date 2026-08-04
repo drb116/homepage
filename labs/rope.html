@@ -1,0 +1,907 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Rope Wave Lab</title>
+
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 24px;
+      font-family: Arial, sans-serif;
+      color: #24323a;
+      background: #eef6fa;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      text-align: center;
+    }
+
+    .introduction {
+      max-width: 850px;
+      margin: 0 auto 20px;
+      text-align: center;
+      font-size: 18px;
+      line-height: 1.45;
+    }
+
+    .lab {
+      max-width: 1050px;
+      margin: 0 auto;
+    }
+
+    .controls {
+      display: grid;
+      grid-template-columns: 1fr 1fr auto;
+      gap: 18px;
+      align-items: end;
+      margin-bottom: 18px;
+      padding: 18px;
+      border: 2px solid #b8cad4;
+      border-radius: 14px;
+      background: white;
+    }
+
+    .control-group label {
+      display: block;
+      margin-bottom: 8px;
+      font-size: 17px;
+      font-weight: bold;
+    }
+
+    .control-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    input[type="range"] {
+      width: 100%;
+    }
+
+    .value-box {
+      min-width: 70px;
+      padding: 7px 10px;
+      border: 1px solid #91a7b3;
+      border-radius: 8px;
+      background: #f5f9fb;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    button {
+      padding: 12px 22px;
+      border: none;
+      border-radius: 9px;
+      font-size: 17px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    #sendButton {
+      background: #1879a5;
+      color: white;
+    }
+
+    #sendButton:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
+    }
+
+    #resetButton {
+      margin-left: 8px;
+      background: #5b6870;
+      color: white;
+    }
+
+    .canvas-container {
+      padding: 12px;
+      border: 3px solid #344955;
+      border-radius: 14px;
+      background: white;
+    }
+
+    canvas {
+      display: block;
+      width: 100%;
+      height: auto;
+      touch-action: none;
+    }
+
+    .status {
+      min-height: 54px;
+      margin: 14px 0 0;
+      padding: 13px;
+      border-radius: 10px;
+      background: #e7f3f8;
+      text-align: center;
+      font-size: 19px;
+      font-weight: bold;
+    }
+
+    .observation-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .observation-box {
+      padding: 16px;
+      border: 2px solid #c4d2d9;
+      border-radius: 12px;
+      background: white;
+    }
+
+    .observation-box h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+
+    .observation-box p {
+      margin: 6px 0;
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    .legend {
+      display: flex;
+      justify-content: center;
+      gap: 24px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+      font-size: 15px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .legend-line {
+      width: 30px;
+      height: 5px;
+      border-radius: 4px;
+      background: #32424b;
+    }
+
+    .legend-ribbon {
+      width: 8px;
+      height: 24px;
+      border-radius: 2px;
+      background: #d53535;
+    }
+
+    .legend-pulse {
+      width: 30px;
+      height: 5px;
+      border-radius: 4px;
+      background: #1679aa;
+    }
+
+    @media (max-width: 760px) {
+      .controls {
+        grid-template-columns: 1fr;
+      }
+
+      .observation-grid {
+        grid-template-columns: 1fr;
+      }
+
+      button {
+        width: 100%;
+      }
+
+      #resetButton {
+        margin: 8px 0 0;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Rope Wave Lab</h1>
+
+  <p class="introduction">
+    Send one wave pulse along the rope. Watch the colored ribbons carefully.
+    The wave travels from one end of the rope to the other, but each ribbon
+    stays in the same horizontal location.
+  </p>
+
+  <main class="lab">
+    <section class="controls">
+      <div class="control-group">
+        <label for="amplitudeSlider">
+          Amplitude: How tall is the wave?
+        </label>
+
+        <div class="control-row">
+          <input
+            id="amplitudeSlider"
+            type="range"
+            min="20"
+            max="100"
+            value="60"
+            step="5"
+          />
+
+          <div id="amplitudeValue" class="value-box">
+            60
+          </div>
+        </div>
+      </div>
+
+      <div class="control-group">
+        <label for="wavelengthSlider">
+          Wavelength: How wide is the wave?
+        </label>
+
+        <div class="control-row">
+          <input
+            id="wavelengthSlider"
+            type="range"
+            min="100"
+            max="300"
+            value="190"
+            step="10"
+          />
+
+          <div id="wavelengthValue" class="value-box">
+            190
+          </div>
+        </div>
+      </div>
+
+      <div>
+        <button id="sendButton" type="button">
+          Send One Wave
+        </button>
+
+        <button id="resetButton" type="button">
+          Reset
+        </button>
+      </div>
+    </section>
+
+    <section class="canvas-container">
+      <canvas
+        id="waveCanvas"
+        width="1000"
+        height="460"
+        aria-label="A rope wave simulation with colored ribbons attached to the rope"
+      ></canvas>
+    </section>
+
+    <div id="status" class="status" aria-live="polite">
+      Adjust the sliders, then press “Send One Wave.”
+    </div>
+
+    <div class="legend">
+      <div class="legend-item">
+        <span class="legend-line"></span>
+        <span>Rope</span>
+      </div>
+
+      <div class="legend-item">
+        <span class="legend-ribbon"></span>
+        <span>Ribbon attached to one place</span>
+      </div>
+
+      <div class="legend-item">
+        <span class="legend-pulse"></span>
+        <span>Wave pulse traveling along the rope</span>
+      </div>
+    </div>
+
+    <section class="observation-grid">
+      <div class="observation-box">
+        <h2>Observe the Ribbons</h2>
+
+        <p>
+          Do the ribbons move from the left side of the rope to the right
+          side?
+        </p>
+
+        <p>
+          In what direction does each ribbon move when the wave reaches it?
+        </p>
+      </div>
+
+      <div class="observation-box">
+        <h2>Change the Wave</h2>
+
+        <p>
+          What changes when you increase the amplitude?
+        </p>
+
+        <p>
+          What changes when you increase the wavelength?
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    "use strict";
+
+    const canvas = document.getElementById("waveCanvas");
+    const ctx = canvas.getContext("2d");
+
+    const amplitudeSlider =
+      document.getElementById("amplitudeSlider");
+
+    const wavelengthSlider =
+      document.getElementById("wavelengthSlider");
+
+    const amplitudeValue =
+      document.getElementById("amplitudeValue");
+
+    const wavelengthValue =
+      document.getElementById("wavelengthValue");
+
+    const sendButton =
+      document.getElementById("sendButton");
+
+    const resetButton =
+      document.getElementById("resetButton");
+
+    const status =
+      document.getElementById("status");
+
+    const ropeStartX = 75;
+    const ropeEndX = 920;
+    const ropeY = 245;
+
+    const waveSpeed = 260;
+
+    const ribbonPositions = [
+      180,
+      300,
+      420,
+      540,
+      660,
+      780
+    ];
+
+    const ribbonColors = [
+      "#d83a3a",
+      "#e08b22",
+      "#188b54",
+      "#2977c7",
+      "#6d4ab5",
+      "#b33c87"
+    ];
+
+    let amplitude = Number(amplitudeSlider.value);
+    let wavelength = Number(wavelengthSlider.value);
+
+    let pulseActive = false;
+    let pulseCenter = ropeStartX - wavelength / 2;
+    let pulseDirection = 1;
+    let reflected = false;
+
+    let lastTime = performance.now();
+    let animationFrameId = null;
+
+    function clamp(value, minimum, maximum) {
+      return Math.max(minimum, Math.min(maximum, value));
+    }
+
+    /*
+      This creates one smooth pulse.
+
+      The pulse has a beginning and an end, so it is not a
+      continuously repeating wave.
+    */
+    function getPulseDisplacement(x) {
+      if (!pulseActive) {
+        return 0;
+      }
+
+      const distanceFromCenter = x - pulseCenter;
+      const halfWidth = wavelength / 2;
+
+      if (Math.abs(distanceFromCenter) > halfWidth) {
+        return 0;
+      }
+
+      const normalizedPosition =
+        distanceFromCenter / halfWidth;
+
+      /*
+        A cosine-shaped pulse begins and ends at the rope's
+        resting position.
+      */
+      const shape =
+        0.5 * (
+          1 +
+          Math.cos(
+            normalizedPosition * Math.PI
+          )
+        );
+
+      /*
+        A pulse reflecting from a fixed end flips upside down.
+      */
+      const reflectionMultiplier =
+        reflected ? -1 : 1;
+
+      return (
+        -amplitude *
+        shape *
+        reflectionMultiplier
+      );
+    }
+
+    function getRopeY(x) {
+      /*
+        The anchored endpoint must remain fixed.
+
+        This small multiplier gradually forces the displacement
+        to zero as the rope approaches the wall.
+      */
+      const distanceToAnchor = ropeEndX - x;
+      const anchorFactor = clamp(
+        distanceToAnchor / 28,
+        0,
+        1
+      );
+
+      return (
+        ropeY +
+        getPulseDisplacement(x) * anchorFactor
+      );
+    }
+
+    function drawBackground() {
+      ctx.fillStyle = "#f8fcfe";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      ctx.fillStyle = "#e2edf2";
+      ctx.fillRect(0, 365, canvas.width, 95);
+
+      ctx.strokeStyle = "#a9bbc4";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(0, 365);
+      ctx.lineTo(canvas.width, 365);
+      ctx.stroke();
+
+      ctx.setLineDash([7, 7]);
+      ctx.strokeStyle = "#a8b9c1";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(ropeStartX, ropeY);
+      ctx.lineTo(ropeEndX, ropeY);
+      ctx.stroke();
+
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#657a85";
+      ctx.font = "15px Arial";
+      ctx.textAlign = "left";
+      ctx.fillText(
+        "Rope resting position",
+        ropeStartX,
+        ropeY + 30
+      );
+    }
+
+    function drawHand() {
+      const handY = getRopeY(ropeStartX);
+
+      ctx.save();
+
+      ctx.fillStyle = "#e6b48a";
+      ctx.strokeStyle = "#815f49";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.roundRect(
+        20,
+        handY - 27,
+        58,
+        54,
+        15
+      );
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.fillStyle = "#263840";
+      ctx.font = "bold 14px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        "MOVING",
+        49,
+        handY + 5
+      );
+
+      ctx.restore();
+    }
+
+    function drawAnchor() {
+      ctx.fillStyle = "#737f85";
+      ctx.fillRect(920, 105, 28, 260);
+
+      ctx.fillStyle = "#4e5c63";
+      ctx.fillRect(948, 90, 22, 290);
+
+      ctx.strokeStyle = "#2e3c43";
+      ctx.lineWidth = 3;
+      ctx.strokeRect(920, 105, 28, 260);
+
+      ctx.beginPath();
+      ctx.arc(
+        ropeEndX,
+        ropeY,
+        10,
+        0,
+        Math.PI * 2
+      );
+
+      ctx.fillStyle = "#222f35";
+      ctx.fill();
+
+      ctx.fillStyle = "#263840";
+      ctx.font = "bold 17px Arial";
+      ctx.textAlign = "center";
+
+      ctx.fillText(
+        "FIXED END",
+        934,
+        70
+      );
+
+      ctx.font = "14px Arial";
+
+      ctx.fillText(
+        "The rope cannot move here.",
+        850,
+        405
+      );
+    }
+
+    function drawRope() {
+      ctx.save();
+
+      ctx.strokeStyle = "#2f424c";
+      ctx.lineWidth = 9;
+      ctx.lineCap = "round";
+      ctx.lineJoin = "round";
+
+      ctx.beginPath();
+
+      const step = 3;
+
+      for (
+        let x = ropeStartX;
+        x <= ropeEndX;
+        x += step
+      ) {
+        const y = getRopeY(x);
+
+        if (x === ropeStartX) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+
+      ctx.lineTo(
+        ropeEndX,
+        getRopeY(ropeEndX)
+      );
+
+      ctx.stroke();
+
+      /*
+        Add a thin highlight so the rope looks rounded.
+      */
+      ctx.strokeStyle = "#81949d";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+
+      for (
+        let x = ropeStartX;
+        x <= ropeEndX;
+        x += step
+      ) {
+        const y = getRopeY(x) - 2;
+
+        if (x === ropeStartX) {
+          ctx.moveTo(x, y);
+        } else {
+          ctx.lineTo(x, y);
+        }
+      }
+
+      ctx.stroke();
+
+      ctx.restore();
+    }
+
+    function drawRibbons() {
+      ribbonPositions.forEach(function (x, index) {
+        const y = getRopeY(x);
+        const color = ribbonColors[index];
+
+        /*
+          The x-coordinate never changes. Only the y-coordinate
+          changes with the rope.
+        */
+        ctx.fillStyle = color;
+        ctx.strokeStyle = "#3c454a";
+        ctx.lineWidth = 1.5;
+
+        ctx.beginPath();
+        ctx.moveTo(x - 6, y - 4);
+        ctx.lineTo(x + 6, y - 4);
+        ctx.lineTo(x + 8, y + 30);
+        ctx.lineTo(x, y + 23);
+        ctx.lineTo(x - 8, y + 30);
+        ctx.closePath();
+
+        ctx.fill();
+        ctx.stroke();
+
+        /*
+          A faint vertical guide makes the ribbon's fixed
+          horizontal location easier to see.
+        */
+        ctx.save();
+
+        ctx.setLineDash([4, 5]);
+        ctx.strokeStyle = color;
+        ctx.globalAlpha = 0.25;
+        ctx.lineWidth = 2;
+
+        ctx.beginPath();
+        ctx.moveTo(x, 105);
+        ctx.lineTo(x, 350);
+        ctx.stroke();
+
+        ctx.restore();
+      });
+    }
+
+    function drawLabels() {
+      ctx.fillStyle = "#263840";
+      ctx.font = "bold 18px Arial";
+      ctx.textAlign = "center";
+
+      ctx.fillText(
+        "Wave travels this direction →",
+        canvas.width / 2,
+        40
+      );
+
+      ctx.font = "15px Arial";
+
+      ctx.fillText(
+        "Each ribbon remains at the same horizontal position.",
+        canvas.width / 2,
+        435
+      );
+    }
+
+    function drawAmplitudeGuide() {
+      if (!pulseActive || reflected) {
+        return;
+      }
+
+      const guideX = clamp(
+        pulseCenter,
+        ropeStartX + 50,
+        ropeEndX - 50
+      );
+
+      const topY = ropeY - amplitude;
+
+      ctx.save();
+
+      ctx.strokeStyle = "#1679aa";
+      ctx.fillStyle = "#1679aa";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.moveTo(guideX, ropeY);
+      ctx.lineTo(guideX, topY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(guideX, topY);
+      ctx.lineTo(guideX - 6, topY + 10);
+      ctx.lineTo(guideX + 6, topY + 10);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.moveTo(guideX, ropeY);
+      ctx.lineTo(guideX - 6, ropeY - 10);
+      ctx.lineTo(guideX + 6, ropeY - 10);
+      ctx.closePath();
+      ctx.fill();
+
+      ctx.font = "bold 14px Arial";
+      ctx.textAlign = "left";
+
+      ctx.fillText(
+        "Amplitude",
+        guideX + 10,
+        ropeY - amplitude / 2
+      );
+
+      ctx.restore();
+    }
+
+    function draw() {
+      drawBackground();
+      drawLabels();
+      drawAmplitudeGuide();
+      drawHand();
+      drawAnchor();
+      drawRope();
+      drawRibbons();
+    }
+
+    function updatePulse(deltaTime) {
+      if (!pulseActive) {
+        return;
+      }
+
+      pulseCenter +=
+        waveSpeed *
+        pulseDirection *
+        deltaTime;
+
+      /*
+        When the center reaches the fixed end, the pulse
+        reverses direction and flips vertically.
+      */
+      if (
+        pulseDirection === 1 &&
+        pulseCenter >= ropeEndX
+      ) {
+        pulseCenter = ropeEndX;
+        pulseDirection = -1;
+        reflected = true;
+
+        status.textContent =
+          "The pulse reached the fixed end and reflected upside down.";
+      }
+
+      /*
+        End the trial once the reflected pulse has completely
+        left the left side of the rope.
+      */
+      if (
+        pulseDirection === -1 &&
+        pulseCenter + wavelength / 2 <
+          ropeStartX
+      ) {
+        pulseActive = false;
+        sendButton.disabled = false;
+
+        status.textContent =
+          "The trial is complete. The ribbons moved up and down, but they did not travel along the rope.";
+      }
+    }
+
+    function animate(currentTime) {
+      const deltaTime = Math.min(
+        (currentTime - lastTime) / 1000,
+        0.05
+      );
+
+      lastTime = currentTime;
+
+      updatePulse(deltaTime);
+      draw();
+
+      animationFrameId =
+        requestAnimationFrame(animate);
+    }
+
+    function sendPulse() {
+      if (pulseActive) {
+        return;
+      }
+
+      amplitude =
+        Number(amplitudeSlider.value);
+
+      wavelength =
+        Number(wavelengthSlider.value);
+
+      pulseCenter =
+        ropeStartX - wavelength / 2;
+
+      pulseDirection = 1;
+      reflected = false;
+      pulseActive = true;
+
+      sendButton.disabled = true;
+
+      status.textContent =
+        "Watch the wave move to the right. Track one colored ribbon with your eyes.";
+    }
+
+    function resetLab() {
+      pulseActive = false;
+      pulseDirection = 1;
+      reflected = false;
+
+      amplitude =
+        Number(amplitudeSlider.value);
+
+      wavelength =
+        Number(wavelengthSlider.value);
+
+      pulseCenter =
+        ropeStartX - wavelength / 2;
+
+      sendButton.disabled = false;
+
+      status.textContent =
+        "Adjust the sliders, then press “Send One Wave.”";
+
+      draw();
+    }
+
+    function updateControlLabels() {
+      amplitudeValue.textContent =
+        amplitudeSlider.value;
+
+      wavelengthValue.textContent =
+        wavelengthSlider.value;
+
+      if (!pulseActive) {
+        amplitude =
+          Number(amplitudeSlider.value);
+
+        wavelength =
+          Number(wavelengthSlider.value);
+
+        pulseCenter =
+          ropeStartX - wavelength / 2;
+
+        draw();
+      }
+    }
+
+    amplitudeSlider.addEventListener(
+      "input",
+      updateControlLabels
+    );
+
+    wavelengthSlider.addEventListener(
+      "input",
+      updateControlLabels
+    );
+
+    sendButton.addEventListener(
+      "click",
+      sendPulse
+    );
+
+    resetButton.addEventListener(
+      "click",
+      resetLab
+    );
+
+    updateControlLabels();
+    requestAnimationFrame(animate);
+  </script>
+</body>
+</html>
