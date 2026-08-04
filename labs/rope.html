@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
-  <title>Rope Wave Lab</title>
+  <title>Rope Wave Energy Lab</title>
 
   <style>
     * {
@@ -25,7 +25,7 @@
     }
 
     .introduction {
-      max-width: 850px;
+      max-width: 900px;
       margin: 0 auto 20px;
       text-align: center;
       font-size: 18px;
@@ -33,13 +33,13 @@
     }
 
     .lab {
-      max-width: 1050px;
+      max-width: 1100px;
       margin: 0 auto;
     }
 
     .controls {
       display: grid;
-      grid-template-columns: 1fr 1fr auto;
+      grid-template-columns: minmax(220px, 1fr) minmax(220px, 1fr) auto;
       gap: 18px;
       align-items: end;
       margin-bottom: 18px;
@@ -76,11 +76,17 @@
       font-weight: bold;
     }
 
+    .button-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
     button {
-      padding: 12px 22px;
+      padding: 12px 18px;
       border: none;
       border-radius: 9px;
-      font-size: 17px;
+      font-size: 16px;
       font-weight: bold;
       cursor: pointer;
     }
@@ -90,15 +96,23 @@
       color: white;
     }
 
-    #sendButton:disabled {
-      cursor: not-allowed;
-      opacity: 0.5;
+    #continuousButton {
+      background: #7b4fa1;
+      color: white;
+    }
+
+    #continuousButton.running {
+      background: #a33b36;
     }
 
     #resetButton {
-      margin-left: 8px;
       background: #5b6870;
       color: white;
+    }
+
+    button:disabled {
+      cursor: not-allowed;
+      opacity: 0.5;
     }
 
     .canvas-container {
@@ -112,43 +126,54 @@
       display: block;
       width: 100%;
       height: auto;
-      touch-action: none;
     }
 
     .status {
-      min-height: 54px;
-      margin: 14px 0 0;
+      min-height: 58px;
+      margin-top: 14px;
       padding: 13px;
       border-radius: 10px;
       background: #e7f3f8;
       text-align: center;
-      font-size: 19px;
+      font-size: 18px;
       font-weight: bold;
+      line-height: 1.4;
     }
 
-    .observation-grid {
+    .meter-panel {
       display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-      margin-top: 18px;
-    }
-
-    .observation-box {
-      padding: 16px;
+      grid-template-columns: 170px 1fr 115px;
+      gap: 12px;
+      align-items: center;
+      margin-top: 14px;
+      padding: 14px;
       border: 2px solid #c4d2d9;
       border-radius: 12px;
       background: white;
     }
 
-    .observation-box h2 {
-      margin: 0 0 10px;
-      font-size: 20px;
+    .meter-label {
+      font-weight: bold;
     }
 
-    .observation-box p {
-      margin: 6px 0;
-      font-size: 17px;
-      line-height: 1.45;
+    .meter-track {
+      height: 22px;
+      overflow: hidden;
+      border: 1px solid #8da1ab;
+      border-radius: 12px;
+      background: #e7edf0;
+    }
+
+    .meter-fill {
+      width: 0%;
+      height: 100%;
+      background: linear-gradient(90deg, #79bd4a, #f0b43c, #df573d);
+      transition: width 120ms linear;
+    }
+
+    .meter-value {
+      text-align: right;
+      font-weight: bold;
     }
 
     .legend {
@@ -180,40 +205,91 @@
       background: #d53535;
     }
 
-    .legend-pulse {
-      width: 30px;
-      height: 5px;
-      border-radius: 4px;
-      background: #1679aa;
+    .legend-pinwheel {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      background:
+        conic-gradient(
+          #db3d3d 0deg 90deg,
+          #f1b938 90deg 180deg,
+          #3c94c8 180deg 270deg,
+          #4baf68 270deg 360deg
+        );
     }
 
-    @media (max-width: 760px) {
+    .observation-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-top: 18px;
+    }
+
+    .observation-box {
+      padding: 16px;
+      border: 2px solid #c4d2d9;
+      border-radius: 12px;
+      background: white;
+    }
+
+    .observation-box h2 {
+      margin: 0 0 10px;
+      font-size: 20px;
+    }
+
+    .observation-box p {
+      margin: 7px 0;
+      font-size: 17px;
+      line-height: 1.45;
+    }
+
+    .key-idea {
+      margin-top: 18px;
+      padding: 16px;
+      border-left: 7px solid #1879a5;
+      border-radius: 10px;
+      background: #e7f3f8;
+      font-size: 18px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 850px) {
       .controls {
         grid-template-columns: 1fr;
+      }
+
+      .button-group button {
+        flex: 1 1 180px;
+      }
+    }
+
+    @media (max-width: 680px) {
+      body {
+        padding: 12px;
       }
 
       .observation-grid {
         grid-template-columns: 1fr;
       }
 
-      button {
-        width: 100%;
+      .meter-panel {
+        grid-template-columns: 1fr;
       }
 
-      #resetButton {
-        margin: 8px 0 0;
+      .meter-value {
+        text-align: left;
       }
     }
   </style>
 </head>
 
 <body>
-  <h1>Rope Wave Lab</h1>
+  <h1>Rope Wave Energy Lab</h1>
 
   <p class="introduction">
-    Send one wave pulse along the rope. Watch the colored ribbons carefully.
-    The wave travels from one end of the rope to the other, but each ribbon
-    stays in the same horizontal location.
+    Send a wave along the rope and watch what happens near the pinwheel.
+    When the wave lifts the rope beneath the paddle, the rope pushes the paddle
+    and turns the pinwheel.
   </p>
 
   <main class="lab">
@@ -248,7 +324,7 @@
           <input
             id="wavelengthSlider"
             type="range"
-            min="100"
+            min="110"
             max="300"
             value="190"
             step="10"
@@ -260,9 +336,13 @@
         </div>
       </div>
 
-      <div>
+      <div class="button-group">
         <button id="sendButton" type="button">
           Send One Wave
+        </button>
+
+        <button id="continuousButton" type="button">
+          Start Continuous Waves
         </button>
 
         <button id="resetButton" type="button">
@@ -274,15 +354,27 @@
     <section class="canvas-container">
       <canvas
         id="waveCanvas"
-        width="1000"
-        height="460"
-        aria-label="A rope wave simulation with colored ribbons attached to the rope"
+        width="1060"
+        height="500"
+        aria-label="A rope wave simulation with colored ribbons and a pinwheel target"
       ></canvas>
     </section>
 
     <div id="status" class="status" aria-live="polite">
-      Adjust the sliders, then press “Send One Wave.”
+      Adjust the sliders, then send one wave or start continuous waves.
     </div>
+
+    <section class="meter-panel" aria-label="Pinwheel motion meter">
+      <div class="meter-label">Pinwheel motion</div>
+
+      <div class="meter-track">
+        <div id="meterFill" class="meter-fill"></div>
+      </div>
+
+      <div id="meterValue" class="meter-value">
+        No motion
+      </div>
+    </section>
 
     <div class="legend">
       <div class="legend-item">
@@ -292,41 +384,47 @@
 
       <div class="legend-item">
         <span class="legend-ribbon"></span>
-        <span>Ribbon attached to one place</span>
+        <span>Ribbon fixed to one place</span>
       </div>
 
       <div class="legend-item">
-        <span class="legend-pulse"></span>
-        <span>Wave pulse traveling along the rope</span>
+        <span class="legend-pinwheel"></span>
+        <span>Pinwheel target</span>
       </div>
     </div>
 
     <section class="observation-grid">
       <div class="observation-box">
-        <h2>Observe the Ribbons</h2>
+        <h2>Track the Matter</h2>
 
         <p>
-          Do the ribbons move from the left side of the rope to the right
-          side?
+          Do any of the ribbons travel all the way to the pinwheel?
         </p>
 
         <p>
-          In what direction does each ribbon move when the wave reaches it?
+          How does each ribbon move when the wave reaches it?
         </p>
       </div>
 
       <div class="observation-box">
-        <h2>Change the Wave</h2>
+        <h2>Track the Energy</h2>
 
         <p>
-          What changes when you increase the amplitude?
+          What happens when the rising rope touches the paddle?
         </p>
 
         <p>
-          What changes when you increase the wavelength?
+          How does increasing amplitude affect the pinwheel’s motion?
         </p>
       </div>
     </section>
+
+    <div class="key-idea">
+      <strong>Key idea:</strong>
+      The rope does not travel from one end to the other. Each part moves
+      around its own position. When the wave reaches the paddle, the rope rises,
+      pushes the paddle, and transfers energy to the turning pinwheel.
+    </div>
   </main>
 
   <script>
@@ -350,25 +448,45 @@
     const sendButton =
       document.getElementById("sendButton");
 
+    const continuousButton =
+      document.getElementById("continuousButton");
+
     const resetButton =
       document.getElementById("resetButton");
 
     const status =
       document.getElementById("status");
 
+    const meterFill =
+      document.getElementById("meterFill");
+
+    const meterValue =
+      document.getElementById("meterValue");
+
     const ropeStartX = 75;
-    const ropeEndX = 920;
-    const ropeY = 245;
+    const ropeEndX = 885;
+    const ropeY = 255;
 
     const waveSpeed = 260;
 
+    const pinwheelX = 955;
+    const pinwheelY = 185;
+    const pinwheelRadius = 46;
+
+    /*
+      The rope passes beneath a small paddle attached to the
+      pinwheel. When the rope rises, it pushes the paddle.
+    */
+    const contactX = 850;
+    const paddleRestY = ropeY - 8;
+
     const ribbonPositions = [
-      180,
-      300,
-      420,
-      540,
-      660,
-      780
+      170,
+      285,
+      400,
+      515,
+      630,
+      745
     ];
 
     const ribbonColors = [
@@ -380,57 +498,76 @@
       "#b33c87"
     ];
 
-    let amplitude = Number(amplitudeSlider.value);
-    let wavelength = Number(wavelengthSlider.value);
+    let amplitude =
+      Number(amplitudeSlider.value);
 
-    let pulseActive = false;
-    let pulseCenter = ropeStartX - wavelength / 2;
-    let pulseDirection = 1;
-    let reflected = false;
-
-    let lastTime = performance.now();
-    let animationFrameId = null;
-
-    function clamp(value, minimum, maximum) {
-      return Math.max(minimum, Math.min(maximum, value));
-    }
+    let wavelength =
+      Number(wavelengthSlider.value);
 
     /*
-      This creates one smooth pulse.
-
-      The pulse has a beginning and an end, so it is not a
-      continuously repeating wave.
+      mode can be:
+      "stopped"
+      "pulse"
+      "continuous"
     */
+    let mode = "stopped";
+
+    let pulseCenter =
+      ropeStartX - wavelength / 2;
+
+    let pulseDirection = 1;
+    let reflected = false;
+    let continuousTime = 0;
+
+    /*
+      The pinwheel does not spin until wave energy reaches
+      the target. Its angular speed gradually slows because
+      of simple simulated friction.
+    */
+    let pinwheelAngle = 0;
+    let pinwheelAngularSpeed = 0;
+    let targetMotionLevel = 0;
+    let targetTriggeredThisPulse = false;
+
+    let lastTime = performance.now();
+
+    function clamp(value, minimum, maximum) {
+      return Math.max(
+        minimum,
+        Math.min(maximum, value)
+      );
+    }
+
     function getPulseDisplacement(x) {
-      if (!pulseActive) {
+      if (mode !== "pulse") {
         return 0;
       }
 
-      const distanceFromCenter = x - pulseCenter;
-      const halfWidth = wavelength / 2;
+      const distanceFromCenter =
+        x - pulseCenter;
 
-      if (Math.abs(distanceFromCenter) > halfWidth) {
+      const halfWidth =
+        wavelength / 2;
+
+      if (
+        Math.abs(distanceFromCenter) >
+        halfWidth
+      ) {
         return 0;
       }
 
       const normalizedPosition =
         distanceFromCenter / halfWidth;
 
-      /*
-        A cosine-shaped pulse begins and ends at the rope's
-        resting position.
-      */
       const shape =
-        0.5 * (
+        0.5 *
+        (
           1 +
           Math.cos(
             normalizedPosition * Math.PI
           )
         );
 
-      /*
-        A pulse reflecting from a fixed end flips upside down.
-      */
       const reflectionMultiplier =
         reflected ? -1 : 1;
 
@@ -441,14 +578,57 @@
       );
     }
 
-    function getRopeY(x) {
-      /*
-        The anchored endpoint must remain fixed.
+    function getContinuousDisplacement(x) {
+      if (mode !== "continuous") {
+        return 0;
+      }
 
-        This small multiplier gradually forces the displacement
-        to zero as the rope approaches the wall.
-      */
-      const distanceToAnchor = ropeEndX - x;
+      const waveNumber =
+        (2 * Math.PI) / wavelength;
+
+      const angularSpeed =
+        waveSpeed * waveNumber;
+
+      const phase =
+        waveNumber * (x - ropeStartX) -
+        angularSpeed * continuousTime;
+
+      const sourceFade = clamp(
+        (x - ropeStartX) / 30,
+        0,
+        1
+      );
+
+      const anchorFade = clamp(
+        (ropeEndX - x) / 34,
+        0,
+        1
+      );
+
+      return (
+        amplitude *
+        Math.sin(phase) *
+        sourceFade *
+        anchorFade
+      );
+    }
+
+    function getRopeY(x) {
+      let displacement = 0;
+
+      if (mode === "pulse") {
+        displacement =
+          getPulseDisplacement(x);
+      }
+
+      if (mode === "continuous") {
+        displacement =
+          getContinuousDisplacement(x);
+      }
+
+      const distanceToAnchor =
+        ropeEndX - x;
+
       const anchorFactor = clamp(
         distanceToAnchor / 28,
         0,
@@ -457,28 +637,37 @@
 
       return (
         ropeY +
-        getPulseDisplacement(x) * anchorFactor
+        displacement * anchorFactor
       );
     }
 
     function drawBackground() {
       ctx.fillStyle = "#f8fcfe";
-      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillRect(
+        0,
+        0,
+        canvas.width,
+        canvas.height
+      );
 
       ctx.fillStyle = "#e2edf2";
-      ctx.fillRect(0, 365, canvas.width, 95);
+      ctx.fillRect(
+        0,
+        385,
+        canvas.width,
+        115
+      );
 
       ctx.strokeStyle = "#a9bbc4";
       ctx.lineWidth = 2;
 
       ctx.beginPath();
-      ctx.moveTo(0, 365);
-      ctx.lineTo(canvas.width, 365);
+      ctx.moveTo(0, 385);
+      ctx.lineTo(canvas.width, 385);
       ctx.stroke();
 
       ctx.setLineDash([7, 7]);
       ctx.strokeStyle = "#a8b9c1";
-      ctx.lineWidth = 2;
 
       ctx.beginPath();
       ctx.moveTo(ropeStartX, ropeY);
@@ -490,15 +679,17 @@
       ctx.fillStyle = "#657a85";
       ctx.font = "15px Arial";
       ctx.textAlign = "left";
+
       ctx.fillText(
         "Rope resting position",
         ropeStartX,
-        ropeY + 30
+        ropeY + 32
       );
     }
 
     function drawHand() {
-      const handY = getRopeY(ropeStartX);
+      const handY =
+        getRopeY(ropeStartX);
 
       ctx.save();
 
@@ -508,39 +699,63 @@
 
       ctx.beginPath();
       ctx.roundRect(
-        20,
+        18,
         handY - 27,
-        58,
+        60,
         54,
         15
       );
+
       ctx.fill();
       ctx.stroke();
 
       ctx.fillStyle = "#263840";
-      ctx.font = "bold 14px Arial";
+      ctx.font = "bold 13px Arial";
       ctx.textAlign = "center";
+
       ctx.fillText(
-        "MOVING",
-        49,
+        mode === "stopped"
+          ? "READY"
+          : "MOVING",
+        48,
         handY + 5
       );
 
       ctx.restore();
     }
 
-    function drawAnchor() {
+    function drawAnchorAndConnector() {
+      /*
+        The wall still anchors the rope at its far end.
+      */
       ctx.fillStyle = "#737f85";
-      ctx.fillRect(920, 105, 28, 260);
+      ctx.fillRect(
+        ropeEndX,
+        115,
+        26,
+        270
+      );
 
       ctx.fillStyle = "#4e5c63";
-      ctx.fillRect(948, 90, 22, 290);
+      ctx.fillRect(
+        ropeEndX + 26,
+        100,
+        20,
+        300
+      );
 
       ctx.strokeStyle = "#2e3c43";
       ctx.lineWidth = 3;
-      ctx.strokeRect(920, 105, 28, 260);
+
+      ctx.strokeRect(
+        ropeEndX,
+        115,
+        26,
+        270
+      );
 
       ctx.beginPath();
+
       ctx.arc(
         ropeEndX,
         ropeY,
@@ -553,21 +768,118 @@
       ctx.fill();
 
       ctx.fillStyle = "#263840";
-      ctx.font = "bold 17px Arial";
+      ctx.font = "bold 15px Arial";
       ctx.textAlign = "center";
 
       ctx.fillText(
         "FIXED END",
-        934,
-        70
+        ropeEndX + 13,
+        88
+      );
+    }
+
+    function drawDrivePaddle() {
+      /*
+        This paddle is visibly attached to the pinwheel axle.
+        Its lower tip sits just above the rope.
+      */
+      const ropeContactY =
+        getRopeY(contactX);
+
+      const amountPushed = clamp(
+        paddleRestY - ropeContactY,
+        0,
+        44
       );
 
+      const paddleAngle =
+        -0.18 - amountPushed * 0.012;
+
+      ctx.save();
+
+      ctx.translate(
+        pinwheelX,
+        pinwheelY
+      );
+
+      ctx.rotate(paddleAngle);
+
+      ctx.strokeStyle = "#7d5a36";
+      ctx.lineWidth = 10;
+      ctx.lineCap = "round";
+
+      ctx.beginPath();
+      ctx.moveTo(0, 0);
+      ctx.lineTo(
+        contactX - pinwheelX,
+        paddleRestY - pinwheelY
+      );
+      ctx.stroke();
+
+      ctx.fillStyle = "#d99b42";
+      ctx.strokeStyle = "#5f472e";
+      ctx.lineWidth = 2;
+
+      ctx.beginPath();
+      ctx.roundRect(
+        contactX - pinwheelX - 15,
+        paddleRestY - pinwheelY - 8,
+        30,
+        16,
+        5
+      );
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.restore();
+
+      /*
+        Highlight the instant of contact so students can see
+        exactly when the rope pushes the paddle.
+      */
+      if (amountPushed > 2) {
+        ctx.save();
+
+        ctx.strokeStyle = "#e08b22";
+        ctx.fillStyle = "#e08b22";
+        ctx.lineWidth = 3;
+
+        ctx.beginPath();
+        ctx.arc(
+          contactX,
+          ropeContactY - 5,
+          15 + amountPushed * 0.15,
+          0,
+          Math.PI * 2
+        );
+        ctx.stroke();
+
+        ctx.font = "bold 15px Arial";
+        ctx.textAlign = "center";
+
+        ctx.fillText(
+          "PUSH!",
+          contactX,
+          ropeContactY - 28
+        );
+
+        ctx.restore();
+      }
+
+      ctx.fillStyle = "#263840";
       ctx.font = "14px Arial";
+      ctx.textAlign = "center";
 
       ctx.fillText(
-        "The rope cannot move here.",
-        850,
+        "The rising rope pushes",
+        814,
         405
+      );
+
+      ctx.fillText(
+        "the paddle.",
+        814,
+        423
       );
     }
 
@@ -604,9 +916,6 @@
 
       ctx.stroke();
 
-      /*
-        Add a thin highlight so the rope looks rounded.
-      */
       ctx.strokeStyle = "#81949d";
       ctx.lineWidth = 2;
 
@@ -617,7 +926,8 @@
         x <= ropeEndX;
         x += step
       ) {
-        const y = getRopeY(x) - 2;
+        const y =
+          getRopeY(x) - 2;
 
         if (x === ropeStartX) {
           ctx.moveTo(x, y);
@@ -627,52 +937,160 @@
       }
 
       ctx.stroke();
-
       ctx.restore();
     }
 
     function drawRibbons() {
-      ribbonPositions.forEach(function (x, index) {
-        const y = getRopeY(x);
-        const color = ribbonColors[index];
+      ribbonPositions.forEach(
+        function (x, index) {
+          const y = getRopeY(x);
+          const color =
+            ribbonColors[index];
 
-        /*
-          The x-coordinate never changes. Only the y-coordinate
-          changes with the rope.
-        */
-        ctx.fillStyle = color;
-        ctx.strokeStyle = "#3c454a";
-        ctx.lineWidth = 1.5;
+          ctx.fillStyle = color;
+          ctx.strokeStyle = "#3c454a";
+          ctx.lineWidth = 1.5;
+
+          ctx.beginPath();
+          ctx.moveTo(x - 6, y - 4);
+          ctx.lineTo(x + 6, y - 4);
+          ctx.lineTo(x + 8, y + 30);
+          ctx.lineTo(x, y + 23);
+          ctx.lineTo(x - 8, y + 30);
+          ctx.closePath();
+
+          ctx.fill();
+          ctx.stroke();
+
+          ctx.save();
+
+          ctx.setLineDash([4, 5]);
+          ctx.strokeStyle = color;
+          ctx.globalAlpha = 0.24;
+          ctx.lineWidth = 2;
+
+          ctx.beginPath();
+          ctx.moveTo(x, 105);
+          ctx.lineTo(x, 365);
+          ctx.stroke();
+
+          ctx.restore();
+        }
+      );
+    }
+
+    function drawPinwheel() {
+      ctx.save();
+
+      ctx.translate(
+        pinwheelX,
+        pinwheelY
+      );
+
+      ctx.rotate(pinwheelAngle);
+
+      const bladeColors = [
+        "#db3d3d",
+        "#f1b938",
+        "#3c94c8",
+        "#4baf68"
+      ];
+
+      for (
+        let blade = 0;
+        blade < 4;
+        blade += 1
+      ) {
+        ctx.save();
+        ctx.rotate(
+          blade * Math.PI / 2
+        );
+
+        ctx.fillStyle =
+          bladeColors[blade];
+
+        ctx.strokeStyle = "#37464e";
+        ctx.lineWidth = 2;
 
         ctx.beginPath();
-        ctx.moveTo(x - 6, y - 4);
-        ctx.lineTo(x + 6, y - 4);
-        ctx.lineTo(x + 8, y + 30);
-        ctx.lineTo(x, y + 23);
-        ctx.lineTo(x - 8, y + 30);
+        ctx.moveTo(0, 0);
+        ctx.lineTo(
+          pinwheelRadius,
+          -10
+        );
+        ctx.quadraticCurveTo(
+          pinwheelRadius - 8,
+          -pinwheelRadius + 8,
+          7,
+          -pinwheelRadius
+        );
         ctx.closePath();
 
         ctx.fill();
         ctx.stroke();
 
-        /*
-          A faint vertical guide makes the ribbon's fixed
-          horizontal location easier to see.
-        */
-        ctx.save();
-
-        ctx.setLineDash([4, 5]);
-        ctx.strokeStyle = color;
-        ctx.globalAlpha = 0.25;
-        ctx.lineWidth = 2;
-
-        ctx.beginPath();
-        ctx.moveTo(x, 105);
-        ctx.lineTo(x, 350);
-        ctx.stroke();
-
         ctx.restore();
-      });
+      }
+
+      ctx.fillStyle = "#f4f5f6";
+      ctx.strokeStyle = "#37464e";
+      ctx.lineWidth = 3;
+
+      ctx.beginPath();
+      ctx.arc(
+        0,
+        0,
+        9,
+        0,
+        Math.PI * 2
+      );
+      ctx.fill();
+      ctx.stroke();
+
+      ctx.restore();
+
+      /*
+        Draw the stand after the rotating blades so it remains
+        visually stable.
+      */
+      ctx.strokeStyle = "#6c563f";
+      ctx.lineWidth = 8;
+      ctx.lineCap = "round";
+
+      ctx.beginPath();
+      ctx.moveTo(
+        pinwheelX,
+        pinwheelY + 8
+      );
+      ctx.lineTo(
+        pinwheelX,
+        382
+      );
+      ctx.stroke();
+
+      ctx.fillStyle = "#80674d";
+      ctx.fillRect(
+        pinwheelX - 38,
+        378,
+        76,
+        10
+      );
+
+      ctx.fillStyle = "#263840";
+      ctx.font = "14px Arial";
+      ctx.textAlign = "center";
+
+      ctx.fillText(
+        "Wave energy makes",
+        pinwheelX,
+        425
+      );
+
+      ctx.fillText(
+        "the pinwheel turn.",
+        pinwheelX,
+        444
+      );
     }
 
     function drawLabels() {
@@ -682,32 +1100,26 @@
 
       ctx.fillText(
         "Wave travels this direction →",
-        canvas.width / 2,
+        485,
         40
       );
 
       ctx.font = "15px Arial";
 
       ctx.fillText(
-        "Each ribbon remains at the same horizontal position.",
-        canvas.width / 2,
-        435
+        "Ribbons move up and down in place.",
+        485,
+        475
       );
     }
 
-    function drawAmplitudeGuide() {
-      if (!pulseActive || reflected) {
-        return;
-      }
-
-      const guideX = clamp(
-        pulseCenter,
-        ropeStartX + 50,
-        ropeEndX - 50
-      );
-
-      const topY = ropeY - amplitude;
-
+    function drawDoubleArrow(
+      x1,
+      y1,
+      x2,
+      y2,
+      label
+    ) {
       ctx.save();
 
       ctx.strokeStyle = "#1679aa";
@@ -715,48 +1127,232 @@
       ctx.lineWidth = 2;
 
       ctx.beginPath();
-      ctx.moveTo(guideX, ropeY);
-      ctx.lineTo(guideX, topY);
+      ctx.moveTo(x1, y1);
+      ctx.lineTo(x2, y2);
       ctx.stroke();
 
-      ctx.beginPath();
-      ctx.moveTo(guideX, topY);
-      ctx.lineTo(guideX - 6, topY + 10);
-      ctx.lineTo(guideX + 6, topY + 10);
-      ctx.closePath();
-      ctx.fill();
+      function arrowHead(
+        x,
+        y,
+        angle
+      ) {
+        const size = 8;
 
-      ctx.beginPath();
-      ctx.moveTo(guideX, ropeY);
-      ctx.lineTo(guideX - 6, ropeY - 10);
-      ctx.lineTo(guideX + 6, ropeY - 10);
-      ctx.closePath();
-      ctx.fill();
+        ctx.beginPath();
+        ctx.moveTo(x, y);
+
+        ctx.lineTo(
+          x -
+            Math.cos(
+              angle - 0.65
+            ) *
+            size,
+          y -
+            Math.sin(
+              angle - 0.65
+            ) *
+            size
+        );
+
+        ctx.lineTo(
+          x -
+            Math.cos(
+              angle + 0.65
+            ) *
+            size,
+          y -
+            Math.sin(
+              angle + 0.65
+            ) *
+            size
+        );
+
+        ctx.closePath();
+        ctx.fill();
+      }
+
+      const angle =
+        Math.atan2(
+          y2 - y1,
+          x2 - x1
+        );
+
+      arrowHead(x2, y2, angle);
+      arrowHead(
+        x1,
+        y1,
+        angle + Math.PI
+      );
 
       ctx.font = "bold 14px Arial";
-      ctx.textAlign = "left";
+      ctx.textAlign = "center";
 
       ctx.fillText(
-        "Amplitude",
-        guideX + 10,
-        ropeY - amplitude / 2
+        label,
+        (x1 + x2) / 2,
+        (y1 + y2) / 2 - 10
       );
 
       ctx.restore();
     }
 
+    function getVisibleCrestX() {
+      const phaseDistance =
+        waveSpeed * continuousTime;
+
+      let crestX =
+        ropeStartX +
+        (
+          phaseDistance +
+          wavelength / 4
+        ) %
+        wavelength;
+
+      while (
+        crestX <
+        ropeStartX + 90
+      ) {
+        crestX += wavelength;
+      }
+
+      if (
+        crestX >
+        ropeEndX - 90
+      ) {
+        crestX -= wavelength;
+      }
+
+      return crestX;
+    }
+
+    function drawAmplitudeGuide() {
+      if (mode === "stopped") {
+        return;
+      }
+
+      let guideX;
+
+      if (mode === "pulse") {
+        guideX = clamp(
+          pulseCenter,
+          ropeStartX + 60,
+          ropeEndX - 60
+        );
+      } else {
+        guideX = getVisibleCrestX();
+      }
+
+      const waveY =
+        getRopeY(guideX);
+
+      drawDoubleArrow(
+        guideX,
+        ropeY,
+        guideX,
+        waveY,
+        "Amplitude"
+      );
+    }
+
+    function drawWavelengthGuide() {
+      if (mode !== "continuous") {
+        return;
+      }
+
+      let crest1 =
+        getVisibleCrestX();
+
+      let crest2 =
+        crest1 + wavelength;
+
+      if (
+        crest2 >
+        ropeEndX - 55
+      ) {
+        crest1 -= wavelength;
+        crest2 -= wavelength;
+      }
+
+      const guideY = 105;
+
+      ctx.save();
+
+      ctx.setLineDash([4, 4]);
+      ctx.strokeStyle = "#1679aa";
+      ctx.globalAlpha = 0.65;
+
+      ctx.beginPath();
+
+      ctx.moveTo(
+        crest1,
+        guideY
+      );
+
+      ctx.lineTo(
+        crest1,
+        getRopeY(crest1)
+      );
+
+      ctx.moveTo(
+        crest2,
+        guideY
+      );
+
+      ctx.lineTo(
+        crest2,
+        getRopeY(crest2)
+      );
+
+      ctx.stroke();
+      ctx.restore();
+
+      drawDoubleArrow(
+        crest1,
+        guideY,
+        crest2,
+        guideY,
+        "Wavelength"
+      );
+    }
+
     function draw() {
       drawBackground();
       drawLabels();
-      drawAmplitudeGuide();
       drawHand();
-      drawAnchor();
+      drawAnchorAndConnector();
       drawRope();
       drawRibbons();
+      drawDrivePaddle();
+      drawPinwheel();
+      drawAmplitudeGuide();
+      drawWavelengthGuide();
+    }
+
+    function triggerPinwheel(strength) {
+      const normalizedStrength =
+        clamp(strength / 100, 0, 1);
+
+      /*
+        A larger-amplitude pulse adds more angular speed.
+      */
+      pinwheelAngularSpeed +=
+        3.2 + normalizedStrength * 10;
+
+      pinwheelAngularSpeed =
+        Math.min(
+          pinwheelAngularSpeed,
+          14
+        );
+
+      targetMotionLevel =
+        Math.max(
+          targetMotionLevel,
+          normalizedStrength
+        );
     }
 
     function updatePulse(deltaTime) {
-      if (!pulseActive) {
+      if (mode !== "pulse") {
         return;
       }
 
@@ -766,9 +1362,24 @@
         deltaTime;
 
       /*
-        When the center reaches the fixed end, the pulse
-        reverses direction and flips vertically.
+        Trigger the wheel only when the rope at the paddle
+        rises far enough to make visible contact.
       */
+      const contactLift =
+        ropeY - getRopeY(contactX);
+
+      if (
+        !targetTriggeredThisPulse &&
+        pulseDirection === 1 &&
+        contactLift > 10
+      ) {
+        targetTriggeredThisPulse = true;
+        triggerPinwheel(amplitude);
+
+        status.textContent =
+          "The rising rope pushed the paddle, and the paddle turned the pinwheel.";
+      }
+
       if (
         pulseDirection === 1 &&
         pulseCenter >= ropeEndX
@@ -776,25 +1387,129 @@
         pulseCenter = ropeEndX;
         pulseDirection = -1;
         reflected = true;
-
-        status.textContent =
-          "The pulse reached the fixed end and reflected upside down.";
       }
 
-      /*
-        End the trial once the reflected pulse has completely
-        left the left side of the rope.
-      */
       if (
         pulseDirection === -1 &&
         pulseCenter + wavelength / 2 <
           ropeStartX
       ) {
-        pulseActive = false;
+        mode = "stopped";
+
         sendButton.disabled = false;
+        continuousButton.disabled = false;
 
         status.textContent =
-          "The trial is complete. The ribbons moved up and down, but they did not travel along the rope.";
+          "Trial complete. Compare the pinwheel motion with a different amplitude.";
+      }
+    }
+
+    function updateContinuous(deltaTime) {
+      if (mode !== "continuous") {
+        return;
+      }
+
+      continuousTime += deltaTime;
+
+      /*
+        In continuous mode, each upward motion of the rope at
+        the contact point pushes the paddle. The stronger the
+        upward motion, the larger the turning effect.
+      */
+      const contactLift =
+        ropeY - getRopeY(contactX);
+
+      if (contactLift > 4) {
+        const pushStrength =
+          clamp(
+            contactLift / Math.max(amplitude, 1),
+            0,
+            1
+          );
+
+        pinwheelAngularSpeed +=
+          pushStrength *
+          deltaTime *
+          (
+            12 +
+            amplitude * 0.13
+          );
+
+        pinwheelAngularSpeed =
+          Math.min(
+            pinwheelAngularSpeed,
+            14
+          );
+
+        targetMotionLevel =
+          Math.max(
+            targetMotionLevel,
+            amplitude / 100
+          );
+      }
+
+      /*
+        Friction slows the wheel between pushes.
+      */
+      pinwheelAngularSpeed *=
+        Math.pow(
+          0.72,
+          deltaTime
+        );
+    }
+
+    function updatePinwheel(deltaTime) {
+      pinwheelAngle +=
+        pinwheelAngularSpeed *
+        deltaTime;
+
+      if (mode !== "continuous") {
+        /*
+          Simulated friction gradually slows the pinwheel.
+        */
+        pinwheelAngularSpeed *=
+          Math.pow(
+            0.35,
+            deltaTime
+          );
+
+        targetMotionLevel *=
+          Math.pow(
+            0.18,
+            deltaTime
+          );
+
+        if (
+          Math.abs(
+            pinwheelAngularSpeed
+          ) < 0.02
+        ) {
+          pinwheelAngularSpeed = 0;
+        }
+      }
+
+      const motionPercent =
+        clamp(
+          targetMotionLevel * 100,
+          0,
+          100
+        );
+
+      meterFill.style.width =
+        motionPercent.toFixed(0) + "%";
+
+      if (motionPercent < 5) {
+        meterValue.textContent =
+          "No motion";
+      } else if (motionPercent < 40) {
+        meterValue.textContent =
+          "Small motion";
+      } else if (motionPercent < 75) {
+        meterValue.textContent =
+          "Medium motion";
+      } else {
+        meterValue.textContent =
+          "Large motion";
       }
     }
 
@@ -807,14 +1522,15 @@
       lastTime = currentTime;
 
       updatePulse(deltaTime);
+      updateContinuous(deltaTime);
+      updatePinwheel(deltaTime);
       draw();
 
-      animationFrameId =
-        requestAnimationFrame(animate);
+      requestAnimationFrame(animate);
     }
 
     function sendPulse() {
-      if (pulseActive) {
+      if (mode !== "stopped") {
         return;
       }
 
@@ -829,18 +1545,67 @@
 
       pulseDirection = 1;
       reflected = false;
-      pulseActive = true;
+      targetTriggeredThisPulse = false;
+      mode = "pulse";
+
+      sendButton.disabled = true;
+      continuousButton.disabled = true;
+
+      status.textContent =
+        "Watch the single wave travel. Predict how much the pinwheel will turn when the wave reaches it.";
+    }
+
+    function toggleContinuousWaves() {
+      if (mode === "pulse") {
+        return;
+      }
+
+      if (mode === "continuous") {
+        mode = "stopped";
+
+        continuousButton.textContent =
+          "Start Continuous Waves";
+
+        continuousButton.classList.remove(
+          "running"
+        );
+
+        sendButton.disabled = false;
+
+        status.textContent =
+          "Continuous waves stopped. The pinwheel will gradually slow down.";
+
+        return;
+      }
+
+      amplitude =
+        Number(amplitudeSlider.value);
+
+      wavelength =
+        Number(wavelengthSlider.value);
+
+      continuousTime = 0;
+      mode = "continuous";
 
       sendButton.disabled = true;
 
+      continuousButton.textContent =
+        "Stop Continuous Waves";
+
+      continuousButton.classList.add(
+        "running"
+      );
+
       status.textContent =
-        "Watch the wave move to the right. Track one colored ribbon with your eyes.";
+        "Continuous waves keep transferring energy to the pinwheel. Change the amplitude and observe the pinwheel motion.";
     }
 
     function resetLab() {
-      pulseActive = false;
+      mode = "stopped";
+
       pulseDirection = 1;
       reflected = false;
+      continuousTime = 0;
 
       amplitude =
         Number(amplitudeSlider.value);
@@ -851,10 +1616,23 @@
       pulseCenter =
         ropeStartX - wavelength / 2;
 
+      pinwheelAngle = 0;
+      pinwheelAngularSpeed = 0;
+      targetMotionLevel = 0;
+      targetTriggeredThisPulse = false;
+
       sendButton.disabled = false;
+      continuousButton.disabled = false;
+
+      continuousButton.textContent =
+        "Start Continuous Waves";
+
+      continuousButton.classList.remove(
+        "running"
+      );
 
       status.textContent =
-        "Adjust the sliders, then press “Send One Wave.”";
+        "Adjust the sliders, then send one wave or start continuous waves.";
 
       draw();
     }
@@ -866,18 +1644,23 @@
       wavelengthValue.textContent =
         wavelengthSlider.value;
 
-      if (!pulseActive) {
-        amplitude =
-          Number(amplitudeSlider.value);
+      amplitude =
+        Number(amplitudeSlider.value);
 
-        wavelength =
-          Number(wavelengthSlider.value);
+      wavelength =
+        Number(wavelengthSlider.value);
 
+      if (mode === "stopped") {
         pulseCenter =
           ropeStartX - wavelength / 2;
-
-        draw();
       }
+
+      if (mode === "continuous") {
+        status.textContent =
+          "The wave settings changed. Observe how amplitude affects the pinwheel and wavelength changes the spacing between crests.";
+      }
+
+      draw();
     }
 
     amplitudeSlider.addEventListener(
@@ -893,6 +1676,11 @@
     sendButton.addEventListener(
       "click",
       sendPulse
+    );
+
+    continuousButton.addEventListener(
+      "click",
+      toggleContinuousWaves
     );
 
     resetButton.addEventListener(
