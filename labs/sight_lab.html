@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Animal Vision Lab: Rods and Cones</title>
+  <style>
+    :root {
+      --panel: #ffffff;
+      --ink: #1f2937;
+      --muted: #5f6b7a;
+      --line: #d7dde5;
+      --accent: #2563eb;
+      --accent-soft: #eaf2ff;
+      --good: #157347;
+      --shadow: 0 12px 28px rgba(26, 42, 72, 0.12);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(180deg, #eef6ff 0%, #f8fbff 100%);
+    }
+
+    header {
+      padding: 24px 20px 14px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 8px;
+      font-size: clamp(1.8rem, 4vw, 2.7rem);
+    }
+
+    header p {
+      max-width: 800px;
+      margin: 0 auto;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    main {
+      width: min(1180px, calc(100% - 28px));
+      margin: 0 auto 36px;
+    }
+
+    .lab-grid {
+      display: grid;
+      grid-template-columns: minmax(270px, 360px) minmax(0, 1fr);
+      gap: 20px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+    }
+
+    .controls {
+      padding: 20px;
+      position: sticky;
+      top: 12px;
+    }
+
+    h2 {
+      margin: 0 0 8px;
+      font-size: 1.25rem;
+    }
+
+    .help {
+      color: var(--muted);
+      font-size: 0.92rem;
+      line-height: 1.45;
+      margin: 0 0 18px;
+    }
+
+    .control {
+      margin: 18px 0;
+    }
+
+    .control-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+
+    .control label {
+      font-weight: 700;
+    }
+
+    .value-pill {
+      min-width: 58px;
+      text-align: center;
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: var(--accent-soft);
+      color: #174ea6;
+      font-weight: 700;
+    }
+
+    input[type="range"] {
+      width: 100%;
+      accent-color: var(--accent);
+    }
+
+    select {
+      width: 100%;
+      padding: 10px 12px;
+      border: 1px solid #bfc9d6;
+      border-radius: 10px;
+      font: inherit;
+      background: white;
+    }
+
+    .mini-note {
+      font-size: 0.82rem;
+      color: var(--muted);
+      margin-top: 6px;
+      line-height: 1.35;
+    }
+
+    .scene-panel {
+      overflow: hidden;
+    }
+
+    .scene-heading {
+      padding: 18px 20px 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+
+    .scene-heading p {
+      margin: 3px 0 0;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .time-badge {
+      background: var(--accent-soft);
+      color: #174ea6;
+      border-radius: 999px;
+      padding: 7px 12px;
+      font-weight: 700;
+    }
+
+    .scene-wrap {
+      padding: 0 16px 14px;
+    }
+
+    .scene-frame {
+      border-radius: 16px;
+      overflow: hidden;
+      border: 1px solid #c5cfda;
+      background: #d8e8f5;
+    }
+
+    svg {
+      display: block;
+      width: 100%;
+      height: auto;
+    }
+
+    .results {
+      padding: 0 18px 18px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .result {
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 12px;
+      background: #fbfdff;
+    }
+
+    .result small {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 4px;
+    }
+
+    .result strong {
+      font-size: 1.15rem;
+    }
+
+    .explanation {
+      margin-top: 20px;
+      padding: 20px;
+    }
+
+    .explanation-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 22px;
+    }
+
+    .animal-summary {
+      background: var(--accent-soft);
+      border-left: 5px solid var(--accent);
+      border-radius: 12px;
+      padding: 16px;
+      line-height: 1.5;
+    }
+
+    .animal-summary h3 {
+      margin: 0 0 6px;
+    }
+
+    ol {
+      margin: 8px 0 0;
+      padding-left: 22px;
+      line-height: 1.55;
+    }
+
+    .model-note {
+      margin: 18px 0 0;
+      color: var(--muted);
+      font-size: 0.86rem;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 860px) {
+      .lab-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .controls {
+        position: static;
+      }
+
+      .results {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .explanation-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Animal Vision Lab</h1>
+    <p>
+      Explore how eyes that emphasize dim-light sensors or color-detail sensors
+      might change what an animal can notice.
+    </p>
+  </header>
+
+  <main>
+    <section class="lab-grid">
+      <aside class="panel controls">
+        <h2>Build an Eye</h2>
+        <p class="help">
+          The 1–4 ratings are classroom models, not actual counts of rods and cones.
+        </p>
+
+        <div class="control">
+          <label for="animal">Animal example</label>
+          <select id="animal">
+            <option value="human">Human</option>
+            <option value="deer">White-tailed deer</option>
+            <option value="owl">Barn owl</option>
+            <option value="cat">Domestic cat</option>
+            <option value="eagle">Eagle</option>
+            <option value="custom">Custom eye</option>
+          </select>
+        </div>
+
+        <div class="control">
+          <div class="control-row">
+            <label for="rods">Dim-light sensors</label>
+            <span class="value-pill" id="rodValue">2 / 4</span>
+          </div>
+          <input id="rods" type="range" min="1" max="4" value="2" step="1" />
+          <div class="mini-note">
+            More dim-light sensors help detect faint shapes and movement.
+          </div>
+        </div>
+
+        <div class="control">
+          <div class="control-row">
+            <label for="cones">Color-detail sensors</label>
+            <span class="value-pill" id="coneValue">4 / 4</span>
+          </div>
+          <input id="cones" type="range" min="1" max="4" value="4" step="1" />
+          <div class="mini-note">
+            More color-detail sensors improve color and fine detail in bright light.
+          </div>
+        </div>
+
+        <div class="control">
+          <div class="control-row">
+            <label for="light">Light level</label>
+            <span class="value-pill" id="lightValue">Daylight</span>
+          </div>
+          <input id="light" type="range" min="1" max="4" value="4" step="1" />
+          <div class="mini-note">
+            Compare starlight, moonlight, twilight, and daylight.
+          </div>
+        </div>
+      </aside>
+
+      <section class="panel scene-panel">
+        <div class="scene-heading">
+          <div>
+            <h2>Neighborhood Scene</h2>
+            <p>The simulation exaggerates differences so they are easy to observe.</p>
+          </div>
+          <div class="time-badge" id="timeBadge">Daylight</div>
+        </div>
+
+        <div class="scene-wrap">
+          <div class="scene-frame">
+            <svg viewBox="0 0 960 560" role="img" aria-label="A house, yard, trees, flowers, fence, rabbit, and bird viewed under changing light and vision settings">
+              <defs>
+                <linearGradient id="skyDay" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#6fc4ff"/>
+                  <stop offset="100%" stop-color="#d9f1ff"/>
+                </linearGradient>
+                <linearGradient id="grassGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#74b95a"/>
+                  <stop offset="100%" stop-color="#3f7f3d"/>
+                </linearGradient>
+                <linearGradient id="houseWall" x1="0" y1="0" x2="1" y2="1">
+                  <stop offset="0%" stop-color="#f1d1a3"/>
+                  <stop offset="100%" stop-color="#dcae72"/>
+                </linearGradient>
+                <filter id="visionBlur" color-interpolation-filters="sRGB">
+                  <feGaussianBlur id="blurAmount" stdDeviation="0" result="blurred"/>
+                  <feColorMatrix
+                    id="colorMatrix"
+                    in="blurred"
+                    type="matrix"
+                    values="1 0 0 0 0
+                            0 1 0 0 0
+                            0 0 1 0 0
+                            0 0 0 1 0"/>
+                </filter>
+                <filter id="softShadow" x="-20%" y="-20%" width="140%" height="140%">
+                  <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#172033" flood-opacity="0.22"/>
+                </filter>
+              </defs>
+
+              <g id="colorScene" filter="url(#visionBlur)">
+                <rect id="sky" width="960" height="560" fill="url(#skyDay)"/>
+                <circle id="sun" cx="820" cy="88" r="42" fill="#ffd65a"/>
+                <circle id="moon" cx="820" cy="88" r="32" fill="#f5f0d6" opacity="0"/>
+
+                <g id="clouds" fill="#ffffff" opacity="0.86">
+                  <ellipse cx="180" cy="95" rx="72" ry="28"/>
+                  <ellipse cx="135" cy="105" rx="46" ry="24"/>
+                  <ellipse cx="224" cy="110" rx="50" ry="25"/>
+                  <ellipse cx="605" cy="84" rx="62" ry="23"/>
+                  <ellipse cx="570" cy="95" rx="39" ry="20"/>
+                  <ellipse cx="640" cy="98" rx="42" ry="21"/>
+                </g>
+
+                <path d="M0 325 C130 270 250 315 390 268 C530 220 680 280 960 220 L960 560 L0 560 Z" fill="#6d9a5b"/>
+                <rect y="360" width="960" height="200" fill="url(#grassGrad)"/>
+
+                <path d="M0 460 C180 420 310 462 470 432 C640 400 760 440 960 410 L960 560 L0 560 Z" fill="#4b8d45" opacity="0.8"/>
+
+                <g filter="url(#softShadow)">
+                  <rect x="285" y="215" width="370" height="205" rx="4" fill="url(#houseWall)"/>
+                  <polygon points="250,230 470,95 690,230" fill="#894d3b"/>
+                  <polygon points="286,220 470,112 654,220" fill="#a85c48"/>
+                  <rect x="430" y="300" width="82" height="120" fill="#70472e"/>
+                  <circle cx="493" cy="362" r="5" fill="#e8c26a"/>
+
+                  <rect x="330" y="270" width="78" height="70" rx="3" fill="#dff2ff" stroke="#775d43" stroke-width="8"/>
+                  <line x1="369" y1="274" x2="369" y2="336" stroke="#775d43" stroke-width="5"/>
+                  <line x1="334" y1="305" x2="404" y2="305" stroke="#775d43" stroke-width="5"/>
+
+                  <rect x="535" y="270" width="78" height="70" rx="3" fill="#dff2ff" stroke="#775d43" stroke-width="8"/>
+                  <line x1="574" y1="274" x2="574" y2="336" stroke="#775d43" stroke-width="5"/>
+                  <line x1="539" y1="305" x2="609" y2="305" stroke="#775d43" stroke-width="5"/>
+
+                  <rect x="322" y="182" width="44" height="58" fill="#8e5841"/>
+                  <rect x="318" y="174" width="52" height="12" fill="#6d4232"/>
+                </g>
+
+                <path d="M448 420 L495 420 L555 560 L385 560 Z" fill="#c7b9a6"/>
+
+                <g id="fence" fill="#eee4cf" stroke="#b7a98f" stroke-width="3">
+                  <rect x="0" y="397" width="960" height="13"/>
+                  <rect x="0" y="450" width="960" height="13"/>
+                  <g>
+                    <path d="M35 365 L55 385 L55 490 L15 490 L15 385 Z"/>
+                    <path d="M115 365 L135 385 L135 490 L95 490 L95 385 Z"/>
+                    <path d="M195 365 L215 385 L215 490 L175 490 L175 385 Z"/>
+                    <path d="M715 365 L735 385 L735 490 L695 490 L695 385 Z"/>
+                    <path d="M795 365 L815 385 L815 490 L775 490 L775 385 Z"/>
+                    <path d="M875 365 L895 385 L895 490 L855 490 L855 385 Z"/>
+                  </g>
+                </g>
+
+                <g id="leftTree">
+                  <rect x="88" y="195" width="50" height="205" rx="8" fill="#7a4d2b"/>
+                  <circle cx="112" cy="150" r="95" fill="#4f9848"/>
+                  <circle cx="54" cy="188" r="62" fill="#5ba754"/>
+                  <circle cx="166" cy="190" r="70" fill="#438d43"/>
+                  <circle cx="112" cy="95" r="60" fill="#63ad58"/>
+                </g>
+
+                <g id="rightTree">
+                  <rect x="790" y="210" width="42" height="180" rx="7" fill="#79502f"/>
+                  <circle cx="810" cy="174" r="86" fill="#4e9348"/>
+                  <circle cx="752" cy="208" r="58" fill="#5ba653"/>
+                  <circle cx="862" cy="210" r="62" fill="#438b42"/>
+                </g>
+
+                <g id="flowers">
+                  <g transform="translate(248 466)">
+                    <path d="M0 0 v42" stroke="#2c7039" stroke-width="5"/>
+                    <circle cx="0" cy="-2" r="12" fill="#f04b61"/>
+                    <circle cx="-12" cy="7" r="10" fill="#ffcf50"/>
+                    <circle cx="12" cy="7" r="10" fill="#845ec2"/>
+                  </g>
+                  <g transform="translate(680 472)">
+                    <path d="M0 0 v40" stroke="#2c7039" stroke-width="5"/>
+                    <circle cx="0" cy="-4" r="12" fill="#ff8f3d"/>
+                    <circle cx="-13" cy="6" r="10" fill="#f04b61"/>
+                    <circle cx="13" cy="6" r="10" fill="#ffcf50"/>
+                  </g>
+                  <g transform="translate(735 500)">
+                    <path d="M0 0 v26" stroke="#2c7039" stroke-width="5"/>
+                    <circle cx="0" cy="-4" r="10" fill="#845ec2"/>
+                  </g>
+                </g>
+
+                <g id="rabbit" transform="translate(585 438)">
+                  <ellipse cx="42" cy="45" rx="52" ry="31" fill="#bfae9d" stroke="#665c54" stroke-width="3"/>
+                  <circle cx="86" cy="28" r="25" fill="#c9b8a7" stroke="#665c54" stroke-width="3"/>
+                  <ellipse cx="74" cy="-5" rx="10" ry="34" transform="rotate(-10 74 -5)" fill="#c9b8a7" stroke="#665c54" stroke-width="3"/>
+                  <ellipse cx="94" cy="-4" rx="10" ry="35" transform="rotate(8 94 -4)" fill="#c9b8a7" stroke="#665c54" stroke-width="3"/>
+                  <circle cx="93" cy="22" r="4.5" fill="#222"/>
+                  <circle cx="-5" cy="42" r="16" fill="#f2eee9" stroke="#665c54" stroke-width="3"/>
+                </g>
+
+                <g id="bird" transform="translate(183 215)">
+                  <ellipse cx="0" cy="0" rx="23" ry="16" fill="#2f6da4"/>
+                  <circle cx="20" cy="-7" r="11" fill="#3c83bf"/>
+                  <polygon points="30,-7 45,-2 31,2" fill="#e2a52f"/>
+                  <circle cx="23" cy="-10" r="2.5" fill="#111"/>
+                  <path d="M-8 12 l-9 24 M4 12 l-3 24" stroke="#43372a" stroke-width="3"/>
+                </g>
+
+                <g id="stars" fill="#fff8d6" opacity="0">
+                  <circle cx="120" cy="70" r="2.8"/>
+                  <circle cx="255" cy="115" r="2.5"/>
+                  <circle cx="390" cy="58" r="3"/>
+                  <circle cx="535" cy="120" r="2.5"/>
+                  <circle cx="690" cy="60" r="2.8"/>
+                  <circle cx="910" cy="135" r="2.4"/>
+                </g>
+              </g>
+
+              <rect id="nightOverlay" width="960" height="560" fill="#101a33" opacity="0"/>
+              <rect id="grayOverlay" width="960" height="560" fill="#8d95a0" opacity="0" style="mix-blend-mode:saturation"/>
+            </svg>
+          </div>
+        </div>
+
+        <div class="results">
+          <div class="result"><small>Dim-light vision</small><strong id="nightResult">Fair</strong></div>
+          <div class="result"><small>Color vision</small><strong id="colorResult">Strong</strong></div>
+          <div class="result"><small>Fine detail</small><strong id="detailResult">Strong</strong></div>
+          <div class="result"><small>Movement detection</small><strong id="motionResult">Good</strong></div>
+        </div>
+      </section>
+    </section>
+
+    <section class="panel explanation">
+      <div class="explanation-grid">
+        <div class="animal-summary" aria-live="polite">
+          <h3 id="animalTitle">Human Vision</h3>
+          <div id="animalSummary">
+            Humans are especially good at seeing color and fine detail in daylight.
+            In darkness, we can eventually see shapes, but colors become difficult to identify.
+          </div>
+        </div>
+
+        <div>
+          <h2>Try These</h2>
+          <ol>
+            <li>Choose “Barn owl,” then move from daylight to starlight.</li>
+            <li>Compare an eagle and a deer at twilight.</li>
+            <li>Set cones to 1 and rods to 4. What information becomes easier or harder to detect?</li>
+          </ol>
+        </div>
+      </div>
+
+      <p class="model-note">
+        <strong>Model note:</strong> Real vision depends on much more than the number of rods and cones.
+        Eye size, pupil shape, reflective tissues, receptor arrangement, and brain processing also matter.
+        The animal ratings here are simplified teaching categories.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    const presets = {
+      human: {
+        rods: 2,
+        cones: 4,
+        title: "Human Vision",
+        summary: "Humans are especially good at seeing color and fine detail in daylight. In darkness, we can eventually see shapes, but colors become difficult to identify."
+      },
+      deer: {
+        rods: 4,
+        cones: 2,
+        title: "White-tailed Deer Vision",
+        summary: "Deer are well suited to detecting movement in dim dawn and dusk light. Their color vision is limited: blues and yellowish colors stand out better, while reds, oranges, greens, and browns can look more alike."
+      },
+      owl: {
+        rods: 4,
+        cones: 1,
+        title: "Barn Owl Vision",
+        summary: "Barn owls have eyes strongly adapted for low light. Their vision emphasizes faint shapes and movement more than rich color."
+      },
+      cat: {
+        rods: 4,
+        cones: 2,
+        title: "Domestic Cat Vision",
+        summary: "Cats gather light efficiently and detect movement well in dim conditions. They see some colors, but not as richly as humans."
+      },
+      eagle: {
+        rods: 2,
+        cones: 4,
+        title: "Eagle Vision",
+        summary: "Eagles are daylight hunters with excellent visual detail and strong color vision. Their eyes help them identify small targets from far away."
+      }
+    };
+
+    const labels = ["Low", "Fair", "Good", "Strong"];
+    const lightLabels = ["Starlight", "Moonlight", "Twilight", "Daylight"];
+
+    const animal = document.getElementById("animal");
+    const rods = document.getElementById("rods");
+    const cones = document.getElementById("cones");
+    const light = document.getElementById("light");
+
+    function labelFor(value) {
+      const n = Math.max(1, Math.min(4, Math.round(value)));
+      return labels[n - 1];
+    }
+
+    function setCustomText() {
+      document.getElementById("animalTitle").textContent = "Custom Eye";
+      document.getElementById("animalSummary").textContent =
+        "You created a model eye. Test it at several light levels and describe what advantages and disadvantages it might give an animal.";
+    }
+
+    function updateScene() {
+      const r = Number(rods.value);
+      const c = Number(cones.value);
+      const l = Number(light.value);
+
+      document.getElementById("rodValue").textContent = `${r} / 4`;
+      document.getElementById("coneValue").textContent = `${c} / 4`;
+      document.getElementById("lightValue").textContent = lightLabels[l - 1];
+      document.getElementById("timeBadge").textContent = lightLabels[l - 1];
+
+      const darkness = (4 - l) / 3;
+
+      // Low-light vision becomes strongly dependent on dim-light sensors.
+      // At starlight:
+      //   level 1 is nearly black,
+      //   level 2 shows only vague large shapes,
+      //   levels 3–4 reveal progressively more of the scene.
+      const rodNightVisibility = {
+        1: 0.02,
+        2: 0.13,
+        3: 0.34,
+        4: 0.56
+      }[r];
+
+      let nightOpacity;
+      if (l === 1) {
+        nightOpacity = 0.98 - rodNightVisibility;
+      } else if (l === 2) {
+        nightOpacity = 0.77 - rodNightVisibility * 0.62;
+      } else if (l === 3) {
+        nightOpacity = 0.38 - rodNightVisibility * 0.22;
+      } else {
+        nightOpacity = 0.03;
+      }
+
+      nightOpacity = Math.max(0.02, Math.min(0.98, nightOpacity));
+
+      const blur = Math.max(
+        0,
+        (4 - c) * 0.75 +
+        darkness * (4 - r) * 1.15 +
+        (l === 1 ? (4 - r) * 0.55 : 0)
+      );
+
+      // Cones and available light work together. At cone level 1, even daylight
+      // is strongly muted. At night, nearly all settings approach grayscale.
+      const coneColor = (c - 1) / 3;
+      const lightColor = (l - 1) / 3;
+      let saturation = Math.max(0.03, Math.min(1, coneColor * (0.30 + 0.70 * lightColor)));
+
+      // Standard saturation matrix.
+      const lr = 0.2126;
+      const lg = 0.7152;
+      const lb = 0.0722;
+      const inv = 1 - saturation;
+
+      let matrix = [
+        inv * lr + saturation, inv * lg,              inv * lb,              0, 0,
+        inv * lr,              inv * lg + saturation, inv * lb,              0, 0,
+        inv * lr,              inv * lg,              inv * lb + saturation, 0, 0,
+        0,                     0,                     0,                     1, 0
+      ];
+
+      // Deer are modeled as dichromatic. This intentionally compresses
+      // red-green differences while keeping blue and yellow information clearer.
+      if (animal.value === "deer") {
+        const deerMix = [
+          0.48, 0.48, 0.04, 0, 0,
+          0.44, 0.50, 0.06, 0, 0,
+          0.08, 0.18, 0.74, 0, 0,
+          0,    0,    0,    1, 0
+        ];
+
+        const sat = matrix;
+        const mixed = new Array(20).fill(0);
+
+        for (let row = 0; row < 4; row++) {
+          for (let col = 0; col < 5; col++) {
+            if (col === 4) {
+              mixed[row * 5 + col] = deerMix[row * 5 + 4];
+            } else {
+              let sum = 0;
+              for (let k = 0; k < 4; k++) {
+                sum += deerMix[row * 5 + k] * sat[k * 5 + col];
+              }
+              mixed[row * 5 + col] = sum;
+            }
+          }
+        }
+        matrix = mixed;
+      }
+
+      document.getElementById("nightOverlay").setAttribute("opacity", nightOpacity.toFixed(2));
+      // Keep this overlay off; color is now handled by the SVG matrix.
+      document.getElementById("grayOverlay").setAttribute("opacity", "0");
+      document.getElementById("blurAmount").setAttribute("stdDeviation", blur.toFixed(2));
+      document.getElementById("colorMatrix").setAttribute(
+        "values",
+        matrix.map(value => value.toFixed(4)).join(" ")
+      );
+      document.getElementById("sun").setAttribute("opacity", l >= 3 ? "1" : "0");
+      document.getElementById("moon").setAttribute("opacity", l <= 2 ? "1" : "0");
+      document.getElementById("stars").setAttribute("opacity", l === 1 ? "0.72" : "0");
+      document.getElementById("clouds").setAttribute("opacity", l === 1 ? "0.15" : "0.86");
+
+      const nightScore = r * 0.82 + l * 0.18;
+      const colorScore = c * 0.84 + l * 0.16;
+      const detailScore = c * 0.72 + l * 0.28;
+      const motionScore = r * 0.60 + c * 0.12 + l * 0.28;
+
+      document.getElementById("nightResult").textContent = labelFor(nightScore);
+      document.getElementById("colorResult").textContent = labelFor(colorScore);
+      document.getElementById("detailResult").textContent = labelFor(detailScore);
+      document.getElementById("motionResult").textContent = labelFor(motionScore);
+    }
+
+    function applyAnimal() {
+      if (animal.value === "custom") {
+        setCustomText();
+        updateScene();
+        return;
+      }
+
+      const preset = presets[animal.value];
+      rods.value = preset.rods;
+      cones.value = preset.cones;
+      document.getElementById("animalTitle").textContent = preset.title;
+      document.getElementById("animalSummary").textContent = preset.summary;
+      updateScene();
+    }
+
+    [rods, cones].forEach(slider => {
+      slider.addEventListener("input", () => {
+        animal.value = "custom";
+        setCustomText();
+        updateScene();
+      });
+    });
+
+    light.addEventListener("input", updateScene);
+    animal.addEventListener("change", applyAnimal);
+
+    applyAnimal();
+  </script>
+</body>
+</html>
