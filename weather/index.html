@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Official tropical, coastal, and severe-weather information for Florida's Space Coast.">
+  <title>Space Coast StormWatch | DavidB.xyz</title>
+  <link rel="icon" href="/favicon.ico" sizes="any">
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/weather/weather.css">
+</head>
+<body>
+  <main class="page-shell weather-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="DavidB.xyz home">
+        <span class="brand-mark">&lt;/&gt;</span><span>DavidB.xyz</span>
+      </a>
+      <a class="back-link" href="/">← Back home</a>
+    </header>
+
+    <section class="hero weather-hero" aria-labelledby="page-title">
+      <p class="eyebrow">Space Coast severe weather</p>
+      <h1 id="page-title">Storm<span class="title-dot">.</span>Watch</h1>
+      <p class="subtitle"><strong>Official tropical, coastal, and warning information for Brevard County.</strong> Focused on developing threats, ocean conditions, and what has changed—not the everyday forecast.</p>
+      <div class="update-strip" aria-live="polite">
+        <span class="live-dot"></span><span id="dashboard-status">Loading official data…</span>
+        <button id="refresh-button" class="refresh-button" type="button">Refresh</button>
+      </div>
+    </section>
+
+    <section class="weather-grid" aria-label="Space Coast severe weather dashboard">
+      <article class="weather-panel alerts-panel">
+        <div class="panel-heading">
+          <div><p class="panel-kicker">Brevard County &amp; coastal waters</p><h2>Active alerts</h2></div>
+          <span id="alert-count" class="count-pill">—</span>
+        </div>
+        <div id="alerts-list" class="alerts-list"><div class="loading-card">Checking NWS alerts…</div></div>
+      </article>
+
+      <article class="weather-panel ocean-panel">
+        <div class="panel-heading">
+          <div><p class="panel-kicker">NOAA buoy 41009</p><h2>Offshore conditions</h2></div>
+          <a class="source-link" href="https://www.ndbc.noaa.gov/station_page.php?station=41009" target="_blank" rel="noopener">NOAA ↗</a>
+        </div>
+        <div id="buoy-data" class="metric-grid">
+          <div class="metric"><span class="metric-value">—</span><span class="metric-label">Wave height</span></div>
+          <div class="metric"><span class="metric-value">—</span><span class="metric-label">Wave period</span></div>
+          <div class="metric"><span class="metric-value">—</span><span class="metric-label">Wind</span></div>
+          <div class="metric"><span class="metric-value">—</span><span class="metric-label">Water temp</span></div>
+        </div>
+        <p id="buoy-time" class="data-note">Loading latest observation…</p>
+      </article>
+
+      <article class="weather-panel resources-panel">
+        <div class="panel-heading"><div><p class="panel-kicker">Official storm products</p><h2>Threat resources</h2></div></div>
+        <div class="resource-grid">
+          <a href="https://www.nhc.noaa.gov/" target="_blank" rel="noopener"><span class="resource-icon">🌀</span><span><strong>Active tropical systems</strong><small>Advisories, tracks, cones, and wind fields</small></span></a>
+          <a href="https://www.nhc.noaa.gov/arrival.shtml" target="_blank" rel="noopener"><span class="resource-icon">⏱</span><span><strong>Wind arrival time</strong><small>Earliest reasonable arrival of tropical-storm-force winds</small></span></a>
+          <a href="https://www.nhc.noaa.gov/surge/" target="_blank" rel="noopener"><span class="resource-icon">🌊</span><span><strong>Storm surge</strong><small>Official inundation and surge products</small></span></a>
+          <a href="https://www.weather.gov/mlb/" target="_blank" rel="noopener"><span class="resource-icon">⚠</span><span><strong>NWS Melbourne</strong><small>Local briefings and Space Coast impact information</small></span></a>
+        </div>
+      </article>
+
+      <article class="weather-panel outlook-panel">
+        <div class="panel-heading">
+          <div><p class="panel-kicker">National Hurricane Center</p><h2>Atlantic 7-day outlook</h2></div>
+          <a class="source-link" href="https://www.nhc.noaa.gov/gtwo.php?basin=atlc&fdays=7" target="_blank" rel="noopener">Official outlook ↗</a>
+        </div>
+        <a class="outlook-image-link" href="https://www.nhc.noaa.gov/gtwo.php?basin=atlc&fdays=7" target="_blank" rel="noopener">
+          <img id="outlook-image" class="outlook-image" src="https://www.nhc.noaa.gov/xgtwo/two_atl_7d0.png" alt="National Hurricane Center Atlantic seven-day tropical weather outlook">
+        </a>
+        <p class="data-note">The outlook highlights areas with potential tropical cyclone formation during the next seven days.</p>
+      </article>
+    </section>
+
+    <aside class="safety-note"><strong>Use official instructions during dangerous weather.</strong> This dashboard summarizes government data but does not replace NWS warnings, NHC advisories, evacuation orders, or emergency alerts.</aside>
+
+    <footer><span>DavidB.xyz · Space Coast StormWatch</span><span id="footer-update" class="status">Waiting for data</span></footer>
+  </main>
+  <script src="/weather/weather.js" defer></script>
+</body>
+</html>
