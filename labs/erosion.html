@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Coastal Erosion Lab</title>
+<style>
+  :root{
+    --bg:#f3f7fb;
+    --panel:#ffffff;
+    --ink:#183047;
+    --muted:#60758a;
+    --line:#c9d7e5;
+    --accent:#246b9f;
+    --accent2:#e8f3fb;
+    --danger:#b83d2f;
+    --sand:#e5cf91;
+    --grass:#9fca78;
+    --ocean:#79bddd;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  header{
+    background:#173f5f;
+    color:white;
+    padding:18px 22px;
+  }
+  header h1{margin:0 0 4px;font-size:1.7rem}
+  header p{margin:0;opacity:.9}
+  main{
+    display:grid;
+    grid-template-columns:minmax(0, 1.55fr) minmax(300px, .8fr);
+    gap:16px;
+    padding:16px;
+    max-width:1400px;
+    margin:auto;
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--line);
+    border-radius:14px;
+    padding:14px;
+    box-shadow:0 3px 10px rgba(20,50,75,.07);
+  }
+  .scene-wrap{position:relative}
+  canvas{
+    width:100%;
+    aspect-ratio:16/10;
+    display:block;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:#dff0fa;
+    cursor:crosshair;
+  }
+  .legend{
+    display:flex;
+    flex-wrap:wrap;
+    gap:12px;
+    margin-top:10px;
+    color:var(--muted);
+    font-size:.92rem;
+  }
+  .swatch{display:inline-block;width:15px;height:15px;border-radius:3px;vertical-align:-2px;margin-right:5px}
+  h2{font-size:1.15rem;margin:0 0 10px}
+  h3{font-size:1rem;margin:16px 0 8px}
+  .controls{display:grid;grid-template-columns:1fr;gap:8px}
+  button{
+    border:0;
+    border-radius:10px;
+    padding:11px 12px;
+    font-size:1rem;
+    font-weight:700;
+    cursor:pointer;
+    background:var(--accent);
+    color:white;
+  }
+  button.secondary{background:#5d7386}
+  button.light{background:var(--accent2);color:var(--accent);border:1px solid #bdd8ea}
+  button:disabled{opacity:.55;cursor:not-allowed}
+  .storm-grid{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+  }
+  .storm-btn small{display:block;font-weight:400;opacity:.92;margin-top:2px}
+  .status{
+    padding:10px 12px;
+    border-radius:10px;
+    background:#eef5fa;
+    border:1px solid #cfe0ec;
+    margin-top:10px;
+    line-height:1.35;
+  }
+  .metric-grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:10px;
+  }
+  .metric{
+    background:#f6f9fc;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px;
+  }
+  .metric .value{font-size:1.35rem;font-weight:800}
+  .metric .label{font-size:.82rem;color:var(--muted)}
+  .instructions{
+    margin:0;
+    padding-left:20px;
+    color:var(--muted);
+    line-height:1.45;
+  }
+  .table-wrap{overflow:auto;max-height:260px;border:1px solid var(--line);border-radius:10px}
+  table{width:100%;border-collapse:collapse;font-size:.9rem}
+  th,td{padding:8px;border-bottom:1px solid var(--line);text-align:left}
+  th{position:sticky;top:0;background:#edf4f9}
+  textarea{
+    width:100%;
+    min-height:90px;
+    resize:vertical;
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:10px;
+    font:inherit;
+  }
+  .prompt{
+    background:#fff8dc;
+    border:1px solid #e7d48e;
+    border-radius:10px;
+    padding:10px 12px;
+    margin-top:10px;
+  }
+  .danger{color:var(--danger);font-weight:700}
+  @media (max-width:900px){
+    main{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+<header>
+  <h1>Coastal Erosion Lab</h1>
+  <p>Observe, measure, and record how repeated storms change a shoreline.</p>
+</header>
+
+<main>
+  <section class="panel">
+    <h2>Overhead Land Model</h2>
+    <div class="scene-wrap">
+      <canvas id="labCanvas" width="960" height="600" aria-label="Overhead coastal neighborhood erosion simulation"></canvas>
+    </div>
+    <div class="legend">
+      <span><span class="swatch" style="background:#79bddd"></span>Ocean</span>
+      <span><span class="swatch" style="background:#e5cf91"></span>Beach</span>
+      <span><span class="swatch" style="background:#9fca78"></span>Land</span>
+      <span><span class="swatch" style="background:#df4f45"></span>Measurement line</span>
+    </div>
+
+    <h3>How to measure</h3>
+    <ol class="instructions">
+      <li>Click and drag from a house toward the shoreline.</li>
+      <li>Release at the shoreline to display the measured distance.</li>
+      <li>Run a storm, then measure the same house again.</li>
+    </ol>
+
+    <div class="prompt">
+      <strong>Investigation question:</strong> How does the type and number of storms affect the distance between a house and the shoreline?
+    </div>
+  </section>
+
+  <aside class="panel">
+    <h2>Storm Controls</h2>
+    <div class="storm-grid">
+      <button class="storm-btn" data-storm="rain">
+        Heavy Rain
+        <small>Small amount of erosion</small>
+      </button>
+      <button class="storm-btn" data-storm="tropical">
+        Tropical Storm
+        <small>Moderate erosion</small>
+      </button>
+      <button class="storm-btn" data-storm="hurricane">
+        Hurricane
+        <small>Major erosion</small>
+      </button>
+    </div>
+
+    <div class="controls" style="margin-top:8px">
+      <button class="light" id="recordBtn">Record Current Measurement</button>
+      <button class="secondary" id="resetBtn">Reset Lab</button>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="value" id="eventCount">0</div>
+        <div class="label">Storm events</div>
+      </div>
+      <div class="metric">
+        <div class="value" id="nearestDistance">80.0 m</div>
+        <div class="label">Nearest house to shore</div>
+      </div>
+    </div>
+
+    <div class="status" id="statusBox">
+      Measure a house, then choose a storm.
+    </div>
+
+    <h3>Data Table</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Event</th>
+            <th>Storm</th>
+            <th>House</th>
+            <th>Distance</th>
+          </tr>
+        </thead>
+        <tbody id="dataBody"></tbody>
+      </table>
+    </div>
+
+    <h3>Student Observations</h3>
+    <textarea id="notes" placeholder="What patterns do you notice? Which storm caused the greatest change?"></textarea>
+  </aside>
+</main>
+
+<script>
+(() => {
+  const canvas = document.getElementById('labCanvas');
+  const ctx = canvas.getContext('2d');
+  const statusBox = document.getElementById('statusBox');
+  const eventCountEl = document.getElementById('eventCount');
+  const nearestDistanceEl = document.getElementById('nearestDistance');
+  const dataBody = document.getElementById('dataBody');
+  const recordBtn = document.getElementById('recordBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const stormButtons = [...document.querySelectorAll('[data-storm]')];
+
+  const SCALE_METERS_PER_PIXEL = 0.5;
+  const beachWidth = 34;
+
+  const initialShore = [
+    {y:0,x:245},{y:60,x:252},{y:120,x:240},{y:180,x:258},{y:240,x:248},
+    {y:300,x:262},{y:360,x:250},{y:420,x:260},{y:480,x:246},{y:540,x:255},{y:600,x:248}
+  ];
+
+  const houses = [
+    {id:'House A', x:430, y:115, w:54, h:44, roof:'#b84e3a', body:'#f4dfb0'},
+    {id:'House B', x:510, y:285, w:54, h:44, roof:'#355f8c', body:'#f3e7c7'},
+    {id:'House C', x:455, y:455, w:54, h:44, roof:'#6f4d8e', body:'#f0d8b6'}
+  ];
+
+  let shoreline = structuredClone(initialShore);
+  let eventCount = 0;
+  let lastStorm = 'Baseline';
+  let measuring = false;
+  let measureStart = null;
+  let measureEnd = null;
+  let selectedHouse = null;
+  let lastMeasurement = null;
+  let destroyed = new Set();
+
+  function shorelineXAt(y){
+    for(let i=0;i<shoreline.length-1;i++){
+      const a=shoreline[i], b=shoreline[i+1];
+      if(y>=a.y && y<=b.y){
+        const t=(y-a.y)/(b.y-a.y);
+        return a.x+(b.x-a.x)*t;
+      }
+    }
+    return shoreline[shoreline.length-1].x;
+  }
+
+  function nearestHouseDistance(){
+    let best=Infinity;
+    houses.forEach(h=>{
+      if(destroyed.has(h.id)) return;
+      const shore=shorelineXAt(h.y+h.h/2);
+      const d=Math.max(0,h.x-shore);
+      best=Math.min(best,d);
+    });
+    return best===Infinity ? 0 : best*SCALE_METERS_PER_PIXEL;
+  }
+
+  function drawOcean(){
+    ctx.fillStyle='#79bddd';
+    ctx.beginPath();
+    ctx.moveTo(0,0);
+    shoreline.forEach(p=>ctx.lineTo(p.x,p.y));
+    ctx.lineTo(0,canvas.height);
+    ctx.closePath();
+    ctx.fill();
+
+    // subtle wave lines
+    ctx.strokeStyle='rgba(255,255,255,.45)';
+    ctx.lineWidth=2;
+    for(let y=30;y<canvas.height;y+=55){
+      ctx.beginPath();
+      for(let x=20;x<210;x+=40){
+        ctx.moveTo(x,y);
+        ctx.quadraticCurveTo(x+10,y-6,x+20,y);
+      }
+      ctx.stroke();
+    }
+  }
+
+  function drawLand(){
+    ctx.fillStyle='#9fca78';
+    ctx.beginPath();
+    shoreline.forEach((p,i)=>{
+      if(i===0) ctx.moveTo(p.x+beachWidth,p.y);
+      else ctx.lineTo(p.x+beachWidth,p.y);
+    });
+    ctx.lineTo(canvas.width,canvas.height);
+    ctx.lineTo(canvas.width,0);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle='#e5cf91';
+    ctx.beginPath();
+    shoreline.forEach((p,i)=>{
+      if(i===0) ctx.moveTo(p.x,p.y);
+      else ctx.lineTo(p.x,p.y);
+    });
+    [...shoreline].reverse().forEach(p=>ctx.lineTo(p.x+beachWidth,p.y));
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.strokeStyle='#d7b965';
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    shoreline.forEach((p,i)=> i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));
+    ctx.stroke();
+  }
+
+  function traceLandPath(){
+    ctx.beginPath();
+    shoreline.forEach((p,i)=>{
+      const landX=p.x+beachWidth;
+      if(i===0) ctx.moveTo(landX,p.y);
+      else ctx.lineTo(landX,p.y);
+    });
+    ctx.lineTo(canvas.width,canvas.height);
+    ctx.lineTo(canvas.width,0);
+    ctx.closePath();
+  }
+
+  function drawRoad(){
+    // Clip the road to the remaining land so road sections disappear
+    // when the shoreline erodes past them.
+    ctx.save();
+    traceLandPath();
+    ctx.clip();
+
+    ctx.fillStyle='#777';
+    ctx.fillRect(360,35,26,530);
+    ctx.fillRect(360,205,380,24);
+    ctx.fillRect(360,390,310,24);
+
+    ctx.strokeStyle='#f7e184';
+    ctx.setLineDash([14,12]);
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(373,40);
+    ctx.lineTo(373,560);
+    ctx.stroke();
+
+    // Center lines for the two horizontal road sections.
+    ctx.beginPath();
+    ctx.moveTo(365,217);
+    ctx.lineTo(735,217);
+    ctx.moveTo(365,402);
+    ctx.lineTo(665,402);
+    ctx.stroke();
+
+    ctx.setLineDash([]);
+    ctx.restore();
+  }
+
+  function drawHouse(h){
+    if(destroyed.has(h.id)){
+      ctx.fillStyle='rgba(120,90,70,.55)';
+      ctx.fillRect(h.x,h.y+15,h.w,h.h-15);
+      ctx.strokeStyle='#6e5443';
+      ctx.lineWidth=4;
+      ctx.beginPath();
+      ctx.moveTo(h.x,h.y+h.h); ctx.lineTo(h.x+h.w,h.y+10);
+      ctx.moveTo(h.x+h.w,h.y+h.h); ctx.lineTo(h.x,h.y+10);
+      ctx.stroke();
+      ctx.fillStyle='#722';
+      ctx.font='bold 14px Arial';
+      ctx.fillText('ERODED',h.x-2,h.y-5);
+      return;
+    }
+    ctx.fillStyle=h.body;
+    ctx.fillRect(h.x,h.y+14,h.w,h.h-14);
+    ctx.fillStyle=h.roof;
+    ctx.beginPath();
+    ctx.moveTo(h.x-5,h.y+16);
+    ctx.lineTo(h.x+h.w/2,h.y-4);
+    ctx.lineTo(h.x+h.w+5,h.y+16);
+    ctx.closePath();
+    ctx.fill();
+    ctx.fillStyle='#6b4b2f';
+    ctx.fillRect(h.x+h.w*.42,h.y+h.h-16,10,16);
+    ctx.fillStyle='#7dc3e8';
+    ctx.fillRect(h.x+8,h.y+24,11,9);
+    ctx.fillRect(h.x+h.w-19,h.y+24,11,9);
+    ctx.fillStyle='#183047';
+    ctx.font='bold 14px Arial';
+    ctx.fillText(h.id,h.x-2,h.y+h.h+18);
+  }
+
+  function drawScale(){
+    const x=canvas.width-170, y=canvas.height-35;
+    ctx.strokeStyle='#183047';
+    ctx.lineWidth=4;
+    ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x+100,y);ctx.stroke();
+    ctx.lineWidth=2;
+    ctx.beginPath();
+    ctx.moveTo(x,y-7);ctx.lineTo(x,y+7);
+    ctx.moveTo(x+100,y-7);ctx.lineTo(x+100,y+7);
+    ctx.stroke();
+    ctx.fillStyle='#183047';
+    ctx.font='14px Arial';
+    ctx.fillText('50 meters',x+18,y-10);
+  }
+
+  function drawMeasurement(){
+    if(!measureStart || !measureEnd) return;
+    ctx.strokeStyle='#df4f45';
+    ctx.lineWidth=4;
+    ctx.setLineDash([10,7]);
+    ctx.beginPath();
+    ctx.moveTo(measureStart.x,measureStart.y);
+    ctx.lineTo(measureEnd.x,measureEnd.y);
+    ctx.stroke();
+    ctx.setLineDash([]);
+    ctx.fillStyle='#df4f45';
+    ctx.beginPath();ctx.arc(measureStart.x,measureStart.y,6,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(measureEnd.x,measureEnd.y,6,0,Math.PI*2);ctx.fill();
+
+    const px=Math.hypot(measureEnd.x-measureStart.x,measureEnd.y-measureStart.y);
+    const meters=px*SCALE_METERS_PER_PIXEL;
+    const mx=(measureStart.x+measureEnd.x)/2;
+    const my=(measureStart.y+measureEnd.y)/2;
+    ctx.fillStyle='rgba(255,255,255,.9)';
+    ctx.fillRect(mx-45,my-28,90,24);
+    ctx.fillStyle='#a62d24';
+    ctx.font='bold 16px Arial';
+    ctx.textAlign='center';
+    ctx.fillText(meters.toFixed(1)+' m',mx,my-10);
+    ctx.textAlign='left';
+  }
+
+  function draw(){
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    drawOcean();
+    drawLand();
+    drawRoad();
+    houses.forEach(drawHouse);
+    drawMeasurement();
+    drawScale();
+
+    ctx.fillStyle='rgba(255,255,255,.88)';
+    ctx.fillRect(16,16,210,42);
+    ctx.fillStyle='#173f5f';
+    ctx.font='bold 17px Arial';
+    ctx.fillText('Storm events: '+eventCount,28,42);
+  }
+
+  function canvasPoint(evt){
+    const r=canvas.getBoundingClientRect();
+    return {
+      x:(evt.clientX-r.left)*(canvas.width/r.width),
+      y:(evt.clientY-r.top)*(canvas.height/r.height)
+    };
+  }
+
+  function findHouse(p){
+    return houses.find(h =>
+      !destroyed.has(h.id) &&
+      p.x>=h.x-10 && p.x<=h.x+h.w+10 &&
+      p.y>=h.y-10 && p.y<=h.y+h.h+25
+    );
+  }
+
+  canvas.addEventListener('pointerdown', e=>{
+    const p=canvasPoint(e);
+    const h=findHouse(p);
+    if(!h){
+      statusBox.textContent='Start your measurement by clicking on a house.';
+      return;
+    }
+    selectedHouse=h;
+    measuring=true;
+    measureStart={x:h.x, y:h.y+h.h/2};
+    measureEnd={...p};
+    canvas.setPointerCapture(e.pointerId);
+    draw();
+  });
+
+  canvas.addEventListener('pointermove', e=>{
+    if(!measuring) return;
+    const p=canvasPoint(e);
+    measureEnd=p;
+    draw();
+  });
+
+  canvas.addEventListener('pointerup', e=>{
+    if(!measuring) return;
+    measuring=false;
+    const p=canvasPoint(e);
+    const sx=shorelineXAt(p.y);
+    measureEnd={x:sx,y:p.y};
+    const px=Math.hypot(measureEnd.x-measureStart.x,measureEnd.y-measureStart.y);
+    lastMeasurement={
+      house:selectedHouse.id,
+      meters:px*SCALE_METERS_PER_PIXEL
+    };
+    statusBox.innerHTML=`Measured <strong>${selectedHouse.id}</strong>: <strong>${lastMeasurement.meters.toFixed(1)} m</strong> from the shoreline.`;
+    draw();
+  });
+
+  function erode(kind){
+    const settings={
+      rain:{label:'Heavy Rain',min:3,max:7},
+      tropical:{label:'Tropical Storm',min:12,max:20},
+      hurricane:{label:'Hurricane',min:30,max:42}
+    }[kind];
+
+    eventCount++;
+    lastStorm=settings.label;
+
+    shoreline=shoreline.map((p,i)=>{
+      const wave=Math.sin((p.y/70)+(eventCount*.8))*3;
+      const amount=settings.min+Math.random()*(settings.max-settings.min)+wave;
+      return {y:p.y,x:Math.min(p.x+amount,900)};
+    });
+
+    let newlyDestroyed=[];
+    houses.forEach(h=>{
+      const sx=shorelineXAt(h.y+h.h/2);
+      if(sx>=h.x-4 && !destroyed.has(h.id)){
+        destroyed.add(h.id);
+        newlyDestroyed.push(h.id);
+      }
+    });
+
+    measureStart=null;
+    measureEnd=null;
+    lastMeasurement=null;
+    eventCountEl.textContent=eventCount;
+    nearestDistanceEl.textContent=nearestHouseDistance().toFixed(1)+' m';
+
+    if(newlyDestroyed.length){
+      statusBox.innerHTML=`<span class="danger">${newlyDestroyed.join(', ')} reached by erosion.</span> Reset the lab to try a different storm sequence.`;
+    }else{
+      statusBox.innerHTML=`${settings.label} completed. Observe the new shoreline and remeasure the same house.`;
+    }
+    draw();
+  }
+
+  stormButtons.forEach(btn=>btn.addEventListener('click',()=>erode(btn.dataset.storm)));
+
+  recordBtn.addEventListener('click',()=>{
+    if(!lastMeasurement){
+      statusBox.textContent='Measure from a house to the shoreline before recording.';
+      return;
+    }
+    const tr=document.createElement('tr');
+    tr.innerHTML=`<td>${eventCount}</td><td>${lastStorm}</td><td>${lastMeasurement.house}</td><td>${lastMeasurement.meters.toFixed(1)} m</td>`;
+    dataBody.appendChild(tr);
+    statusBox.textContent='Measurement recorded in the data table.';
+  });
+
+  resetBtn.addEventListener('click',()=>{
+    shoreline=structuredClone(initialShore);
+    eventCount=0;
+    lastStorm='Baseline';
+    measuring=false;
+    measureStart=null;
+    measureEnd=null;
+    selectedHouse=null;
+    lastMeasurement=null;
+    destroyed.clear();
+    eventCountEl.textContent='0';
+    nearestDistanceEl.textContent=nearestHouseDistance().toFixed(1)+' m';
+    dataBody.innerHTML='';
+    statusBox.textContent='Lab reset. Measure a house, then choose a storm.';
+    draw();
+  });
+
+  nearestDistanceEl.textContent=nearestHouseDistance().toFixed(1)+' m';
+  draw();
+})();
+</script>
+</body>
+</html>
