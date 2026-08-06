@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Washington, DC Shadow Lab</title>
+  <style>
+    :root {
+      --bg: #eef6fb;
+      --panel: #ffffff;
+      --ink: #17324d;
+      --muted: #5f7487;
+      --line: #c8d7e3;
+      --accent: #1f7a8c;
+      --accent-dark: #155b68;
+      --sun: #f7c948;
+      --ground: #9fd18b;
+      --road: #7d8790;
+      --shadow: rgba(24, 42, 58, 0.55);
+      --good: #2f855a;
+      --warn: #b7791f;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+      background: linear-gradient(#dff2ff, var(--bg));
+    }
+
+    header {
+      background: #123a56;
+      color: white;
+      padding: 20px;
+      text-align: center;
+    }
+
+    header h1 {
+      margin: 0 0 6px;
+      font-size: clamp(1.6rem, 4vw, 2.3rem);
+    }
+
+    header p {
+      margin: 0;
+      opacity: 0.9;
+    }
+
+    main {
+      width: min(1180px, 96%);
+      margin: 20px auto 40px;
+    }
+
+    .instructions,
+    .controls,
+    .panel,
+    .data-panel {
+      background: var(--panel);
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      box-shadow: 0 5px 18px rgba(33, 65, 89, 0.08);
+    }
+
+    .instructions {
+      padding: 16px 20px;
+      margin-bottom: 16px;
+    }
+
+    .instructions h2,
+    .panel h2,
+    .data-panel h2 {
+      margin-top: 0;
+    }
+
+    .controls {
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .control-group + .control-group {
+      margin-top: 16px;
+    }
+
+    .control-label {
+      display: block;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+
+    .button-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    button {
+      border: 2px solid var(--accent);
+      background: white;
+      color: var(--accent-dark);
+      border-radius: 999px;
+      padding: 9px 14px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.15s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+      background: #edf9fb;
+    }
+
+    button.active {
+      background: var(--accent);
+      color: white;
+    }
+
+    button.action {
+      border-radius: 10px;
+      background: var(--accent);
+      color: white;
+    }
+
+    button.secondary {
+      border-radius: 10px;
+      border-color: #758b9b;
+      color: #425a6b;
+    }
+
+    .readout-grid {
+      margin-top: 16px;
+      display: grid;
+      grid-template-columns: repeat(4, minmax(120px, 1fr));
+      gap: 10px;
+    }
+
+    .readout {
+      background: #f4f8fb;
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
+    }
+
+    .readout span {
+      display: block;
+      color: var(--muted);
+      font-size: 0.82rem;
+      margin-bottom: 4px;
+    }
+
+    .readout strong {
+      font-size: 1.05rem;
+    }
+
+    .lab-grid {
+      display: grid;
+      grid-template-columns: 1.5fr 0.9fr;
+      gap: 16px;
+      align-items: stretch;
+    }
+
+    .panel {
+      padding: 16px;
+      min-width: 0;
+    }
+
+    canvas {
+      width: 100%;
+      display: block;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: #dff2ff;
+    }
+
+    #topCanvas {
+      aspect-ratio: 1 / 1;
+    }
+
+    #sideCanvas {
+      aspect-ratio: 4 / 3;
+      margin-bottom: 12px;
+    }
+
+    .note {
+      color: var(--muted);
+      font-size: 0.9rem;
+      line-height: 1.45;
+    }
+
+    .question {
+      background: #f7fbfd;
+      border-left: 5px solid var(--accent);
+      padding: 12px 14px;
+      margin-top: 12px;
+      border-radius: 8px;
+    }
+
+    .data-panel {
+      margin-top: 16px;
+      padding: 16px;
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 760px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 9px 8px;
+      text-align: center;
+    }
+
+    th {
+      background: #edf5f9;
+    }
+
+    td:first-child, th:first-child {
+      text-align: left;
+    }
+
+    .status {
+      margin-top: 10px;
+      min-height: 24px;
+      font-weight: 700;
+      color: var(--good);
+    }
+
+    .footer-note {
+      margin-top: 14px;
+      color: var(--muted);
+      font-size: 0.84rem;
+      line-height: 1.4;
+    }
+
+    @media (max-width: 850px) {
+      .lab-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .readout-grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+
+    @media (max-width: 480px) {
+      .readout-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Shadow Length and Direction Lab</h1>
+  <p>Washington, DC — Latitude 38.9° N</p>
+</header>
+
+<main>
+  <section class="instructions">
+    <h2>Investigation</h2>
+    <p>
+      Observe how the length and direction of a flagpole’s shadow change during the day
+      and across three important seasonal dates. The flagpole is 3 meters tall.
+    </p>
+    <ol>
+      <li>Select a season and a time.</li>
+      <li>Observe the shadow from overhead and the Sun’s height from the side.</li>
+      <li>Record the data.</li>
+      <li>Look for patterns in shadow length and direction.</li>
+    </ol>
+  </section>
+
+  <section class="controls">
+    <div class="control-group">
+      <span class="control-label">1. Choose a seasonal date</span>
+      <div class="button-row" id="seasonButtons">
+        <button type="button" data-season="summer">Summer Solstice</button>
+        <button type="button" data-season="equinox" class="active">Equinox</button>
+        <button type="button" data-season="winter">Winter Solstice</button>
+      </div>
+    </div>
+
+    <div class="control-group">
+      <span class="control-label">2. Choose a time</span>
+      <div class="button-row" id="timeButtons"></div>
+    </div>
+
+    <div class="readout-grid">
+      <div class="readout">
+        <span>Season</span>
+        <strong id="seasonReadout">Equinox</strong>
+      </div>
+      <div class="readout">
+        <span>Time</span>
+        <strong id="timeReadout">12:00 PM</strong>
+      </div>
+      <div class="readout">
+        <span>Shadow Length</span>
+        <strong id="lengthReadout">—</strong>
+      </div>
+      <div class="readout">
+        <span>Shadow Direction</span>
+        <strong id="directionReadout">—</strong>
+      </div>
+    </div>
+  </section>
+
+  <div class="lab-grid">
+    <section class="panel">
+      <h2>Overhead View</h2>
+      <canvas id="topCanvas" width="720" height="720" aria-label="Overhead view of a flagpole and its shadow"></canvas>
+      <p class="note">
+        The compass shows the direction the shadow points. The yellow marker shows the Sun’s direction.
+      </p>
+    </section>
+
+    <section class="panel">
+      <h2>Side View</h2>
+      <canvas id="sideCanvas" width="640" height="480" aria-label="Side view of the Sun and flagpole"></canvas>
+
+      <div class="button-row">
+        <button type="button" class="action" id="recordBtn">Record This Observation</button>
+        <button type="button" class="secondary" id="clearBtn">Clear Table</button>
+      </div>
+
+      <div class="status" id="status" aria-live="polite"></div>
+
+      <div class="question">
+        <strong>Think:</strong> Why are shadows usually shorter when the Sun appears higher in the sky?
+      </div>
+    </section>
+  </div>
+
+  <section class="data-panel">
+    <h2>Observation Table</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>Season</th>
+          <th>Time</th>
+          <th>Sun Above Horizon?</th>
+          <th>Sun Altitude</th>
+          <th>Shadow Length</th>
+          <th>Shadow Direction</th>
+        </tr>
+      </thead>
+      <tbody id="dataBody"></tbody>
+    </table>
+
+    <div class="question">
+      <strong>Analyze:</strong> During which time is the shadow shortest? How does the noon shadow change from summer to winter?
+    </div>
+
+    <p class="footer-note">
+      This model uses Washington, DC latitude and simplified solar geometry. Times are treated as local solar time so that solar noon occurs at 12:00 PM. Actual clock times vary slightly because of longitude, daylight saving time, and the equation of time.
+    </p>
+  </section>
+</main>
+
+<script>
+  const latitude = 38.9072;
+  const poleHeightMeters = 3;
+  const times = [6, 8, 10, 12, 14, 16, 18, 20];
+
+  const seasons = {
+    summer: {
+      label: "Summer Solstice",
+      declination: 23.44
+    },
+    equinox: {
+      label: "Equinox",
+      declination: 0
+    },
+    winter: {
+      label: "Winter Solstice",
+      declination: -23.44
+    }
+  };
+
+  let selectedSeason = "equinox";
+  let selectedTime = 12;
+  const recorded = new Map();
+
+  const topCanvas = document.getElementById("topCanvas");
+  const topCtx = topCanvas.getContext("2d");
+  const sideCanvas = document.getElementById("sideCanvas");
+  const sideCtx = sideCanvas.getContext("2d");
+
+  const seasonReadout = document.getElementById("seasonReadout");
+  const timeReadout = document.getElementById("timeReadout");
+  const lengthReadout = document.getElementById("lengthReadout");
+  const directionReadout = document.getElementById("directionReadout");
+  const status = document.getElementById("status");
+  const dataBody = document.getElementById("dataBody");
+
+  function toRad(deg) {
+    return deg * Math.PI / 180;
+  }
+
+  function toDeg(rad) {
+    return rad * 180 / Math.PI;
+  }
+
+  function clamp(value, min, max) {
+    return Math.max(min, Math.min(max, value));
+  }
+
+  function formatTime(hour) {
+    const suffix = hour >= 12 ? "PM" : "AM";
+    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
+    return `${displayHour}:00 ${suffix}`;
+  }
+
+  function solarPosition(hour, declinationDeg) {
+    const phi = toRad(latitude);
+    const delta = toRad(declinationDeg);
+    const hourAngleDeg = 15 * (hour - 12);
+    const H = toRad(hourAngleDeg);
+
+    const sinAltitude =
+      Math.sin(phi) * Math.sin(delta) +
+      Math.cos(phi) * Math.cos(delta) * Math.cos(H);
+
+    const altitude = Math.asin(clamp(sinAltitude, -1, 1));
+
+    const azimuthFromSouth = Math.atan2(
+      Math.sin(H),
+      Math.cos(H) * Math.sin(phi) - Math.tan(delta) * Math.cos(phi)
+    );
+
+    let azimuthFromNorth = (toDeg(azimuthFromSouth) + 180) % 360;
+    if (azimuthFromNorth < 0) azimuthFromNorth += 360;
+
+    return {
+      altitudeDeg: toDeg(altitude),
+      azimuthDeg: azimuthFromNorth
+    };
+  }
+
+  function directionName(degrees) {
+    const names = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
+    const index = Math.round(degrees / 45) % 8;
+    return names[index];
+  }
+
+  function getObservation() {
+    const season = seasons[selectedSeason];
+    const pos = solarPosition(selectedTime, season.declination);
+    const sunUp = pos.altitudeDeg > 0.1;
+
+    if (!sunUp) {
+      return {
+        season: season.label,
+        time: formatTime(selectedTime),
+        sunUp: false,
+        altitude: pos.altitudeDeg,
+        shadowLength: null,
+        shadowDirectionDeg: null,
+        shadowDirectionName: "No shadow"
+      };
+    }
+
+    const shadowLength = poleHeightMeters / Math.tan(toRad(pos.altitudeDeg));
+    const shadowDirectionDeg = (pos.azimuthDeg + 180) % 360;
+
+    return {
+      season: season.label,
+      time: formatTime(selectedTime),
+      sunUp: true,
+      altitude: pos.altitudeDeg,
+      shadowLength,
+      shadowDirectionDeg,
+      shadowDirectionName: directionName(shadowDirectionDeg),
+      sunAzimuthDeg: pos.azimuthDeg
+    };
+  }
+
+  function drawCompass(ctx, cx, cy, radius) {
+    ctx.save();
+    ctx.strokeStyle = "#668092";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.stroke();
+
+    ctx.fillStyle = "#17324d";
+    ctx.font = "bold 24px Arial";
+    ctx.textAlign = "center";
+    ctx.textBaseline = "middle";
+
+    ctx.fillText("N", cx, cy - radius - 22);
+    ctx.fillText("E", cx + radius + 22, cy);
+    ctx.fillText("S", cx, cy + radius + 22);
+    ctx.fillText("W", cx - radius - 22, cy);
+
+    ctx.strokeStyle = "#9aadb9";
+    ctx.lineWidth = 1;
+    for (let deg = 0; deg < 360; deg += 45) {
+      const a = toRad(deg - 90);
+      ctx.beginPath();
+      ctx.moveTo(cx + Math.cos(a) * (radius - 8), cy + Math.sin(a) * (radius - 8));
+      ctx.lineTo(cx + Math.cos(a) * radius, cy + Math.sin(a) * radius);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
+  function drawTopView(obs) {
+    const ctx = topCtx;
+    const w = topCanvas.width;
+    const h = topCanvas.height;
+    const cx = w / 2;
+    const cy = h / 2;
+
+    ctx.clearRect(0, 0, w, h);
+
+    ctx.fillStyle = "#a8d89a";
+    ctx.fillRect(0, 0, w, h);
+
+    ctx.fillStyle = "#87939b";
+    ctx.fillRect(0, h * 0.78, w, h * 0.12);
+
+    ctx.strokeStyle = "#f3d36c";
+    ctx.lineWidth = 6;
+    ctx.setLineDash([30, 24]);
+    ctx.beginPath();
+    ctx.moveTo(0, h * 0.84);
+    ctx.lineTo(w, h * 0.84);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    drawCompass(ctx, cx, cy, 275);
+
+    if (!obs.sunUp) {
+      ctx.fillStyle = "rgba(20, 42, 60, 0.52)";
+      ctx.fillRect(0, 0, w, h);
+
+      ctx.fillStyle = "white";
+      ctx.font = "bold 34px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("The Sun is below the horizon.", cx, 100);
+      ctx.font = "24px Arial";
+      ctx.fillText("No sunlight means no measurable shadow.", cx, 140);
+    } else {
+      const maxDisplayMeters = 24;
+      const maxShadowPixels = 250;
+      const displayLength = Math.min(obs.shadowLength, maxDisplayMeters);
+      const shadowPixels = (displayLength / maxDisplayMeters) * maxShadowPixels + 24;
+
+      const shadowAngle = toRad(obs.shadowDirectionDeg - 90);
+      const sx = cx + Math.cos(shadowAngle) * shadowPixels;
+      const sy = cy + Math.sin(shadowAngle) * shadowPixels;
+
+      ctx.strokeStyle = "rgba(24, 42, 58, 0.56)";
+      ctx.lineWidth = 28;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.lineTo(sx, sy);
+      ctx.stroke();
+
+      const sunAngle = toRad(obs.sunAzimuthDeg - 90);
+      const sunDistance = 250;
+      const sunX = cx + Math.cos(sunAngle) * sunDistance;
+      const sunY = cy + Math.sin(sunAngle) * sunDistance;
+
+      ctx.fillStyle = "#f7c948";
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, 21, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = "#17324d";
+      ctx.font = "bold 20px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("SUN", sunX, sunY - 31);
+
+      ctx.fillStyle = "#17324d";
+      ctx.font = "bold 20px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText(
+        obs.shadowLength > maxDisplayMeters ? "Shadow continues off scale" : `${obs.shadowLength.toFixed(1)} m`,
+        (cx + sx) / 2,
+        (cy + sy) / 2 - 18
+      );
+    }
+
+    ctx.fillStyle = "#704214";
+    ctx.beginPath();
+    ctx.arc(cx, cy, 18, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#f4f4f4";
+    ctx.beginPath();
+    ctx.arc(cx, cy, 8, 0, Math.PI * 2);
+    ctx.fill();
+
+    ctx.fillStyle = "#17324d";
+    ctx.font = "bold 22px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("Flagpole", cx, cy + 48);
+  }
+
+  function drawSideView(obs) {
+    const ctx = sideCtx;
+    const w = sideCanvas.width;
+    const h = sideCanvas.height;
+    const groundY = h - 80;
+    const poleX = 180;
+    const poleTopY = groundY - 150;
+
+    ctx.clearRect(0, 0, w, h);
+
+    const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+    sky.addColorStop(0, "#bfe6ff");
+    sky.addColorStop(1, "#eef9ff");
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, w, groundY);
+
+    ctx.fillStyle = "#9fd18b";
+    ctx.fillRect(0, groundY, w, h - groundY);
+
+    ctx.strokeStyle = "#4c5964";
+    ctx.lineWidth = 9;
+    ctx.beginPath();
+    ctx.moveTo(poleX, groundY);
+    ctx.lineTo(poleX, poleTopY);
+    ctx.stroke();
+
+    ctx.fillStyle = "#db3a34";
+    ctx.beginPath();
+    ctx.moveTo(poleX + 4, poleTopY + 8);
+    ctx.lineTo(poleX + 95, poleTopY + 30);
+    ctx.lineTo(poleX + 4, poleTopY + 54);
+    ctx.closePath();
+    ctx.fill();
+
+    if (obs.sunUp) {
+      const angle = toRad(clamp(obs.altitude, 0, 90));
+      const radius = 270;
+      const sunX = poleX + Math.cos(angle) * radius;
+      const sunY = groundY - Math.sin(angle) * radius;
+
+      ctx.strokeStyle = "rgba(247, 201, 72, 0.6)";
+      ctx.lineWidth = 4;
+      ctx.setLineDash([10, 8]);
+      ctx.beginPath();
+      ctx.moveTo(poleX, groundY);
+      ctx.lineTo(sunX, sunY);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.fillStyle = "#f7c948";
+      ctx.beginPath();
+      ctx.arc(sunX, sunY, 26, 0, Math.PI * 2);
+      ctx.fill();
+
+      const visualShadow = Math.min(obs.shadowLength * 18, 330);
+      ctx.strokeStyle = "rgba(24, 42, 58, 0.55)";
+      ctx.lineWidth = 18;
+      ctx.lineCap = "round";
+      ctx.beginPath();
+      ctx.moveTo(poleX, groundY);
+      ctx.lineTo(poleX - visualShadow, groundY);
+      ctx.stroke();
+
+      ctx.fillStyle = "#17324d";
+      ctx.font = "bold 20px Arial";
+      ctx.textAlign = "left";
+      ctx.fillText(`Sun altitude: ${obs.altitude.toFixed(1)}°`, 20, 36);
+      ctx.fillText(`Shadow: ${obs.shadowLength.toFixed(1)} m`, 20, 66);
+    } else {
+      ctx.fillStyle = "rgba(25, 43, 63, 0.7)";
+      ctx.fillRect(0, 0, w, groundY);
+
+      ctx.fillStyle = "white";
+      ctx.font = "bold 24px Arial";
+      ctx.textAlign = "center";
+      ctx.fillText("Sun below horizon", w / 2, 70);
+    }
+
+    ctx.fillStyle = "#17324d";
+    ctx.font = "18px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText("3 m flagpole", poleX, groundY + 34);
+  }
+
+  function update() {
+    const obs = getObservation();
+
+    seasonReadout.textContent = obs.season;
+    timeReadout.textContent = obs.time;
+
+    if (obs.sunUp) {
+      lengthReadout.textContent = `${obs.shadowLength.toFixed(1)} m`;
+      directionReadout.textContent = `${obs.shadowDirectionName} (${Math.round(obs.shadowDirectionDeg)}°)`;
+    } else {
+      lengthReadout.textContent = "No shadow";
+      directionReadout.textContent = "Sun below horizon";
+    }
+
+    drawTopView(obs);
+    drawSideView(obs);
+    status.textContent = "";
+  }
+
+  function renderTable() {
+    dataBody.innerHTML = "";
+
+    const entries = Array.from(recorded.values()).sort((a, b) => {
+      const seasonOrder = {
+        "Summer Solstice": 0,
+        "Equinox": 1,
+        "Winter Solstice": 2
+      };
+      if (seasonOrder[a.season] !== seasonOrder[b.season]) {
+        return seasonOrder[a.season] - seasonOrder[b.season];
+      }
+      return a.hour - b.hour;
+    });
+
+    for (const obs of entries) {
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${obs.season}</td>
+        <td>${obs.time}</td>
+        <td>${obs.sunUp ? "Yes" : "No"}</td>
+        <td>${obs.sunUp ? obs.altitude.toFixed(1) + "°" : "Below horizon"}</td>
+        <td>${obs.sunUp ? obs.shadowLength.toFixed(1) + " m" : "None"}</td>
+        <td>${obs.sunUp ? obs.shadowDirectionName + " (" + Math.round(obs.shadowDirectionDeg) + "°)" : "None"}</td>
+      `;
+      dataBody.appendChild(row);
+    }
+  }
+
+  function buildTimeButtons() {
+    const container = document.getElementById("timeButtons");
+    times.forEach(hour => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = formatTime(hour);
+      button.dataset.hour = hour;
+      if (hour === selectedTime) button.classList.add("active");
+
+      button.addEventListener("click", () => {
+        selectedTime = Number(button.dataset.hour);
+        document.querySelectorAll("#timeButtons button").forEach(btn => {
+          btn.classList.toggle("active", btn === button);
+        });
+        update();
+      });
+
+      container.appendChild(button);
+    });
+  }
+
+  document.querySelectorAll("#seasonButtons button").forEach(button => {
+    button.addEventListener("click", () => {
+      selectedSeason = button.dataset.season;
+      document.querySelectorAll("#seasonButtons button").forEach(btn => {
+        btn.classList.toggle("active", btn === button);
+      });
+      update();
+    });
+  });
+
+  document.getElementById("recordBtn").addEventListener("click", () => {
+    const obs = getObservation();
+    obs.hour = selectedTime;
+    const key = `${selectedSeason}-${selectedTime}`;
+    recorded.set(key, obs);
+    renderTable();
+    status.textContent = "Observation recorded.";
+  });
+
+  document.getElementById("clearBtn").addEventListener("click", () => {
+    recorded.clear();
+    renderTable();
+    status.textContent = "Observation table cleared.";
+  });
+
+  buildTimeButtons();
+  update();
+</script>
+</body>
+</html>
