@@ -1,19 +1,86 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Burnham Home Page</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Code.Uno — one home for useful tools, live data, and curious experiments.">
+  <title>Code.Uno</title>
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-    <h1>Home</h1>
-    <p>Explore our different sections:</p>
-    <ul>
-        <li><a href="retirement\ret">Retirement Simulator</a></li>
-        <li><a href="launch\list">Space Coast Launches</a></li>
-        <li><a href="disney\wait">Disney Wait Times</a></li>
-        <li><a href="recipes\index">Recipes</a></li>
-        <li><a href="labs\">Labs</a></li>
-    </ul>
+  <main class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Code.Uno home">
+        <span class="brand-mark">&lt;/&gt;</span>
+        <span>Code.Uno</span>
+      </a>
+      <span class="top-note">Built for useful ideas</span>
+    </header>
+
+    <section class="hero" aria-labelledby="page-title">
+      <p class="eyebrow">Personal project hub</p>
+      <h1 id="page-title">Code<span class="title-dot">.</span>Uno</h1>
+      <p class="subtitle">
+        <strong>One home for useful tools, live data, and curious experiments.</strong>
+        Built to solve everyday problems, explore ideas, and make information more useful.
+      </p>
+    </section>
+
+    <section class="grid" aria-label="Projects and tools">
+      <a class="card featured" href="/retirement/ret">
+        <div>
+          <div class="card-icon" aria-hidden="true">⌁</div>
+          <p class="card-kicker">Featured tool</p>
+          <h2>Retirement Simulator</h2>
+          <p class="card-description">
+            Stress-test spending plans against historical market conditions, inflation,
+            pensions, bonds, and changing withdrawal strategies.
+          </p>
+        </div>
+        <div class="featured-stat" aria-hidden="true">
+          <span class="number">1970+</span>
+          <span class="label">Historical scenarios</span>
+        </div>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </a>
+
+      <a class="card" href="/launch/list" style="--accent: var(--blue)">
+        <div class="card-icon" aria-hidden="true">🚀</div>
+        <p class="card-kicker">Live data</p>
+        <h2>Space Coast Launches</h2>
+        <p class="card-description">Track upcoming rocket launches, mission windows, and details from Florida’s Space Coast.</p>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </a>
+
+      <a class="card" href="/disney/wait" style="--accent: var(--orange)">
+        <div class="card-icon" aria-hidden="true">🏰</div>
+        <p class="card-kicker">Park planning</p>
+        <h2>Disney Wait Times</h2>
+        <p class="card-description">View current attraction waits across all four Walt Disney World theme parks.</p>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </a>
+
+      <a class="card" href="/recipes/" style="--accent: var(--green)">
+        <div class="card-icon" aria-hidden="true">🍽️</div>
+        <p class="card-kicker">Kitchen tools</p>
+        <h2>Recipes &amp; Weekly Menu</h2>
+        <p class="card-description">Browse favorite recipes, plan the week’s dinners, and assemble a practical shopping list.</p>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </a>
+
+      <a class="card" href="/labs/" style="--accent: var(--cyan)">
+        <div class="card-icon" aria-hidden="true">⚗️</div>
+        <p class="card-kicker">Interactive learning</p>
+        <h2>Interactive Labs</h2>
+        <p class="card-description">Explore science simulations, classroom prototypes, and hands-on digital experiments.</p>
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </a>
+    </section>
+
+    <footer>
+      <span>Code.Uno · Useful things, thoughtfully built.</span>
+      <span class="status">All systems ready</span>
+    </footer>
+  </main>
 </body>
 </html>
