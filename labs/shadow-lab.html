@@ -267,7 +267,7 @@
       and across three important seasonal dates. The flagpole is 3 meters tall.
     </p>
     <ol>
-      <li>Select a season and a time.</li>
+      <li>Select a season and a time, sunrise, or sunset.</li>
       <li>Observe the shadow from overhead and the Sun’s height from the side.</li>
       <li>Record the data.</li>
       <li>Look for patterns in shadow length and direction.</li>
@@ -364,7 +364,15 @@
 <script>
   const latitude = 38.9072;
   const poleHeightMeters = 3;
-  const times = [6, 8, 10, 12, 14, 16, 18, 20];
+  const timeStops = [
+    { id: "sunrise", label: "Sunrise" },
+    { id: "8", label: "8:00 AM", hour: 8 },
+    { id: "10", label: "10:00 AM", hour: 10 },
+    { id: "12", label: "12:00 PM", hour: 12 },
+    { id: "14", label: "2:00 PM", hour: 14 },
+    { id: "16", label: "4:00 PM", hour: 16 },
+    { id: "sunset", label: "Sunset" }
+  ];
 
   const seasons = {
     summer: {
@@ -382,7 +390,7 @@
   };
 
   let selectedSeason = "equinox";
-  let selectedTime = 12;
+  let selectedTimeStop = "12";
   const recorded = new Map();
 
   const topCanvas = document.getElementById("topCanvas");
@@ -409,10 +417,60 @@
     return Math.max(min, Math.min(max, value));
   }
 
-  function formatTime(hour) {
-    const suffix = hour >= 12 ? "PM" : "AM";
-    const displayHour = hour % 12 === 0 ? 12 : hour % 12;
-    return `${displayHour}:00 ${suffix}`;
+  function formatTime(hour, includeMinutes = false) {
+    const normalized = (hour + 24) % 24;
+    let wholeHour = Math.floor(normalized);
+    let minutes = Math.round((normalized - wholeHour) * 60);
+
+    if (minutes === 60) {
+      wholeHour = (wholeHour + 1) % 24;
+      minutes = 0;
+    }
+
+    const suffix = wholeHour >= 12 ? "PM" : "AM";
+    const displayHour = wholeHour % 12 === 0 ? 12 : wholeHour % 12;
+    const minuteText = includeMinutes ? `:${String(minutes).padStart(2, "0")}` : ":00";
+    return `${displayHour}${minuteText} ${suffix}`;
+  }
+
+  function sunriseSunsetHours(declinationDeg) {
+    const phi = toRad(latitude);
+    const delta = toRad(declinationDeg);
+    const cosH = clamp(-Math.tan(phi) * Math.tan(delta), -1, 1);
+    const hourAngle = toDeg(Math.acos(cosH)) / 15;
+
+    return {
+      sunrise: 12 - hourAngle,
+      sunset: 12 + hourAngle
+    };
+  }
+
+  function getSelectedHour() {
+    const season = seasons[selectedSeason];
+
+    if (selectedTimeStop === "sunrise" || selectedTimeStop === "sunset") {
+      const times = sunriseSunsetHours(season.declination);
+
+      // Move six minutes inside daylight so the model can display a finite,
+      // very long shadow rather than an infinite shadow at the exact horizon.
+      return selectedTimeStop === "sunrise"
+        ? times.sunrise + 0.1
+        : times.sunset - 0.1;
+    }
+
+    return Number(selectedTimeStop);
+  }
+
+  function selectedTimeLabel(hour) {
+    if (selectedTimeStop === "sunrise") {
+      return `Sunrise (about ${formatTime(hour, true)})`;
+    }
+
+    if (selectedTimeStop === "sunset") {
+      return `Sunset (about ${formatTime(hour, true)})`;
+    }
+
+    return formatTime(hour);
   }
 
   function solarPosition(hour, declinationDeg) {
@@ -449,13 +507,16 @@
 
   function getObservation() {
     const season = seasons[selectedSeason];
-    const pos = solarPosition(selectedTime, season.declination);
+    const selectedHour = getSelectedHour();
+    const pos = solarPosition(selectedHour, season.declination);
     const sunUp = pos.altitudeDeg > 0.1;
+    const timeLabel = selectedTimeLabel(selectedHour);
 
     if (!sunUp) {
       return {
         season: season.label,
-        time: formatTime(selectedTime),
+        time: timeLabel,
+        hour: selectedHour,
         sunUp: false,
         altitude: pos.altitudeDeg,
         shadowLength: null,
@@ -469,7 +530,8 @@
 
     return {
       season: season.label,
-      time: formatTime(selectedTime),
+      time: timeLabel,
+      hour: selectedHour,
       sunUp: true,
       altitude: pos.altitudeDeg,
       shadowLength,
@@ -641,7 +703,9 @@
     if (obs.sunUp) {
       const angle = toRad(clamp(obs.altitude, 0, 90));
       const radius = 270;
-      const sunX = poleX + Math.cos(angle) * radius;
+      const sunIsMorning = obs.hour < 12;
+      const horizontalDirection = sunIsMorning ? 1 : -1;
+      const sunX = poleX + horizontalDirection * Math.cos(angle) * radius;
       const sunY = groundY - Math.sin(angle) * radius;
 
       ctx.strokeStyle = "rgba(247, 201, 72, 0.6)";
@@ -664,7 +728,7 @@
       ctx.lineCap = "round";
       ctx.beginPath();
       ctx.moveTo(poleX, groundY);
-      ctx.lineTo(poleX - visualShadow, groundY);
+      ctx.lineTo(poleX - horizontalDirection * visualShadow, groundY);
       ctx.stroke();
 
       ctx.fillStyle = "#17324d";
@@ -738,18 +802,24 @@
 
   function buildTimeButtons() {
     const container = document.getElementById("timeButtons");
-    times.forEach(hour => {
+
+    timeStops.forEach(stop => {
       const button = document.createElement("button");
       button.type = "button";
-      button.textContent = formatTime(hour);
-      button.dataset.hour = hour;
-      if (hour === selectedTime) button.classList.add("active");
+      button.textContent = stop.label;
+      button.dataset.stop = stop.id;
+
+      if (stop.id === selectedTimeStop) {
+        button.classList.add("active");
+      }
 
       button.addEventListener("click", () => {
-        selectedTime = Number(button.dataset.hour);
+        selectedTimeStop = button.dataset.stop;
+
         document.querySelectorAll("#timeButtons button").forEach(btn => {
           btn.classList.toggle("active", btn === button);
         });
+
         update();
       });
 
@@ -769,8 +839,7 @@
 
   document.getElementById("recordBtn").addEventListener("click", () => {
     const obs = getObservation();
-    obs.hour = selectedTime;
-    const key = `${selectedSeason}-${selectedTime}`;
+    const key = `${selectedSeason}-${selectedTimeStop}`;
     recorded.set(key, obs);
     renderTable();
     status.textContent = "Observation recorded.";
