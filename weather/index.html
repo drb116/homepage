@@ -3,27 +3,44 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Space Coast StormWatch severe weather dashboard for Brevard County, Florida.">
+
+  <meta
+    name="description"
+    content="Space Coast StormWatch severe weather dashboard for Brevard County and Caribbean cruise conditions."
+  >
+
   <title>Space Coast StormWatch | DavidB.xyz</title>
+
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/weather/weather.css">
 </head>
+
 <body>
   <div class="page-shell">
+
     <header class="topbar">
       <a class="brand" href="/">
         <span class="brand-mark">DB</span>
         <span>DavidB.xyz</span>
       </a>
+
       <a class="back-link" href="/">← Back home</a>
     </header>
 
     <main>
+
       <section class="hero weather-hero">
         <p class="eyebrow">Space Coast severe weather</p>
-        <h1>Storm<span class="title-dot">.</span>Watch</h1>
-        <p class="subtitle">Official tropical, coastal, and warning information for Brevard County. Focused on developing threats, ocean conditions, and what has changed—not the everyday forecast.</p>
+
+        <h1>
+          Storm<span class="title-dot">.</span>Watch
+        </h1>
+
+        <p class="subtitle">
+          Tropical outlooks, Caribbean wave guidance, Space Coast alerts,
+          and offshore conditions in one place.
+        </p>
       </section>
 
       <div class="update-strip">
@@ -31,71 +48,245 @@
           <span class="live-dot" aria-hidden="true"></span>
           <span id="dashboard-status">Loading official data…</span>
         </div>
-        <button id="refresh-button" class="refresh-button" type="button">Refresh</button>
+
+        <button
+          id="refresh-button"
+          class="refresh-button"
+          type="button"
+        >
+          Refresh
+        </button>
       </div>
 
-      <section class="weather-grid" aria-label="Space Coast severe weather dashboard">
+      <section class="weather-grid" aria-label="StormWatch dashboard">
+
+        <!-- TOP LEFT: NHC -->
         <article class="weather-panel outlook-panel">
           <div class="panel-heading">
             <div>
               <p class="panel-kicker">National Hurricane Center</p>
               <h2>Atlantic 7-day outlook</h2>
             </div>
-            <a class="source-link" href="https://www.nhc.noaa.gov/gtwo.php?basin=atlc&fdays=7" target="_blank" rel="noopener">NHC ↗</a>
+
+            <a
+              class="source-link"
+              href="https://www.nhc.noaa.gov/gtwo.php?basin=atlc&fdays=7"
+              target="_blank"
+              rel="noopener"
+            >
+              NHC ↗
+            </a>
           </div>
-          <a class="outlook-image-link" href="https://www.nhc.noaa.gov/gtwo.php?basin=atlc&fdays=7" target="_blank" rel="noopener">
-            <img id="outlook-image" class="outlook-image" src="https://www.nhc.noaa.gov/xgtwo/two_atl_7d0.png" alt="National Hurricane Center Atlantic seven-day tropical weather outlook">
+
+          <a
+            class="map-image-link"
+            href="https://www.nhc.noaa.gov/gtwo.php?basin=atlc&fdays=7"
+            target="_blank"
+            rel="noopener"
+          >
+            <img
+              id="outlook-image"
+              class="dashboard-map"
+              src="https://www.nhc.noaa.gov/xgtwo/two_atl_7d0.png"
+              alt="National Hurricane Center Atlantic seven-day tropical weather outlook"
+            >
           </a>
         </article>
 
+
+        <!-- TOP RIGHT: GFS-WAVE -->
+        <article class="weather-panel wave-panel">
+          <div class="panel-heading">
+            <div>
+              <p class="panel-kicker">NOAA GFS-Wave model guidance</p>
+              <h2>Caribbean wave forecast</h2>
+            </div>
+
+            <a
+              class="source-link"
+              href="https://polar.ncep.noaa.gov/waves/product_table.shtml"
+              target="_blank"
+              rel="noopener"
+            >
+              NOAA ↗
+            </a>
+          </div>
+
+          <div
+            class="wave-controls"
+            role="group"
+            aria-label="Wave forecast time"
+          >
+            <button class="wave-time active" type="button" data-hour="0">
+              Now
+            </button>
+
+            <button class="wave-time" type="button" data-hour="72">
+              Day 3
+            </button>
+
+            <button class="wave-time" type="button" data-hour="120">
+              Day 5
+            </button>
+
+            <button class="wave-time" type="button" data-hour="168">
+              Day 7
+            </button>
+
+            <button class="wave-time" type="button" data-hour="240">
+              Day 10
+            </button>
+          </div>
+
+          <div class="wave-map-wrap">
+            <img
+              id="wave-image"
+              class="dashboard-map wave-map"
+              src="/api/weather/wave?hour=0"
+              alt="NOAA GFS-Wave significant wave height forecast for the northwest Atlantic and Caribbean"
+            >
+
+            <div id="wave-loading" class="wave-loading" hidden>
+              Loading wave map…
+            </div>
+          </div>
+
+          <p class="data-note wave-note">
+            Significant wave height · NW Atlantic / Caribbean · model guidance,
+            not an official marine forecast.
+          </p>
+        </article>
+
+
+        <!-- BOTTOM LEFT: ALERTS -->
         <article class="weather-panel alerts-panel">
           <div class="panel-heading">
             <div>
               <p class="panel-kicker">Brevard County & nearby Atlantic waters</p>
               <h2>Active alerts</h2>
             </div>
+
             <span id="alert-count" class="count-pill">—</span>
           </div>
+
           <div id="alerts-list" class="alerts-list">
-            <div class="loading-card">Checking NWS alerts…</div>
+            <div class="loading-card">
+              Checking NWS alerts…
+            </div>
           </div>
         </article>
 
+
+        <!-- BOTTOM RIGHT: OCEAN -->
         <article class="weather-panel ocean-panel">
           <div class="panel-heading">
             <div>
               <p class="panel-kicker">Cape Canaveral offshore</p>
               <h2>Ocean conditions</h2>
             </div>
-            <a class="source-link" href="https://www.ndbc.noaa.gov/station_page.php?station=41009" target="_blank" rel="noopener">NOAA ↗</a>
+
+            <a
+              class="source-link"
+              href="https://www.ndbc.noaa.gov/station_page.php?station=41009"
+              target="_blank"
+              rel="noopener"
+            >
+              NOAA ↗
+            </a>
           </div>
+
           <div id="buoy-data" class="metric-grid">
-            <div class="metric"><span class="metric-value">—</span><span class="metric-label">Significant wave height</span></div>
-            <div class="metric"><span class="metric-value">—</span><span class="metric-label">Dominant period</span></div>
-            <div class="metric"><span class="metric-value">—</span><span class="metric-label">Wind speed</span></div>
-            <div class="metric"><span class="metric-value">—</span><span class="metric-label">Water temperature</span></div>
+            <div class="metric">
+              <span class="metric-value">—</span>
+              <span class="metric-label">Significant wave height</span>
+            </div>
+
+            <div class="metric">
+              <span class="metric-value">—</span>
+              <span class="metric-label">Dominant period</span>
+            </div>
+
+            <div class="metric">
+              <span class="metric-value">—</span>
+              <span class="metric-label">Wind speed</span>
+            </div>
+
+            <div class="metric">
+              <span class="metric-value">—</span>
+              <span class="metric-label">Water temperature</span>
+            </div>
           </div>
-          <p id="buoy-time" class="data-note">Loading latest observations…</p>
+
+          <p id="buoy-time" class="data-note">
+            Loading latest observations…
+          </p>
         </article>
 
+
+        <!-- RESOURCES -->
         <article class="weather-panel resources-panel compact-resources">
           <div class="compact-resource-links">
-            <a href="https://www.nhc.noaa.gov/" target="_blank" rel="noopener">🌀 NHC Storms</a>
-            <a href="https://www.nhc.noaa.gov/arrival.shtml" target="_blank" rel="noopener">⏱ Wind Arrival</a>
-            <a href="https://www.nhc.noaa.gov/surge/" target="_blank" rel="noopener">🌊 Storm Surge</a>
-            <a href="https://www.weather.gov/mlb/" target="_blank" rel="noopener">⚠ NWS Melbourne</a>
+
+            <a
+              href="https://www.nhc.noaa.gov/"
+              target="_blank"
+              rel="noopener"
+            >
+              🌀 NHC Storms
+            </a>
+
+            <a
+              href="https://www.nhc.noaa.gov/arrival.shtml"
+              target="_blank"
+              rel="noopener"
+            >
+              ⏱ Wind Arrival
+            </a>
+
+            <a
+              href="https://www.nhc.noaa.gov/surge/"
+              target="_blank"
+              rel="noopener"
+            >
+              🌊 Storm Surge
+            </a>
+
+            <a
+              href="https://www.weather.gov/mlb/"
+              target="_blank"
+              rel="noopener"
+            >
+              ⚠ NWS Melbourne
+            </a>
+
+            <a
+              href="https://polar.ncep.noaa.gov/waves/product_table.shtml"
+              target="_blank"
+              rel="noopener"
+            >
+              🌊 GFS-Wave
+            </a>
+
           </div>
         </article>
+
       </section>
 
-      <aside class="safety-note"><strong>Safety note:</strong> This dashboard summarizes official government weather information. Always follow instructions from the National Weather Service, National Hurricane Center, Brevard County Emergency Management, and local authorities.</aside>
+      <aside class="safety-note">
+        <strong>Safety note:</strong>
+        StormWatch summarizes government weather information and model guidance.
+        Follow official NWS/NHC forecasts and local authorities for decisions.
+      </aside>
+
     </main>
 
     <footer class="site-footer">
       <span>DavidB.xyz · Space Coast StormWatch</span>
       <span id="footer-update">Loading…</span>
     </footer>
+
   </div>
+
 
   <dialog id="alert-modal" class="alert-modal">
     <div class="alert-modal-header">
@@ -103,8 +294,17 @@
         <p class="panel-kicker">National Weather Service</p>
         <h2 id="alert-modal-title">Weather Alert</h2>
       </div>
-      <button id="alert-modal-close" class="alert-modal-close" type="button" aria-label="Close alert">×</button>
+
+      <button
+        id="alert-modal-close"
+        class="alert-modal-close"
+        type="button"
+        aria-label="Close alert"
+      >
+        ×
+      </button>
     </div>
+
     <div id="alert-modal-meta" class="alert-modal-meta"></div>
     <div id="alert-modal-body" class="alert-modal-body"></div>
   </dialog>
