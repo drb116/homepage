@@ -263,8 +263,16 @@ function buoy(data) {
 let waveMap;
 let waveLayer;
 let currentWaveHour = 0;
+
 let waveRequestController = null;
 let waveMoveTimer = null;
+
+let initialMapReady = false;
+
+const waveCache = new Map();
+
+const WAVE_CACHE_MS =
+  10 * 60 * 1000;
 
 const WAVE_REGION = {
   south: 7,
@@ -290,22 +298,43 @@ function initWaveMap() {
     }
   ).addTo(waveMap);
 
+  waveLayer =
+    L.layerGroup().addTo(waveMap);
+
   waveMap.fitBounds([
     [8.0, -91.0],
     [33.0, -57.0]
   ]);
 
-  waveLayer = L.layerGroup().addTo(waveMap);
+  /*
+   * fitBounds() itself can fire moveend.
+   * Ignore that initial event so we do not
+   * immediately make two identical API calls.
+   */
+  setTimeout(() => {
+    initialMapReady = true;
+  }, 1000);
 
-  // Reload at higher density as the user pans or zooms.
   waveMap.on("moveend", () => {
+    if (!initialMapReady) {
+      return;
+    }
+
     clearTimeout(waveMoveTimer);
 
-    waveMoveTimer = setTimeout(() => {
-      loadWave(currentWaveHour, {
-        preserveButtons: true
-      });
-    }, 250);
+    /*
+     * Wait until the user has actually finished
+     * zooming/panning before requesting more data.
+     */
+    waveMoveTimer =
+      setTimeout(() => {
+        loadWave(
+          currentWaveHour,
+          {
+            preserveExisting: true
+          }
+        );
+      }, 900);
   });
 }
 
@@ -333,6 +362,41 @@ function waveRadius(feet) {
     base,
     Math.min(base + 4, base + feet * 0.22)
   );
+}
+
+function waveCacheKey(
+  hour,
+  query
+) {
+  /*
+   * Round the viewport so tiny movements don't
+   * cause completely new API requests.
+   */
+
+  const precision =
+    query.zoom >= 8
+      ? 1
+      : 0;
+
+  const round = value => {
+    const factor =
+      10 ** precision;
+
+    return (
+      Math.round(
+        value * factor
+      ) / factor
+    );
+  };
+
+  return [
+    hour,
+    round(query.south),
+    round(query.north),
+    round(query.west),
+    round(query.east),
+    query.step
+  ].join("|");
 }
 
 function waveStepForZoom(zoom) {
@@ -446,61 +510,157 @@ function renderWaveGrid(data) {
 
 async function loadWave(
   hour,
-  { preserveButtons = false } = {}
+  {
+    preserveExisting = false
+  } = {}
 ) {
   currentWaveHour = hour;
 
-  if (!preserveButtons) {
-    document.querySelectorAll(".wave-time").forEach(button => {
+  document
+    .querySelectorAll(".wave-time")
+    .forEach(button => {
       button.classList.toggle(
         "active",
-        Number(button.dataset.hour) === hour
+        Number(
+          button.dataset.hour
+        ) === hour
       );
     });
-  }
 
-  if (!waveMap) return;
-
-  const query = currentWaveQuery();
-
-  if (!query) {
-    waveLayer.clearLayers();
-    $("#wave-loading").hidden = false;
-    $("#wave-loading").textContent =
-      "Pan back to the Caribbean / western Atlantic.";
+  if (!waveMap) {
     return;
   }
 
-  if (waveRequestController) {
+  const query =
+    currentWaveQuery();
+
+  if (!query) {
+    return;
+  }
+
+
+  /*
+   * Check browser cache first.
+   */
+
+  const cacheKey =
+    waveCacheKey(
+      hour,
+      query
+    );
+
+  const cached =
+    waveCache.get(
+      cacheKey
+    );
+
+  if (
+    cached &&
+    Date.now() -
+      cached.savedAt <
+      WAVE_CACHE_MS
+  ) {
+    renderWaveGrid(
+      cached.data
+    );
+
+    return;
+  }
+
+
+  /*
+   * Cancel an older request if the user moved
+   * the map again before it finished.
+   */
+
+  if (
+    waveRequestController
+  ) {
     waveRequestController.abort();
   }
 
   waveRequestController =
     new AbortController();
 
-  $("#wave-loading").hidden = false;
-  $("#wave-loading").textContent =
-    query.zoom >= 8
-      ? "Loading high-resolution wave guidance…"
-      : "Loading wave guidance…";
 
-  const params = new URLSearchParams({
-    hour: String(hour),
-    south: query.south.toFixed(4),
-    north: query.north.toFixed(4),
-    west: query.west.toFixed(4),
-    east: query.east.toFixed(4),
-    step: String(query.step)
-  });
+  /*
+   * Only cover the map with the loading message
+   * when there is currently no useful data.
+   *
+   * If we're merely refining an existing map,
+   * leave the old data visible.
+   */
+
+  if (
+    !preserveExisting ||
+    waveLayer
+      .getLayers()
+      .length === 0
+  ) {
+    $("#wave-loading").hidden =
+      false;
+
+    $("#wave-loading").textContent =
+      query.zoom >= 8
+        ? "Loading high-resolution wave guidance…"
+        : "Loading wave guidance…";
+  }
+
+
+  const params =
+    new URLSearchParams({
+      hour:
+        String(hour),
+
+      south:
+        query.south.toFixed(4),
+
+      north:
+        query.north.toFixed(4),
+
+      west:
+        query.west.toFixed(4),
+
+      east:
+        query.east.toFixed(4),
+
+      step:
+        String(query.step)
+    });
+
 
   try {
-    const response = await fetch(
-      `${API_ROOT}/wave-grid?${params.toString()}`,
-      {
-        cache: "no-store",
-        signal: waveRequestController.signal
-      }
-    );
+    const response =
+      await fetch(
+        `${API_ROOT}/wave-grid?${params.toString()}`,
+        {
+          cache:
+            "no-store",
+
+          signal:
+            waveRequestController.signal
+        }
+      );
+
+
+    /*
+     * A rate-limit response should NOT destroy
+     * the valid map that's already on screen.
+     */
+
+    if (
+      response.status === 429
+    ) {
+      $("#wave-loading").hidden =
+        true;
+
+      console.warn(
+        "Wave API rate limited; keeping existing map."
+      );
+
+      return;
+    }
+
 
     if (!response.ok) {
       throw new Error(
@@ -508,20 +668,70 @@ async function loadWave(
       );
     }
 
-    const data = await response.json();
 
-    renderWaveGrid(data);
+    const data =
+      await response.json();
+
+
+    /*
+     * Save this viewport/hour combination for
+     * ten minutes.
+     */
+
+    waveCache.set(
+      cacheKey,
+      {
+        savedAt:
+          Date.now(),
+
+        data
+      }
+    );
+
+
+    renderWaveGrid(
+      data
+    );
+
   } catch (error) {
-    if (error.name === "AbortError") {
+
+    if (
+      error.name ===
+      "AbortError"
+    ) {
       return;
     }
 
-    $("#wave-loading").hidden = false;
+
+    /*
+     * If there are already points on the map,
+     * leave them alone.
+     */
+
+    if (
+      waveLayer
+        .getLayers()
+        .length > 0
+    ) {
+      $("#wave-loading").hidden =
+        true;
+
+      console.warn(
+        "Wave refinement failed; keeping existing data.",
+        error
+      );
+
+      return;
+    }
+
+
+    $("#wave-loading").hidden =
+      false;
+
     $("#wave-loading").textContent =
       "Wave guidance could not be loaded.";
   }
 }
-
 
 /* Main refresh */
 
@@ -616,9 +826,20 @@ $("#alert-modal").addEventListener("click", event => {
   }
 });
 
-window.addEventListener("DOMContentLoaded", () => {
-  initWaveMap();
-  load();
-});
+window.addEventListener(
+  "DOMContentLoaded",
+  () => {
+    initWaveMap();
+
+    /*
+     * Allow Leaflet's initial fitBounds()
+     * to finish before the first wave request.
+     */
+    setTimeout(
+      load,
+      300
+    );
+  }
+);
 
 setInterval(load, REFRESH_MS);
