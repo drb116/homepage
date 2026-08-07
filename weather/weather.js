@@ -400,12 +400,14 @@ function waveCacheKey(
 }
 
 function waveStepForZoom(zoom) {
-  // GFS-Wave 0.16° is the practical ceiling.
-  if (zoom >= 8) return 0.18;
-  if (zoom === 7) return 0.28;
-  if (zoom === 6) return 0.45;
-  if (zoom === 5) return 0.75;
-  return 1.25;
+  // Broad view: enough points to show the overall pattern
+  // without hammering the marine API.
+  if (zoom >= 8) return 0.20;
+  if (zoom === 7) return 0.35;
+  if (zoom === 6) return 0.60;
+  if (zoom === 5) return 1.00;
+
+  return 2.00;
 }
 
 function currentWaveQuery() {
