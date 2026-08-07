@@ -76,6 +76,8 @@ async function get(url) {
 }
 
 
+/* Alerts */
+
 let currentAlerts = [];
 
 function alerts(data) {
@@ -197,6 +199,8 @@ function openAlert(alert) {
 }
 
 
+/* Buoy */
+
 const val = (value, suffix = "") =>
   value === null ||
   value === undefined ||
@@ -254,11 +258,103 @@ function buoy(data) {
 }
 
 
-/* Wave map */
+/* Caribbean wave map */
 
+let waveMap;
+let waveLayer;
 let currentWaveHour = 0;
 
-function setWaveHour(hour) {
+function initWaveMap() {
+  waveMap = L.map("wave-map", {
+    zoomControl: true,
+    attributionControl: true
+  });
+
+  L.tileLayer(
+    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+    {
+      maxZoom: 8,
+      attribution:
+        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+    }
+  ).addTo(waveMap);
+
+  waveMap.fitBounds([
+    [8.0, -91.0],
+    [33.0, -57.0]
+  ]);
+
+  waveLayer = L.layerGroup().addTo(waveMap);
+}
+
+function waveColor(feet) {
+  if (feet == null) return "#7a8794";
+  if (feet < 3) return "#4cb3d4";
+  if (feet < 5) return "#65c466";
+  if (feet < 8) return "#e2cf4f";
+  if (feet < 12) return "#ef8c3d";
+  return "#e84f5f";
+}
+
+function waveRadius(feet) {
+  if (feet == null) return 5;
+  return Math.max(6, Math.min(14, 5 + feet * 0.7));
+}
+
+function renderWaveGrid(data) {
+  waveLayer.clearLayers();
+
+  const points = Array.isArray(data.points)
+    ? data.points
+    : [];
+
+  for (const point of points) {
+    if (
+      point.waveHeightFt == null ||
+      point.latitude == null ||
+      point.longitude == null
+    ) {
+      continue;
+    }
+
+    const feet = Number(point.waveHeightFt);
+
+    const marker = L.circleMarker(
+      [point.latitude, point.longitude],
+      {
+        radius: waveRadius(feet),
+        color: "rgba(255,255,255,0.75)",
+        weight: 1,
+        fillColor: waveColor(feet),
+        fillOpacity: 0.82
+      }
+    );
+
+    marker.bindTooltip(
+      `${feet.toFixed(1)} ft`,
+      {
+        permanent: false,
+        direction: "top",
+        className: "wave-dot-label"
+      }
+    );
+
+    marker.bindPopup(`
+      <strong>${feet.toFixed(1)} ft</strong><br>
+      Significant wave height<br>
+      ${esc(fmt(data.validTime))}
+    `);
+
+    marker.addTo(waveLayer);
+  }
+
+  $("#wave-time-label").textContent =
+    `${data.modelLabel || "GFS-Wave"} · valid ${fmt(data.validTime)} · significant wave height`;
+
+  $("#wave-loading").hidden = true;
+}
+
+async function loadWave(hour) {
   currentWaveHour = hour;
 
   document.querySelectorAll(".wave-time").forEach(button => {
@@ -268,29 +364,25 @@ function setWaveHour(hour) {
     );
   });
 
-  const image = $("#wave-image");
-  const loading = $("#wave-loading");
+  $("#wave-loading").hidden = false;
+  $("#wave-loading").textContent =
+    "Loading wave guidance…";
 
-  loading.hidden = false;
+  try {
+    const data = await get(
+      `${API_ROOT}/wave-grid?hour=${hour}`
+    );
 
-  image.src =
-    `${API_ROOT}/wave?hour=${hour}&t=${Date.now()}`;
+    renderWaveGrid(data);
+  } catch (error) {
+    $("#wave-loading").hidden = false;
+    $("#wave-loading").textContent =
+      "Wave guidance could not be loaded.";
+  }
 }
 
-document.querySelectorAll(".wave-time").forEach(button => {
-  button.addEventListener("click", () => {
-    setWaveHour(Number(button.dataset.hour));
-  });
-});
 
-$("#wave-image").addEventListener("load", () => {
-  $("#wave-loading").hidden = true;
-});
-
-$("#wave-image").addEventListener("error", () => {
-  $("#wave-loading").hidden = true;
-});
-
+/* Main refresh */
 
 async function load() {
   const button = $("#refresh-button");
@@ -302,7 +394,8 @@ async function load() {
 
   const results = await Promise.allSettled([
     get(`${API_ROOT}/alerts`),
-    get(`${API_ROOT}/buoy`)
+    get(`${API_ROOT}/buoy`),
+    loadWave(currentWaveHour)
   ]);
 
   let ok = 0;
@@ -335,6 +428,10 @@ async function load() {
       "Use the NOAA station link for current observations.";
   }
 
+  if (results[2].status === "fulfilled") {
+    ok++;
+  }
+
   const time = new Intl.DateTimeFormat(
     "en-US",
     {
@@ -345,7 +442,7 @@ async function load() {
   ).format(new Date());
 
   $("#dashboard-status").textContent =
-    ok === 2
+    ok === 3
       ? `Official data updated ${time}`
       : `Updated ${time} · Some sources unavailable`;
 
@@ -357,11 +454,17 @@ async function load() {
       Math.floor(Date.now() / REFRESH_MS)
     }`;
 
-  setWaveHour(currentWaveHour);
-
   button.disabled = false;
 }
 
+
+/* Events */
+
+document.querySelectorAll(".wave-time").forEach(button => {
+  button.addEventListener("click", () => {
+    loadWave(Number(button.dataset.hour));
+  });
+});
 
 $("#refresh-button").addEventListener("click", load);
 
@@ -375,6 +478,9 @@ $("#alert-modal").addEventListener("click", event => {
   }
 });
 
-window.addEventListener("DOMContentLoaded", load);
+window.addEventListener("DOMContentLoaded", () => {
+  initWaveMap();
+  load();
+});
 
 setInterval(load, REFRESH_MS);

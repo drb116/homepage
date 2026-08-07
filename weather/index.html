@@ -13,6 +13,12 @@
 
   <link rel="icon" href="/favicon.ico" sizes="any">
   <link rel="stylesheet" href="/styles.css">
+
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+  >
+
   <link rel="stylesheet" href="/weather/weather.css">
 </head>
 
@@ -94,21 +100,21 @@
         </article>
 
 
-        <!-- TOP RIGHT: GFS-WAVE -->
+        <!-- TOP RIGHT: CARIBBEAN WAVES -->
         <article class="weather-panel wave-panel">
           <div class="panel-heading">
             <div>
-              <p class="panel-kicker">NOAA GFS-Wave model guidance</p>
+              <p class="panel-kicker">NCEP GFS-Wave · via Open-Meteo</p>
               <h2>Caribbean wave forecast</h2>
             </div>
 
             <a
               class="source-link"
-              href="https://polar.ncep.noaa.gov/waves/product_table.shtml"
+              href="https://open-meteo.com/en/docs/marine-weather-api"
               target="_blank"
               rel="noopener"
             >
-              NOAA ↗
+              Data ↗
             </a>
           </div>
 
@@ -138,23 +144,31 @@
             </button>
           </div>
 
-          <div class="wave-map-wrap">
-            <img
-              id="wave-image"
-              class="dashboard-map wave-map"
-              src="/api/weather/wave?hour=0"
-              alt="NOAA GFS-Wave significant wave height forecast for the northwest Atlantic and Caribbean"
-            >
+          <div class="wave-map-shell">
+            <div
+              id="wave-map"
+              class="wave-map"
+              aria-label="Caribbean significant wave height forecast map"
+            ></div>
 
-            <div id="wave-loading" class="wave-loading" hidden>
-              Loading wave map…
+            <div id="wave-loading" class="wave-loading">
+              Loading wave guidance…
             </div>
           </div>
 
-          <p class="data-note wave-note">
-            Significant wave height · NW Atlantic / Caribbean · model guidance,
-            not an official marine forecast.
-          </p>
+          <div class="wave-map-footer">
+            <div class="wave-legend" aria-label="Wave height legend">
+              <span><i class="wave-swatch wave-1"></i> &lt;3 ft</span>
+              <span><i class="wave-swatch wave-2"></i> 3–5 ft</span>
+              <span><i class="wave-swatch wave-3"></i> 5–8 ft</span>
+              <span><i class="wave-swatch wave-4"></i> 8–12 ft</span>
+              <span><i class="wave-swatch wave-5"></i> 12+ ft</span>
+            </div>
+
+            <p id="wave-time-label" class="data-note wave-note">
+              Significant wave height · model guidance
+            </p>
+          </div>
         </article>
 
 
@@ -227,44 +241,28 @@
         <article class="weather-panel resources-panel compact-resources">
           <div class="compact-resource-links">
 
-            <a
-              href="https://www.nhc.noaa.gov/"
-              target="_blank"
-              rel="noopener"
-            >
+            <a href="https://www.nhc.noaa.gov/" target="_blank" rel="noopener">
               🌀 NHC Storms
             </a>
 
-            <a
-              href="https://www.nhc.noaa.gov/arrival.shtml"
-              target="_blank"
-              rel="noopener"
-            >
+            <a href="https://www.nhc.noaa.gov/arrival.shtml" target="_blank" rel="noopener">
               ⏱ Wind Arrival
             </a>
 
-            <a
-              href="https://www.nhc.noaa.gov/surge/"
-              target="_blank"
-              rel="noopener"
-            >
+            <a href="https://www.nhc.noaa.gov/surge/" target="_blank" rel="noopener">
               🌊 Storm Surge
             </a>
 
-            <a
-              href="https://www.weather.gov/mlb/"
-              target="_blank"
-              rel="noopener"
-            >
+            <a href="https://www.weather.gov/mlb/" target="_blank" rel="noopener">
               ⚠ NWS Melbourne
             </a>
 
             <a
-              href="https://polar.ncep.noaa.gov/waves/product_table.shtml"
+              href="https://open-meteo.com/en/docs/marine-weather-api"
               target="_blank"
               rel="noopener"
             >
-              🌊 GFS-Wave
+              🌊 Marine Data
             </a>
 
           </div>
@@ -274,8 +272,9 @@
 
       <aside class="safety-note">
         <strong>Safety note:</strong>
-        StormWatch summarizes government weather information and model guidance.
-        Follow official NWS/NHC forecasts and local authorities for decisions.
+        StormWatch summarizes government weather information and numerical
+        model guidance. The Caribbean wave map is not an official marine
+        forecast and should not be used for navigation.
       </aside>
 
     </main>
@@ -309,6 +308,7 @@
     <div id="alert-modal-body" class="alert-modal-body"></div>
   </dialog>
 
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="/weather/weather.js"></script>
 </body>
 </html>

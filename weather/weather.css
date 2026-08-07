@@ -51,7 +51,7 @@
 }
 
 
-/* 2-column dashboard */
+/* Main 50 / 50 layout */
 
 .weather-grid {
   display: grid;
@@ -122,7 +122,7 @@
 }
 
 
-/* Maps */
+/* NHC map */
 
 .map-image-link {
   display: block;
@@ -135,29 +135,8 @@
   border-radius: 12px;
 }
 
-.wave-map-wrap {
-  position: relative;
-  min-height: 260px;
-}
 
-.wave-map {
-  width: 100%;
-}
-
-.wave-loading {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 12px;
-  background: rgba(9, 15, 22, 0.72);
-  color: var(--text);
-  font-size: 0.86rem;
-}
-
-.wave-loading[hidden] {
-  display: none;
-}
+/* Wave map */
 
 .wave-controls {
   display: flex;
@@ -188,8 +167,82 @@
   background: rgba(86, 168, 255, 0.10);
 }
 
+.wave-map-shell {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+.wave-map {
+  width: 100%;
+  height: 365px;
+  background: #0a121b;
+}
+
+.wave-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 800;
+  display: grid;
+  place-items: center;
+  background: rgba(9, 15, 22, 0.72);
+  color: var(--text);
+  font-size: 0.86rem;
+  pointer-events: none;
+}
+
+.wave-loading[hidden] {
+  display: none;
+}
+
+.wave-map-footer {
+  margin-top: 10px;
+}
+
+.wave-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 12px;
+  color: var(--muted);
+  font-size: 0.69rem;
+}
+
+.wave-legend span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.wave-swatch {
+  display: inline-block;
+  width: 11px;
+  height: 11px;
+  border-radius: 3px;
+  border: 1px solid rgba(255, 255, 255, 0.25);
+}
+
+.wave-1 { background: #4cb3d4; }
+.wave-2 { background: #65c466; }
+.wave-3 { background: #e2cf4f; }
+.wave-4 { background: #ef8c3d; }
+.wave-5 { background: #e84f5f; }
+
+.wave-dot-label {
+  background: rgba(7, 12, 18, 0.78);
+  border: 0;
+  color: white;
+  box-shadow: none;
+  font-size: 10px;
+  padding: 2px 4px;
+}
+
+.wave-dot-label::before {
+  display: none;
+}
+
 .wave-note {
-  margin-top: 10px !important;
+  margin-top: 8px !important;
 }
 
 
@@ -442,9 +495,30 @@
 }
 
 
+/* Leaflet dark integration */
+
+.leaflet-container {
+  font-family: inherit;
+}
+
+.leaflet-control-attribution {
+  font-size: 9px;
+}
+
+.leaflet-popup-content-wrapper,
+.leaflet-popup-tip {
+  background: #101923;
+  color: #e8eef5;
+}
+
+.leaflet-popup-content {
+  margin: 10px 12px;
+}
+
+
 /* Responsive */
 
-@media (max-width: 860px) {
+@media (max-width: 900px) {
   .weather-grid {
     grid-template-columns: 1fr;
   }
@@ -465,6 +539,10 @@
 @media (max-width: 480px) {
   .weather-panel {
     padding: 16px;
+  }
+
+  .wave-map {
+    height: 330px;
   }
 
   .metric-grid {
