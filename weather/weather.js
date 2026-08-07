@@ -263,17 +263,28 @@ function buoy(data) {
 let waveMap;
 let waveLayer;
 let currentWaveHour = 0;
+let waveRequestController = null;
+let waveMoveTimer = null;
+
+const WAVE_REGION = {
+  south: 7,
+  north: 34,
+  west: -92,
+  east: -55
+};
 
 function initWaveMap() {
   waveMap = L.map("wave-map", {
     zoomControl: true,
-    attributionControl: true
+    attributionControl: true,
+    minZoom: 3,
+    maxZoom: 10
   });
 
   L.tileLayer(
     "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
     {
-      maxZoom: 8,
+      maxZoom: 19,
       attribution:
         '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
     }
@@ -285,6 +296,17 @@ function initWaveMap() {
   ]);
 
   waveLayer = L.layerGroup().addTo(waveMap);
+
+  // Reload at higher density as the user pans or zooms.
+  waveMap.on("moveend", () => {
+    clearTimeout(waveMoveTimer);
+
+    waveMoveTimer = setTimeout(() => {
+      loadWave(currentWaveHour, {
+        preserveButtons: true
+      });
+    }, 250);
+  });
 }
 
 function waveColor(feet) {
@@ -297,8 +319,71 @@ function waveColor(feet) {
 }
 
 function waveRadius(feet) {
-  if (feet == null) return 5;
-  return Math.max(6, Math.min(14, 5 + feet * 0.7));
+  if (feet == null) return 4;
+
+  // Keep dense zoomed-in maps readable.
+  const zoom = waveMap ? waveMap.getZoom() : 5;
+  const base =
+    zoom >= 8 ? 4 :
+    zoom >= 7 ? 4.5 :
+    zoom >= 6 ? 5 :
+    5.5;
+
+  return Math.max(
+    base,
+    Math.min(base + 4, base + feet * 0.22)
+  );
+}
+
+function waveStepForZoom(zoom) {
+  // GFS-Wave 0.16° is the practical ceiling.
+  if (zoom >= 8) return 0.18;
+  if (zoom === 7) return 0.28;
+  if (zoom === 6) return 0.45;
+  if (zoom === 5) return 0.75;
+  return 1.25;
+}
+
+function currentWaveQuery() {
+  const bounds = waveMap.getBounds();
+  const zoom = waveMap.getZoom();
+  const step = waveStepForZoom(zoom);
+
+  const south = Math.max(
+    WAVE_REGION.south,
+    bounds.getSouth()
+  );
+
+  const north = Math.min(
+    WAVE_REGION.north,
+    bounds.getNorth()
+  );
+
+  const west = Math.max(
+    WAVE_REGION.west,
+    bounds.getWest()
+  );
+
+  const east = Math.min(
+    WAVE_REGION.east,
+    bounds.getEast()
+  );
+
+  if (
+    south >= north ||
+    west >= east
+  ) {
+    return null;
+  }
+
+  return {
+    south,
+    north,
+    west,
+    east,
+    step,
+    zoom
+  };
 }
 
 function renderWaveGrid(data) {
@@ -323,8 +408,8 @@ function renderWaveGrid(data) {
       [point.latitude, point.longitude],
       {
         radius: waveRadius(feet),
-        color: "rgba(255,255,255,0.75)",
-        weight: 1,
+        color: "rgba(255,255,255,0.62)",
+        weight: 0.8,
         fillColor: waveColor(feet),
         fillOpacity: 0.82
       }
@@ -348,33 +433,89 @@ function renderWaveGrid(data) {
     marker.addTo(waveLayer);
   }
 
+  const density =
+    data.stepDegrees != null
+      ? `${data.stepDegrees}° grid`
+      : "model grid";
+
   $("#wave-time-label").textContent =
-    `${data.modelLabel || "GFS-Wave"} · valid ${fmt(data.validTime)} · significant wave height`;
+    `${data.modelLabel || "GFS-Wave"} · valid ${fmt(data.validTime)} · ${points.length} ocean points · ${density}`;
 
   $("#wave-loading").hidden = true;
 }
 
-async function loadWave(hour) {
+async function loadWave(
+  hour,
+  { preserveButtons = false } = {}
+) {
   currentWaveHour = hour;
 
-  document.querySelectorAll(".wave-time").forEach(button => {
-    button.classList.toggle(
-      "active",
-      Number(button.dataset.hour) === hour
-    );
-  });
+  if (!preserveButtons) {
+    document.querySelectorAll(".wave-time").forEach(button => {
+      button.classList.toggle(
+        "active",
+        Number(button.dataset.hour) === hour
+      );
+    });
+  }
+
+  if (!waveMap) return;
+
+  const query = currentWaveQuery();
+
+  if (!query) {
+    waveLayer.clearLayers();
+    $("#wave-loading").hidden = false;
+    $("#wave-loading").textContent =
+      "Pan back to the Caribbean / western Atlantic.";
+    return;
+  }
+
+  if (waveRequestController) {
+    waveRequestController.abort();
+  }
+
+  waveRequestController =
+    new AbortController();
 
   $("#wave-loading").hidden = false;
   $("#wave-loading").textContent =
-    "Loading wave guidance…";
+    query.zoom >= 8
+      ? "Loading high-resolution wave guidance…"
+      : "Loading wave guidance…";
+
+  const params = new URLSearchParams({
+    hour: String(hour),
+    south: query.south.toFixed(4),
+    north: query.north.toFixed(4),
+    west: query.west.toFixed(4),
+    east: query.east.toFixed(4),
+    step: String(query.step)
+  });
 
   try {
-    const data = await get(
-      `${API_ROOT}/wave-grid?hour=${hour}`
+    const response = await fetch(
+      `${API_ROOT}/wave-grid?${params.toString()}`,
+      {
+        cache: "no-store",
+        signal: waveRequestController.signal
+      }
     );
+
+    if (!response.ok) {
+      throw new Error(
+        `Request failed (${response.status})`
+      );
+    }
+
+    const data = await response.json();
 
     renderWaveGrid(data);
   } catch (error) {
+    if (error.name === "AbortError") {
+      return;
+    }
+
     $("#wave-loading").hidden = false;
     $("#wave-loading").textContent =
       "Wave guidance could not be loaded.";
@@ -392,10 +533,11 @@ async function load() {
   $("#dashboard-status").textContent =
     "Refreshing official data…";
 
+  loadWave(currentWaveHour);
+
   const results = await Promise.allSettled([
     get(`${API_ROOT}/alerts`),
-    get(`${API_ROOT}/buoy`),
-    loadWave(currentWaveHour)
+    get(`${API_ROOT}/buoy`)
   ]);
 
   let ok = 0;
@@ -428,10 +570,6 @@ async function load() {
       "Use the NOAA station link for current observations.";
   }
 
-  if (results[2].status === "fulfilled") {
-    ok++;
-  }
-
   const time = new Intl.DateTimeFormat(
     "en-US",
     {
@@ -442,7 +580,7 @@ async function load() {
   ).format(new Date());
 
   $("#dashboard-status").textContent =
-    ok === 3
+    ok === 2
       ? `Official data updated ${time}`
       : `Updated ${time} · Some sources unavailable`;
 
