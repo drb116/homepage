@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Earth Systems in Action</title>
+<style>
+  :root{
+    --bg:#eef6fb;
+    --panel:#ffffff;
+    --ink:#17324d;
+    --muted:#5b7187;
+    --blue:#3a91d8;
+    --lightblue:#90cff1;
+    --green:#4f9f5f;
+    --darkgreen:#2f6f3b;
+    --tan:#d8b77d;
+    --brown:#9b7049;
+    --orange:#f39b45;
+    --red:#d95b5b;
+    --border:#cdddea;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;
+    font-family:Arial, Helvetica, sans-serif;
+    background:var(--bg);
+    color:var(--ink);
+  }
+  .app{
+    max-width:1180px;
+    margin:0 auto;
+    padding:18px;
+  }
+  h1{
+    margin:0 0 4px;
+    font-size:30px;
+  }
+  .subtitle{
+    color:var(--muted);
+    margin:0 0 16px;
+    font-size:16px;
+  }
+  .layout{
+    display:grid;
+    grid-template-columns:minmax(0, 2fr) minmax(300px, 0.9fr);
+    gap:16px;
+    align-items:start;
+  }
+  .panel{
+    background:var(--panel);
+    border:1px solid var(--border);
+    border-radius:16px;
+    padding:14px;
+    box-shadow:0 3px 12px rgba(24,50,77,.08);
+  }
+  .scene-wrap{
+    position:relative;
+    aspect-ratio:16/9;
+    overflow:hidden;
+    border-radius:12px;
+    background:#bfe4fa;
+    border:1px solid #b4cfdf;
+  }
+  canvas{
+    width:100%;
+    height:100%;
+    display:block;
+  }
+  .systems{
+    display:grid;
+    grid-template-columns:repeat(4,1fr);
+    gap:8px;
+    margin-top:12px;
+  }
+  .system{
+    border-radius:10px;
+    padding:9px 6px;
+    text-align:center;
+    font-weight:700;
+    border:2px solid transparent;
+    background:#f2f6f9;
+    transition:.2s;
+  }
+  .system.active{
+    transform:translateY(-2px);
+    border-color:var(--orange);
+    background:#fff3e6;
+  }
+  .system small{
+    display:block;
+    margin-top:2px;
+    font-weight:400;
+    color:var(--muted);
+  }
+  h2{
+    font-size:18px;
+    margin:0 0 10px;
+  }
+  .controls{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+  }
+  button{
+    border:none;
+    border-radius:10px;
+    padding:11px 10px;
+    font-weight:700;
+    font-size:14px;
+    cursor:pointer;
+    background:#e7f1f8;
+    color:var(--ink);
+    border:1px solid #bfd4e3;
+  }
+  button:hover{filter:brightness(.98)}
+  button.primary{
+    background:var(--blue);
+    color:white;
+    border-color:var(--blue);
+  }
+  button.danger{
+    background:#fff0e7;
+    border-color:#f1c09f;
+  }
+  button:disabled{
+    opacity:.45;
+    cursor:not-allowed;
+  }
+  .scenario{
+    margin:12px 0;
+    padding:11px;
+    border-radius:10px;
+    background:#f6f9fb;
+    border:1px solid var(--border);
+  }
+  .scenario strong{
+    display:block;
+    margin-bottom:4px;
+  }
+  .scenario span{
+    color:var(--muted);
+    font-size:14px;
+  }
+  .meters{
+    display:grid;
+    grid-template-columns:1fr;
+    gap:8px;
+    margin-top:12px;
+  }
+  .meter-row{
+    display:grid;
+    grid-template-columns:105px 1fr 40px;
+    gap:8px;
+    align-items:center;
+    font-size:13px;
+  }
+  .track{
+    height:10px;
+    background:#e5edf2;
+    border-radius:999px;
+    overflow:hidden;
+  }
+  .fill{
+    height:100%;
+    width:50%;
+    background:var(--blue);
+    border-radius:999px;
+    transition:width .4s;
+  }
+  .log{
+    margin-top:14px;
+    max-height:245px;
+    overflow:auto;
+    border-top:1px solid var(--border);
+    padding-top:8px;
+  }
+  .log-item{
+    padding:7px 8px;
+    margin-bottom:6px;
+    background:#f7fafc;
+    border-left:4px solid var(--blue);
+    border-radius:6px;
+    font-size:13px;
+    line-height:1.35;
+  }
+  .challenge{
+    margin-top:14px;
+    background:#fff8df;
+    border:1px solid #ecd99b;
+    padding:12px;
+    border-radius:12px;
+  }
+  .challenge-title{
+    font-weight:700;
+    margin-bottom:5px;
+  }
+
+
+
+
+  @media(max-width:850px){
+    .layout{grid-template-columns:1fr}
+    .systems{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+  <h1>Earth Systems in Action</h1>
+  <p class="subtitle">Change one part of Earth and watch the effects spread through the geosphere, hydrosphere, atmosphere, and biosphere.</p>
+
+  <div class="layout">
+    <section class="panel">
+      <div class="scene-wrap">
+        <canvas id="scene" width="900" height="506" aria-label="Overhead landscape simulation"></canvas>
+      </div>
+
+      <div class="systems">
+        <div class="system" id="atmosphere">Atmosphere<small>air & weather</small></div>
+        <div class="system" id="hydrosphere">Hydrosphere<small>water</small></div>
+        <div class="system" id="geosphere">Geosphere<small>land & soil</small></div>
+        <div class="system" id="biosphere">Biosphere<small>living things</small></div>
+      </div>
+    </section>
+
+    <aside class="panel">
+      <h2>Choose a Change</h2>
+      <div class="controls">
+        <button data-event="rain">🌧 Heavy Rain</button>
+        <button data-event="drought">☀️ Drought</button>
+        <button data-event="trees">🌳 Plant Trees</button>
+        <button data-event="remove">🪓 Remove Plants</button>
+        <button data-event="wind">💨 Strong Wind</button>
+        <button data-event="flood">🌊 Flood</button>
+      </div>
+
+      <div class="scenario" id="scenario">
+        <strong>No change selected</strong>
+        <span>Choose an event, then run the simulation one step at a time.</span>
+      </div>
+
+      <div class="controls">
+        <button class="primary" id="stepBtn" disabled>Run 1 Year ▶</button>
+        <button id="resetBtn">Reset</button>
+      </div>
+
+      <div class="meters">
+        <div class="meter-row"><span>River water</span><div class="track"><div class="fill" id="waterFill"></div></div><b id="waterVal">50</b></div>
+        <div class="meter-row"><span>Vegetation</span><div class="track"><div class="fill" id="vegFill"></div></div><b id="vegVal">50</b></div>
+        <div class="meter-row"><span>Soil stability</span><div class="track"><div class="fill" id="soilFill"></div></div><b id="soilVal">50</b></div>
+        <div class="meter-row"><span>Water clarity</span><div class="track"><div class="fill" id="clarityFill"></div></div><b id="clarityVal">50</b></div>
+        <div class="meter-row"><span>Animal habitat</span><div class="track"><div class="fill" id="habitatFill"></div></div><b id="habitatVal">50</b></div>
+      </div>
+
+      <div class="log" id="log">
+        <div class="log-item">Start: The landscape is balanced. Choose a change to see what happens.</div>
+      </div>
+
+      <div class="challenge">
+        <div class="challenge-title">Challenge</div>
+        Can you create a chain reaction that affects <strong>all four Earth systems</strong>?
+      </div>
+    </aside>
+  </div>
+
+</div>
+
+<script>
+const canvas = document.getElementById('scene');
+const ctx = canvas.getContext('2d');
+
+const defaults = {
+  water:50,
+  vegetation:50,
+  soil:50,
+  clarity:50,
+  habitat:50,
+  year:0,
+  selected:null,
+  activeSystems:[]
+};
+let state = {...defaults};
+
+const eventInfo = {
+  rain:{
+    title:"Heavy Rain",
+    desc:"Extra precipitation begins in the atmosphere. Watch what happens to the river, soil, and living things.",
+    first:["atmosphere","hydrosphere"]
+  },
+  drought:{
+    title:"Drought",
+    desc:"Very little rain falls for a long time. Watch how less water affects plants, soil, and animals.",
+    first:["atmosphere","hydrosphere"]
+  },
+  trees:{
+    title:"Plant Trees",
+    desc:"People add vegetation to bare parts of the landscape. Watch how roots affect soil and water.",
+    first:["biosphere","geosphere"]
+  },
+  remove:{
+    title:"Remove Plants",
+    desc:"Vegetation is removed from the hillside. Watch what happens when roots no longer hold soil in place.",
+    first:["biosphere","geosphere"]
+  },
+  wind:{
+    title:"Strong Wind",
+    desc:"Fast-moving air blows across the landscape. Bare soil is especially vulnerable.",
+    first:["atmosphere","geosphere"]
+  },
+  flood:{
+    title:"Flood",
+    desc:"The river rises well beyond its normal banks. Watch how water reshapes the land and habitat.",
+    first:["hydrosphere","geosphere"]
+  }
+};
+
+function clamp(v){ return Math.max(0, Math.min(100, v)); }
+
+function setActive(systems){
+  state.activeSystems = systems;
+  ["atmosphere","hydrosphere","geosphere","biosphere"].forEach(id=>{
+    document.getElementById(id).classList.toggle("active", systems.includes(id));
+  });
+}
+
+function addLog(text, systems=[]){
+  const item = document.createElement("div");
+  item.className="log-item";
+  item.textContent = `Year ${state.year}: ${text}`;
+  document.getElementById("log").prepend(item);
+  setActive(systems);
+}
+
+function selectEvent(ev){
+  state.selected = ev;
+  state.year = 0;
+  const info = eventInfo[ev];
+  document.getElementById("scenario").innerHTML = `<strong>${info.title}</strong><span>${info.desc}</span>`;
+  document.getElementById("stepBtn").disabled = false;
+  addLog(`${info.title} selected. Run the simulation to see the effects.`, info.first);
+  draw();
+}
+
+document.querySelectorAll("[data-event]").forEach(btn=>{
+  btn.addEventListener("click",()=>selectEvent(btn.dataset.event));
+});
+
+document.getElementById("stepBtn").addEventListener("click", runStep);
+document.getElementById("resetBtn").addEventListener("click", reset);
+
+function runStep(){
+  if(!state.selected) return;
+  state.year++;
+
+  const y = state.year;
+  const ev = state.selected;
+
+  if(ev==="rain"){
+    state.water += 12;
+    state.clarity -= 7 + Math.max(0,(65-state.soil)/8);
+    state.soil -= 7 - Math.min(3,state.vegetation/30);
+    if(y>1) state.habitat -= 3;
+    if(y===1) addLog("Heavy rain raises the river and increases runoff.",["atmosphere","hydrosphere"]);
+    else if(y===2) addLog("Runoff carries loose soil into the river, making the water muddier.",["hydrosphere","geosphere"]);
+    else addLog("Changes in water and soil begin to affect plant and animal habitat.",["hydrosphere","geosphere","biosphere"]);
+  }
+
+  if(ev==="drought"){
+    state.water -= 11;
+    state.vegetation -= y<2 ? 7 : 11;
+    state.soil -= y>1 ? 5 : 2;
+    state.habitat -= y>1 ? 8 : 3;
+    state.clarity += 2;
+    if(y===1) addLog("Little rainfall causes the river level to fall.",["atmosphere","hydrosphere"]);
+    else if(y===2) addLog("Plants begin to dry out because less water is available.",["hydrosphere","biosphere"]);
+    else addLog("With fewer plants, soil becomes exposed and animal habitat declines.",["biosphere","geosphere"]);
+  }
+
+  if(ev==="trees"){
+    state.vegetation += 10;
+    state.soil += 8;
+    state.clarity += 5;
+    state.habitat += 6;
+    state.water -= 1;
+    if(y===1) addLog("New trees increase vegetation and their roots begin holding soil in place.",["biosphere","geosphere"]);
+    else if(y===2) addLog("More stable soil means less sediment washes into the river.",["geosphere","hydrosphere"]);
+    else addLog("Cleaner water and more vegetation improve habitat for living things.",["hydrosphere","biosphere"]);
+  }
+
+  if(ev==="remove"){
+    state.vegetation -= 13;
+    state.soil -= 9;
+    state.clarity -= y>1 ? 8 : 3;
+    state.habitat -= 9;
+    if(y===1) addLog("Removing plants reduces habitat and leaves more soil uncovered.",["biosphere","geosphere"]);
+    else if(y===2) addLog("Without roots holding it in place, more soil erodes into the river.",["geosphere","hydrosphere"]);
+    else addLog("Muddier water and lost vegetation make the area less suitable for animals.",["hydrosphere","biosphere"]);
+  }
+
+  if(ev==="wind"){
+    state.soil -= Math.max(3, 10-state.vegetation/14);
+    state.vegetation -= 3;
+    state.clarity -= y>1 ? 2 : 0;
+    state.habitat -= 2;
+    if(y===1) addLog("Strong wind moves loose surface soil.",["atmosphere","geosphere"]);
+    else if(y===2) addLog("Areas with fewer plants lose more soil because roots and leaves no longer protect it.",["atmosphere","geosphere","biosphere"]);
+    else addLog("Some moved soil reaches the water, connecting the air, land, water, and living systems.",["atmosphere","geosphere","hydrosphere","biosphere"]);
+  }
+
+  if(ev==="flood"){
+    state.water += 15;
+    state.soil -= 10;
+    state.clarity -= 10;
+    state.vegetation -= y>1 ? 5 : 2;
+    state.habitat -= y>1 ? 7 : 3;
+    if(y===1) addLog("The river rises and spreads onto normally dry land.",["hydrosphere","geosphere"]);
+    else if(y===2) addLog("Fast-moving floodwater erodes soil and carries sediment downstream.",["hydrosphere","geosphere"]);
+    else addLog("Flooding changes vegetation and animal habitat along the river.",["hydrosphere","geosphere","biosphere"]);
+  }
+
+  ["water","vegetation","soil","clarity","habitat"].forEach(k=>state[k]=clamp(state[k]));
+  updateMeters();
+  draw();
+
+  if(state.year>=4){
+    document.getElementById("stepBtn").disabled = true;
+    addLog("Simulation complete. Use your observations to explain how the Earth systems interacted.",["atmosphere","hydrosphere","geosphere","biosphere"]);
+  }
+}
+
+function updateMeters(){
+  const map = {
+    water:["waterFill","waterVal"],
+    vegetation:["vegFill","vegVal"],
+    soil:["soilFill","soilVal"],
+    clarity:["clarityFill","clarityVal"],
+    habitat:["habitatFill","habitatVal"]
+  };
+  Object.entries(map).forEach(([key,[fill,val]])=>{
+    document.getElementById(fill).style.width = state[key]+"%";
+    document.getElementById(val).textContent = Math.round(state[key]);
+  });
+}
+
+function reset(){
+  state = {...defaults};
+  document.getElementById("scenario").innerHTML = `<strong>No change selected</strong><span>Choose an event, then run the simulation one step at a time.</span>`;
+  document.getElementById("stepBtn").disabled = true;
+  document.getElementById("log").innerHTML = `<div class="log-item">Start: The landscape is balanced. Choose a change to see what happens.</div>`;
+  setActive([]);
+  updateMeters();
+  draw();
+}
+
+function drawTree(x,y,s=1){
+  ctx.fillStyle="#6d5236";
+  ctx.fillRect(x-4*s,y,8*s,20*s);
+  ctx.fillStyle="#2f7f45";
+  ctx.beginPath();ctx.arc(x,y-6*s,14*s,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(x-10*s,y,11*s,0,Math.PI*2);ctx.fill();
+  ctx.beginPath();ctx.arc(x+10*s,y,11*s,0,Math.PI*2);ctx.fill();
+}
+
+function draw(){
+  const W=canvas.width,H=canvas.height;
+  ctx.clearRect(0,0,W,H);
+
+  // sky
+  ctx.fillStyle="#bfe6fb"; ctx.fillRect(0,0,W,H);
+
+  // clouds
+  ctx.fillStyle="rgba(255,255,255,.92)";
+  [[110,65],[700,75],[460,52]].forEach(([x,y])=>{
+    ctx.beginPath();ctx.arc(x,y,27,0,Math.PI*2);ctx.arc(x+28,y+5,22,0,Math.PI*2);ctx.arc(x-28,y+7,20,0,Math.PI*2);ctx.fill();
+  });
+
+  // mountain
+  ctx.fillStyle="#8ea0a8";
+  ctx.beginPath();ctx.moveTo(0,240);ctx.lineTo(150,75);ctx.lineTo(305,240);ctx.closePath();ctx.fill();
+  ctx.fillStyle="#f3f6f8";
+  ctx.beginPath();ctx.moveTo(105,125);ctx.lineTo(150,75);ctx.lineTo(196,126);ctx.lineTo(172,119);ctx.lineTo(150,136);ctx.lineTo(131,119);ctx.closePath();ctx.fill();
+
+  // land
+  const vegRatio=state.vegetation/100;
+  ctx.fillStyle = vegRatio>.55 ? "#72b85e" : vegRatio>.3 ? "#99b65f" : "#c5a86d";
+  ctx.beginPath();
+  ctx.moveTo(0,210);ctx.quadraticCurveTo(230,175,410,260);ctx.quadraticCurveTo(640,335,900,240);
+  ctx.lineTo(900,H);ctx.lineTo(0,H);ctx.closePath();ctx.fill();
+
+  // exposed soil patches
+  const bare = Math.max(0, 75-state.vegetation);
+  ctx.fillStyle="rgba(160,112,70,.75)";
+  for(let i=0;i<Math.floor(bare/7);i++){
+    const x=70+i*73, y=320+(i%3)*36;
+    ctx.beginPath();ctx.ellipse(x,y,30,13,0,0,Math.PI*2);ctx.fill();
+  }
+
+  // river
+  const riverW = 42 + state.water*.25;
+  ctx.strokeStyle = state.clarity>60 ? "#4da4df" : state.clarity>35 ? "#6f9eaa" : "#8f846d";
+  ctx.lineWidth=riverW;
+  ctx.lineCap="round";
+  ctx.beginPath();
+  ctx.moveTo(185,185);ctx.bezierCurveTo(270,250,300,295,405,330);ctx.bezierCurveTo(510,365,575,320,670,370);ctx.bezierCurveTo(760,415,830,420,925,445);ctx.stroke();
+
+  // flood overlay
+  if(state.water>75){
+    ctx.strokeStyle="rgba(70,150,205,.27)";
+    ctx.lineWidth=riverW+34;
+    ctx.beginPath();
+    ctx.moveTo(185,185);ctx.bezierCurveTo(270,250,300,295,405,330);ctx.bezierCurveTo(510,365,575,320,670,370);ctx.bezierCurveTo(760,415,830,420,925,445);ctx.stroke();
+  }
+
+  // trees dependent on vegetation
+  const treePositions=[[340,245],[390,255],[445,275],[510,290],[565,280],[615,300],[720,300],[770,320],[90,290],[130,310],[225,290]];
+  const treeCount=Math.round(treePositions.length*state.vegetation/100);
+  for(let i=0;i<treeCount;i++) drawTree(treePositions[i][0],treePositions[i][1],.9);
+
+  // wildlife
+  const animals=Math.round(5*state.habitat/100);
+  ctx.fillStyle="#6a4a2f";
+  for(let i=0;i<animals;i++){
+    const x=560+i*55, y=420-(i%2)*25;
+    ctx.beginPath();ctx.ellipse(x,y,10,6,0,0,Math.PI*2);ctx.fill();
+    ctx.fillRect(x+6,y-7,3,8);
+    ctx.beginPath();ctx.arc(x+8,y-9,3,0,Math.PI*2);ctx.fill();
+  }
+
+  // rainfall
+  if(state.selected==="rain"){
+    ctx.strokeStyle="#4e97c8"; ctx.lineWidth=2;
+    for(let i=0;i<30;i++){
+      let x=(i*61 + state.year*17)%900, y=35+(i%6)*24;
+      ctx.beginPath();ctx.moveTo(x,y);ctx.lineTo(x-7,y+16);ctx.stroke();
+    }
+  }
+
+  // drought sun
+  if(state.selected==="drought"){
+    ctx.fillStyle="#f5bd3b";
+    ctx.beginPath();ctx.arc(790,65,28,0,Math.PI*2);ctx.fill();
+  }
+
+  // wind lines
+  if(state.selected==="wind"){
+    ctx.strokeStyle="rgba(255,255,255,.85)";ctx.lineWidth=4;
+    for(let j=0;j<5;j++){
+      ctx.beginPath();ctx.moveTo(520,90+j*34);ctx.bezierCurveTo(625,65+j*34,700,120+j*22,845,90+j*35);ctx.stroke();
+    }
+  }
+
+  // labels
+  ctx.font="bold 17px Arial";
+  ctx.fillStyle="rgba(23,50,77,.9)";
+  ctx.fillText("Mountain & Soil",28,255);
+  ctx.fillText("River",440,373);
+  ctx.fillText("Plants & Animals",610,260);
+  ctx.fillText("Air & Weather",660,32);
+}
+
+updateMeters();
+draw();
+</script>
+</body>
+</html>
