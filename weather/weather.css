@@ -246,6 +246,138 @@
 }
 
 
+/* Active tropical systems */
+
+.tropical-systems {
+  grid-column: 1 / -1;
+  display: grid;
+  gap: 18px;
+}
+
+.tropical-system-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.tropical-system-panel,
+.tropical-model-panel {
+  min-width: 0;
+}
+
+.tropical-system-name {
+  margin: 0;
+  font-size: 1.55rem;
+}
+
+.tropical-system-type {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.tropical-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  color: var(--cyan);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.tropical-metrics {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.tropical-detail-list {
+  display: grid;
+  gap: 8px;
+  margin: 14px 0 0;
+  padding: 0;
+  list-style: none;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.tropical-detail-list strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.tropical-map-shell {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+}
+
+.tropical-model-map {
+  width: 100%;
+  height: 360px;
+  background: #0a121b;
+}
+
+.tropical-map-loading {
+  position: absolute;
+  inset: 0;
+  z-index: 800;
+  display: grid;
+  place-items: center;
+  padding: 18px;
+  background: rgba(9, 15, 22, 0.74);
+  color: var(--text);
+  font-size: 0.84rem;
+  text-align: center;
+  pointer-events: none;
+}
+
+.tropical-map-loading[hidden] {
+  display: none;
+}
+
+.tropical-model-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 14px;
+  margin-top: 10px;
+  color: var(--muted);
+  font-size: 0.7rem;
+}
+
+.tropical-model-key {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tropical-model-line {
+  display: inline-block;
+  width: 20px;
+  height: 0;
+  border-top: 3px solid var(--model-color, var(--cyan));
+  border-radius: 999px;
+}
+
+.tropical-model-line.official {
+  border-top-width: 5px;
+}
+
+.tropical-test-note {
+  margin: 10px 0 0;
+  color: var(--yellow, #f7d66b);
+  font-size: 0.74rem;
+  line-height: 1.4;
+}
+
+
 /* Alerts */
 
 .count-pill {
@@ -531,6 +663,10 @@
     grid-column: 1;
   }
 
+  .tropical-system-row {
+    grid-template-columns: 1fr;
+  }
+
   .compact-resource-links {
     justify-content: flex-start;
   }
@@ -541,7 +677,8 @@
     padding: 16px;
   }
 
-  .wave-map {
+  .wave-map,
+  .tropical-model-map {
     height: 330px;
   }
 
