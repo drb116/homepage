@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,6 +8,7 @@
   <title>DavidB.xyz</title>
   <link rel="stylesheet" href="/styles.css">
 </head>
+
 <body>
   <main class="page-shell">
     <header class="topbar">
@@ -27,7 +29,30 @@
     </section>
 
     <section class="grid" aria-label="Projects and tools">
-      <a class="card featured" href="/retirement/ret">
+      <a class="card featured" href="/weather/" style="--accent: var(--cyan)">
+        <div>
+          <div class="card-icon" aria-hidden="true">🌀</div>
+
+          <p class="card-kicker">Featured live data</p>
+
+          <h2>StormWatch</h2>
+
+          <p class="card-description">
+            Track Atlantic tropical systems, model guidance, Caribbean wave
+            conditions, and severe weather affecting Florida's Space Coast.
+          </p>
+        </div>
+
+        <div class="featured-stat">
+          <span class="number" id="active-storm-count">—</span>
+          <span class="label" id="active-storm-label">
+            Active systems tracked
+          </span>
+        </div>
+
+        <span class="card-arrow" aria-hidden="true">→</span>
+      </a>
+      <a class="card" href="/retirement/ret">
         <div>
           <div class="card-icon" aria-hidden="true">⌁</div>
           <p class="card-kicker">Featured tool</p>
@@ -37,10 +62,6 @@
             pensions, bonds, and changing withdrawal strategies.
           </p>
         </div>
-        <div class="featured-stat" aria-hidden="true">
-          <span class="number">1970+</span>
-          <span class="label">Historical scenarios</span>
-        </div>
         <span class="card-arrow" aria-hidden="true">→</span>
       </a>
 
@@ -48,7 +69,8 @@
         <div class="card-icon" aria-hidden="true">🚀</div>
         <p class="card-kicker">Live data</p>
         <h2>Space Coast Launches</h2>
-        <p class="card-description">Track upcoming rocket launches, mission windows, and details from Florida’s Space Coast.</p>
+        <p class="card-description">Track upcoming rocket launches, mission windows, and details from Florida’s Space
+          Coast.</p>
         <span class="card-arrow" aria-hidden="true">→</span>
       </a>
 
@@ -64,7 +86,8 @@
         <div class="card-icon" aria-hidden="true">🍽️</div>
         <p class="card-kicker">Kitchen tools</p>
         <h2>Recipes &amp; Weekly Menu</h2>
-        <p class="card-description">Browse favorite recipes, plan the week’s dinners, and assemble a practical shopping list.</p>
+        <p class="card-description">Browse favorite recipes, plan the week’s dinners, and assemble a practical shopping
+          list.</p>
         <span class="card-arrow" aria-hidden="true">→</span>
       </a>
 
@@ -72,7 +95,8 @@
         <div class="card-icon" aria-hidden="true">⚗️</div>
         <p class="card-kicker">Interactive learning</p>
         <h2>Interactive Labs</h2>
-        <p class="card-description">Explore science simulations, classroom prototypes, and hands-on digital experiments.</p>
+        <p class="card-description">Explore science simulations, classroom prototypes, and hands-on digital experiments.
+        </p>
         <span class="card-arrow" aria-hidden="true">→</span>
       </a>
     </section>
@@ -82,5 +106,56 @@
       <span class="status">All systems ready</span>
     </footer>
   </main>
+  <script>
+    async function loadActiveStormCount() {
+      const countElement =
+        document.getElementById("active-storm-count");
+
+      const labelElement =
+        document.getElementById("active-storm-label");
+
+      try {
+        const response =
+          await fetch("/api/weather/tropical-systems", {
+            cache: "no-store"
+          });
+
+        if (!response.ok) {
+          throw new Error(
+            `Weather API returned ${response.status}`
+          );
+        }
+
+        const data =
+          await response.json();
+
+        const count =
+          Number(data.count ?? 0);
+
+        countElement.textContent =
+          count;
+
+        labelElement.textContent =
+          count === 1
+            ? "Active system tracked"
+            : "Active systems tracked";
+
+      } catch (error) {
+        console.warn(
+          "Could not load tropical system count:",
+          error
+        );
+
+        countElement.textContent =
+          "—";
+
+        labelElement.textContent =
+          "Active systems tracked";
+      }
+    }
+
+    loadActiveStormCount();
+  </script>
 </body>
+
 </html>

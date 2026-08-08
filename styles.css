@@ -326,7 +326,7 @@ h1 {
 }
 
 .featured-stat .number {
-  color: var(--purple);
+  color: var(--accent);
   font-family: Consolas, "Courier New", monospace;
   font-size: 2.25rem;
   font-weight: 800;

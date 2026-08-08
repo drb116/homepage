@@ -1210,7 +1210,6 @@ async function renderTropicalModelMap(
             }`;
 
         if (
-            system._historicalTest &&
             TROPICAL_TEST_CYCLE
         ) {
             modelUrl +=
