@@ -4,75 +4,75 @@ const REFRESH_MS = 600000;
 const $ = selector => document.querySelector(selector);
 
 const esc = value =>
-  String(value ?? "")
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
+    String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
 
 function fmt(value) {
-  if (!value) return "Unknown";
+    if (!value) return "Unknown";
 
-  const date = new Date(value);
+    const date = new Date(value);
 
-  if (Number.isNaN(date.getTime())) {
-    return "Unknown";
-  }
+    if (Number.isNaN(date.getTime())) {
+        return "Unknown";
+    }
 
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-    timeZoneName: "short"
-  }).format(date);
+    return new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZoneName: "short"
+    }).format(date);
 }
 
 function color(event = "", severity = "") {
-  const text = `${event} ${severity}`.toLowerCase();
+    const text = `${event} ${severity}`.toLowerCase();
 
-  if (
-    text.includes("tornado warning") ||
-    text.includes("hurricane warning") ||
-    text.includes("extreme")
-  ) {
-    return "#ff4d63";
-  }
+    if (
+        text.includes("tornado warning") ||
+        text.includes("hurricane warning") ||
+        text.includes("extreme")
+    ) {
+        return "#ff4d63";
+    }
 
-  if (text.includes("warning")) return "#ff7b63";
-  if (text.includes("watch")) return "#ffb45e";
+    if (text.includes("warning")) return "#ff7b63";
+    if (text.includes("watch")) return "#ffb45e";
 
-  if (
-    text.includes("advisory") ||
-    text.includes("statement")
-  ) {
-    return "#f7d66b";
-  }
+    if (
+        text.includes("advisory") ||
+        text.includes("statement")
+    ) {
+        return "#f7d66b";
+    }
 
-  return "#56a8ff";
+    return "#56a8ff";
 }
 
 function summary(text = "", maxLength = 220) {
-  const clean = String(text)
-    .replace(/\s+/g, " ")
-    .trim();
+    const clean = String(text)
+        .replace(/\s+/g, " ")
+        .trim();
 
-  return clean.length > maxLength
-    ? `${clean.slice(0, maxLength).trim()}…`
-    : clean;
+    return clean.length > maxLength
+        ? `${clean.slice(0, maxLength).trim()}…`
+        : clean;
 }
 
 async function get(url) {
-  const response = await fetch(url, {
-    cache: "no-store"
-  });
+    const response = await fetch(url, {
+        cache: "no-store"
+    });
 
-  if (!response.ok) {
-    throw new Error(`Request failed (${response.status})`);
-  }
+    if (!response.ok) {
+        throw new Error(`Request failed (${response.status})`);
+    }
 
-  return response.json();
+    return response.json();
 }
 
 
@@ -83,19 +83,19 @@ async function get(url) {
 let currentAlerts = [];
 
 function alerts(data) {
-  const list = Array.isArray(data.alerts)
-    ? data.alerts
-    : [];
+    const list = Array.isArray(data.alerts)
+        ? data.alerts
+        : [];
 
-  currentAlerts = list;
+    currentAlerts = list;
 
-  $("#alert-count").textContent =
-    list.length === 1
-      ? "1 alert"
-      : `${list.length} alerts`;
+    $("#alert-count").textContent =
+        list.length === 1
+            ? "1 alert"
+            : `${list.length} alerts`;
 
-  if (!list.length) {
-    $("#alerts-list").innerHTML = `
+    if (!list.length) {
+        $("#alerts-list").innerHTML = `
       <div class="quiet-card">
         <strong>No active NWS alerts</strong>
         <p>
@@ -105,11 +105,11 @@ function alerts(data) {
       </div>
     `;
 
-    return;
-  }
+        return;
+    }
 
-  $("#alerts-list").innerHTML = list
-    .map((alert, index) => `
+    $("#alerts-list").innerHTML = list
+        .map((alert, index) => `
       <article
         class="alert-card"
         style="--alert-color:${color(alert.event, alert.severity)}"
@@ -124,12 +124,12 @@ function alerts(data) {
         <p class="alert-summary">
           ${esc(
             summary(
-              alert.headline ||
-              alert.description ||
-              "",
-              180
+                alert.headline ||
+                alert.description ||
+                "",
+                180
             )
-          )}
+        )}
         </p>
 
         <button
@@ -141,55 +141,55 @@ function alerts(data) {
         </button>
       </article>
     `)
-    .join("");
+        .join("");
 
-  document
-    .querySelectorAll(".alert-open")
-    .forEach(button => {
-      button.addEventListener("click", () => {
-        const index =
-          Number(button.dataset.alertIndex);
+    document
+        .querySelectorAll(".alert-open")
+        .forEach(button => {
+            button.addEventListener("click", () => {
+                const index =
+                    Number(button.dataset.alertIndex);
 
-        openAlert(
-          currentAlerts[index]
-        );
-      });
-    });
+                openAlert(
+                    currentAlerts[index]
+                );
+            });
+        });
 }
 
 function openAlert(alert) {
-  if (!alert) return;
+    if (!alert) return;
 
-  $("#alert-modal-title").textContent =
-    alert.event ||
-    "Weather Alert";
+    $("#alert-modal-title").textContent =
+        alert.event ||
+        "Weather Alert";
 
-  $("#alert-modal-meta").innerHTML = `
+    $("#alert-modal-meta").innerHTML = `
     <span>${esc(alert.areaDesc || "Brevard area")}</span>
     <span>Issued ${esc(fmt(alert.sent))}</span>
     <span>Ends ${esc(fmt(alert.ends || alert.expires))}</span>
   `;
 
-  let html = "";
+    let html = "";
 
-  if (alert.headline) {
-    html += `
+    if (alert.headline) {
+        html += `
       <p class="alert-modal-headline">
         ${esc(alert.headline)}
       </p>
     `;
-  }
+    }
 
-  if (alert.description) {
-    html += `
+    if (alert.description) {
+        html += `
       <div class="alert-modal-description">
         ${esc(alert.description).replace(/\n/g, "<br>")}
       </div>
     `;
-  }
+    }
 
-  if (alert.instruction) {
-    html += `
+    if (alert.instruction) {
+        html += `
       <div class="alert-modal-instructions">
         <strong>Recommended action</strong>
 
@@ -198,13 +198,13 @@ function openAlert(alert) {
         </p>
       </div>
     `;
-  }
+    }
 
-  $("#alert-modal-body").innerHTML =
-    html ||
-    "<p>No additional alert details were provided.</p>";
+    $("#alert-modal-body").innerHTML =
+        html ||
+        "<p>No additional alert details were provided.</p>";
 
-  $("#alert-modal").showModal();
+    $("#alert-modal").showModal();
 }
 
 
@@ -213,17 +213,17 @@ function openAlert(alert) {
    ========================================================= */
 
 const val = (value, suffix = "") =>
-  value === null ||
-  value === undefined ||
-  value === ""
-    ? "—"
-    : `${value}${suffix}`;
+    value === null ||
+        value === undefined ||
+        value === ""
+        ? "—"
+        : `${value}${suffix}`;
 
 function buoy(data) {
-  const b =
-    data.observation || {};
+    const b =
+        data.observation || {};
 
-  $("#buoy-data").innerHTML = `
+    $("#buoy-data").innerHTML = `
     <div class="metric">
       <span class="metric-value">
         ${val(b.waveHeightFt, " ft")}
@@ -250,8 +250,7 @@ function buoy(data) {
       </span>
 
       <span class="metric-label">
-        ${
-          b.windDirection
+        ${b.windDirection
             ? `${esc(b.windDirection)} wind`
             : "Wind speed"
         }
@@ -269,32 +268,31 @@ function buoy(data) {
     </div>
   `;
 
-  const details = [];
+    const details = [];
 
-  if (b.gustMph != null) {
-    details.push(
-      `gusting ${b.gustMph} mph`
-    );
-  }
+    if (b.gustMph != null) {
+        details.push(
+            `gusting ${b.gustMph} mph`
+        );
+    }
 
-  if (b.meanWaveDirection) {
-    details.push(
-      `waves from ${b.meanWaveDirection}`
-    );
-  }
+    if (b.meanWaveDirection) {
+        details.push(
+            `waves from ${b.meanWaveDirection}`
+        );
+    }
 
-  if (b.pressureMb != null) {
-    details.push(
-      `${b.pressureMb} mb`
-    );
-  }
+    if (b.pressureMb != null) {
+        details.push(
+            `${b.pressureMb} mb`
+        );
+    }
 
-  $("#buoy-time").textContent =
-    `Observed ${fmt(b.observedAt)}${
-      details.length
-        ? ` · ${details.join(" · ")}`
-        : ""
-    }`;
+    $("#buoy-time").textContent =
+        `Observed ${fmt(b.observedAt)}${details.length
+            ? ` · ${details.join(" · ")}`
+            : ""
+        }`;
 }
 
 
@@ -312,10 +310,10 @@ let waveMoveTimer = null;
 let initialMapReady = false;
 
 const waveCache =
-  new Map();
+    new Map();
 
 const WAVE_CACHE_MS =
-  10 * 60 * 1000;
+    10 * 60 * 1000;
 
 
 /*
@@ -326,210 +324,210 @@ const WAVE_CACHE_MS =
  */
 
 const WAVE_REGION = {
-  south: 11,
-  north: 40,
-  west: -99,
-  east: -30
+    south: 11,
+    north: 40,
+    west: -99,
+    east: -30
 };
 
 
 function initWaveMap() {
-  waveMap = L.map(
-    "wave-map",
-    {
-      zoomControl: true,
-      attributionControl: true,
-      minZoom: 2,
-      maxZoom: 10
-    }
-  );
+    waveMap = L.map(
+        "wave-map",
+        {
+            zoomControl: true,
+            attributionControl: true,
+            minZoom: 2,
+            maxZoom: 10
+        }
+    );
 
-  L.tileLayer(
-    "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-    {
-      maxZoom: 19,
+    L.tileLayer(
+        "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+        {
+            maxZoom: 19,
 
-      attribution:
-        '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-    }
-  ).addTo(waveMap);
+            attribution:
+                '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+        }
+    ).addTo(waveMap);
 
-  waveLayer =
-    L.layerGroup()
-      .addTo(waveMap);
+    waveLayer =
+        L.layerGroup()
+            .addTo(waveMap);
 
-  waveMap.fitBounds([
-    [11, -99],
-    [40, -30]
-  ]);
+    waveMap.fitBounds([
+        [11, -99],
+        [40, -30]
+    ]);
 
-  /*
-   * fitBounds itself triggers moveend.
-   * Ignore the initial event.
-   */
+    /*
+     * fitBounds itself triggers moveend.
+     * Ignore the initial event.
+     */
 
-  setTimeout(
-    () => {
-      initialMapReady =
-        true;
-    },
-    1000
-  );
+    setTimeout(
+        () => {
+            initialMapReady =
+                true;
+        },
+        1000
+    );
 
-  waveMap.on(
-    "moveend",
-    () => {
+    waveMap.on(
+        "moveend",
+        () => {
 
-      if (!initialMapReady) {
-        return;
-      }
+            if (!initialMapReady) {
+                return;
+            }
 
-      clearTimeout(
-        waveMoveTimer
-      );
-
-      /*
-       * The Worker now returns the same cached
-       * broad grid regardless of zoom.
-       *
-       * We still allow this reload so the map
-       * can refresh if the cached forecast changed.
-       */
-
-      waveMoveTimer =
-        setTimeout(
-          () => {
-
-            loadWave(
-              currentWaveHour,
-              {
-                preserveExisting: true
-              }
+            clearTimeout(
+                waveMoveTimer
             );
 
-          },
-          900
-        );
-    }
-  );
+            /*
+             * The Worker now returns the same cached
+             * broad grid regardless of zoom.
+             *
+             * We still allow this reload so the map
+             * can refresh if the cached forecast changed.
+             */
+
+            waveMoveTimer =
+                setTimeout(
+                    () => {
+
+                        loadWave(
+                            currentWaveHour,
+                            {
+                                preserveExisting: true
+                            }
+                        );
+
+                    },
+                    900
+                );
+        }
+    );
 }
 
 
 function waveColor(feet) {
-  if (feet == null) {
-    return "#7a8794";
-  }
+    if (feet == null) {
+        return "#7a8794";
+    }
 
-  if (feet < 3) {
-    return "#4cb3d4";
-  }
+    if (feet < 3) {
+        return "#4cb3d4";
+    }
 
-  if (feet < 5) {
-    return "#65c466";
-  }
+    if (feet < 5) {
+        return "#65c466";
+    }
 
-  if (feet < 8) {
-    return "#e2cf4f";
-  }
+    if (feet < 8) {
+        return "#e2cf4f";
+    }
 
-  if (feet < 12) {
-    return "#ef8c3d";
-  }
+    if (feet < 12) {
+        return "#ef8c3d";
+    }
 
-  return "#e84f5f";
+    return "#e84f5f";
 }
 
 
 function waveRadius(feet) {
-  if (feet == null) {
-    return 4;
-  }
+    if (feet == null) {
+        return 4;
+    }
 
-  const zoom =
-    waveMap
-      ? waveMap.getZoom()
-      : 4;
+    const zoom =
+        waveMap
+            ? waveMap.getZoom()
+            : 4;
 
-  const base =
-    zoom >= 7
-      ? 4
-      : zoom >= 5
-        ? 4.75
-        : 5.25;
+    const base =
+        zoom >= 7
+            ? 4
+            : zoom >= 5
+                ? 4.75
+                : 5.25;
 
-  return Math.max(
-    base,
-    Math.min(
-      base + 4,
-      base + feet * 0.22
-    )
-  );
+    return Math.max(
+        base,
+        Math.min(
+            base + 4,
+            base + feet * 0.22
+        )
+    );
 }
 
 
 function waveCacheKey(hour) {
-  return String(hour);
+    return String(hour);
 }
 
 
 function renderWaveGrid(data) {
-  waveLayer.clearLayers();
+    waveLayer.clearLayers();
 
-  const points =
-    Array.isArray(data.points)
-      ? data.points
-      : [];
+    const points =
+        Array.isArray(data.points)
+            ? data.points
+            : [];
 
-  for (const point of points) {
+    for (const point of points) {
 
-    if (
-      point.waveHeightFt == null ||
-      point.latitude == null ||
-      point.longitude == null
-    ) {
-      continue;
-    }
-
-    const feet =
-      Number(
-        point.waveHeightFt
-      );
-
-    const marker =
-      L.circleMarker(
-        [
-          point.latitude,
-          point.longitude
-        ],
-        {
-          radius:
-            waveRadius(feet),
-
-          color:
-            "rgba(255,255,255,0.62)",
-
-          weight:
-            0.8,
-
-          fillColor:
-            waveColor(feet),
-
-          fillOpacity:
-            0.82
+        if (
+            point.waveHeightFt == null ||
+            point.latitude == null ||
+            point.longitude == null
+        ) {
+            continue;
         }
-      );
 
-    marker.bindTooltip(
-      `${feet.toFixed(1)} ft`,
-      {
-        permanent: false,
-        direction: "top",
-        className:
-          "wave-dot-label"
-      }
-    );
+        const feet =
+            Number(
+                point.waveHeightFt
+            );
 
-    marker.bindPopup(`
+        const marker =
+            L.circleMarker(
+                [
+                    point.latitude,
+                    point.longitude
+                ],
+                {
+                    radius:
+                        waveRadius(feet),
+
+                    color:
+                        "rgba(255,255,255,0.62)",
+
+                    weight:
+                        0.8,
+
+                    fillColor:
+                        waveColor(feet),
+
+                    fillOpacity:
+                        0.82
+                }
+            );
+
+        marker.bindTooltip(
+            `${feet.toFixed(1)} ft`,
+            {
+                permanent: false,
+                direction: "top",
+                className:
+                    "wave-dot-label"
+            }
+        );
+
+        marker.bindPopup(`
       <strong>
         ${feet.toFixed(1)} ft
       </strong>
@@ -539,212 +537,212 @@ function renderWaveGrid(data) {
       ${esc(fmt(data.validTime))}
     `);
 
-    marker.addTo(
-      waveLayer
-    );
-  }
+        marker.addTo(
+            waveLayer
+        );
+    }
 
 
-  const density =
-    data.stepDegrees != null
-      ? `${data.stepDegrees}° grid`
-      : "model grid";
+    const density =
+        data.stepDegrees != null
+            ? `${data.stepDegrees}° grid`
+            : "model grid";
 
 
-  $("#wave-time-label").textContent =
-    `${data.modelLabel || "GFS-Wave"} · ` +
-    `valid ${fmt(data.validTime)} · ` +
-    `${points.length} ocean points · ` +
-    `${density}`;
+    $("#wave-time-label").textContent =
+        `${data.modelLabel || "GFS-Wave"} · ` +
+        `valid ${fmt(data.validTime)} · ` +
+        `${points.length} ocean points · ` +
+        `${density}`;
 
 
-  $("#wave-loading").hidden =
-    true;
+    $("#wave-loading").hidden =
+        true;
 }
 
 
 async function loadWave(
-  hour,
-  {
-    preserveExisting = false
-  } = {}
+    hour,
+    {
+        preserveExisting = false
+    } = {}
 ) {
 
-  currentWaveHour =
-    hour;
+    currentWaveHour =
+        hour;
 
 
-  document
-    .querySelectorAll(
-      ".wave-time"
-    )
-    .forEach(
-      button => {
+    document
+        .querySelectorAll(
+            ".wave-time"
+        )
+        .forEach(
+            button => {
 
-        button.classList.toggle(
-          "active",
-          Number(
-            button.dataset.hour
-          ) === hour
+                button.classList.toggle(
+                    "active",
+                    Number(
+                        button.dataset.hour
+                    ) === hour
+                );
+            }
         );
-      }
-    );
 
 
-  if (!waveMap) {
-    return;
-  }
+    if (!waveMap) {
+        return;
+    }
 
 
-  /*
-   * Since the Worker now owns the complete
-   * 2-degree grid, we only need the hour.
-   */
+    /*
+     * Since the Worker now owns the complete
+     * 2-degree grid, we only need the hour.
+     */
 
-  const cacheKey =
-    waveCacheKey(hour);
-
-
-  const cached =
-    waveCache.get(
-      cacheKey
-    );
+    const cacheKey =
+        waveCacheKey(hour);
 
 
-  if (
-    cached &&
-    Date.now() -
-      cached.savedAt <
-      WAVE_CACHE_MS
-  ) {
-
-    renderWaveGrid(
-      cached.data
-    );
-
-    return;
-  }
+    const cached =
+        waveCache.get(
+            cacheKey
+        );
 
 
-  if (
-    waveRequestController
-  ) {
+    if (
+        cached &&
+        Date.now() -
+        cached.savedAt <
+        WAVE_CACHE_MS
+    ) {
 
-    waveRequestController.abort();
-  }
+        renderWaveGrid(
+            cached.data
+        );
 
-
-  waveRequestController =
-    new AbortController();
-
-
-  if (
-    !preserveExisting ||
-    waveLayer
-      .getLayers()
-      .length === 0
-  ) {
-
-    $("#wave-loading").hidden =
-      false;
-
-    $("#wave-loading").textContent =
-      "Loading wave guidance…";
-  }
+        return;
+    }
 
 
-  try {
+    if (
+        waveRequestController
+    ) {
 
-    const response =
-      await fetch(
-        `${API_ROOT}/wave-grid?hour=${encodeURIComponent(hour)}`,
-        {
-          cache:
-            "no-store",
+        waveRequestController.abort();
+    }
 
-          signal:
-            waveRequestController.signal
+
+    waveRequestController =
+        new AbortController();
+
+
+    if (
+        !preserveExisting ||
+        waveLayer
+            .getLayers()
+            .length === 0
+    ) {
+
+        $("#wave-loading").hidden =
+            false;
+
+        $("#wave-loading").textContent =
+            "Loading wave guidance…";
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_ROOT}/wave-grid?hour=${encodeURIComponent(hour)}`,
+                {
+                    cache:
+                        "no-store",
+
+                    signal:
+                        waveRequestController.signal
+                }
+            );
+
+
+        if (
+            response.status === 429
+        ) {
+
+            $("#wave-loading").hidden =
+                true;
+
+            console.warn(
+                "Wave API rate limited; keeping existing map."
+            );
+
+            return;
         }
-      );
 
 
-    if (
-      response.status === 429
-    ) {
+        if (!response.ok) {
 
-      $("#wave-loading").hidden =
-        true;
+            throw new Error(
+                `Request failed (${response.status})`
+            );
+        }
 
-      console.warn(
-        "Wave API rate limited; keeping existing map."
-      );
 
-      return;
+        const data =
+            await response.json();
+
+
+        waveCache.set(
+            cacheKey,
+            {
+                savedAt:
+                    Date.now(),
+
+                data
+            }
+        );
+
+
+        renderWaveGrid(
+            data
+        );
+
+    } catch (error) {
+
+        if (
+            error.name ===
+            "AbortError"
+        ) {
+
+            return;
+        }
+
+
+        if (
+            waveLayer
+                .getLayers()
+                .length > 0
+        ) {
+
+            $("#wave-loading").hidden =
+                true;
+
+            console.warn(
+                "Wave refresh failed; keeping existing data.",
+                error
+            );
+
+            return;
+        }
+
+
+        $("#wave-loading").hidden =
+            false;
+
+        $("#wave-loading").textContent =
+            "Wave guidance could not be loaded.";
     }
-
-
-    if (!response.ok) {
-
-      throw new Error(
-        `Request failed (${response.status})`
-      );
-    }
-
-
-    const data =
-      await response.json();
-
-
-    waveCache.set(
-      cacheKey,
-      {
-        savedAt:
-          Date.now(),
-
-        data
-      }
-    );
-
-
-    renderWaveGrid(
-      data
-    );
-
-  } catch (error) {
-
-    if (
-      error.name ===
-      "AbortError"
-    ) {
-
-      return;
-    }
-
-
-    if (
-      waveLayer
-        .getLayers()
-        .length > 0
-    ) {
-
-      $("#wave-loading").hidden =
-        true;
-
-      console.warn(
-        "Wave refresh failed; keeping existing data.",
-        error
-      );
-
-      return;
-    }
-
-
-    $("#wave-loading").hidden =
-      false;
-
-    $("#wave-loading").textContent =
-      "Wave guidance could not be loaded.";
-  }
 }
 
 
@@ -762,13 +760,20 @@ async function loadWave(
  */
 
 const TROPICAL_TEST_STORM =
-  new URLSearchParams(
-    window.location.search
-  )
-    .get("testStorm")
-    ?.toUpperCase() ||
-  null;
+    new URLSearchParams(
+        window.location.search
+    )
+        .get("testStorm")
+        ?.toUpperCase() ||
+    null;
 
+const TROPICAL_TEST_CYCLE =
+    new URLSearchParams(
+        window.location.search
+    )
+        .get("testCycle")
+        ?.trim() ||
+    null;
 
 let tropicalMaps = [];
 
@@ -778,106 +783,104 @@ let tropicalMaps = [];
  */
 
 const TROPICAL_MODEL_COLORS = [
-  "#f4f7fb",
-  "#56a8ff",
-  "#56d49a",
-  "#f7d66b",
-  "#ff9f5e",
-  "#c084fc",
-  "#ff6b8a",
-  "#61dafb",
-  "#9aa7b5",
-  "#e0aaff"
+    "#f4f7fb",
+    "#56a8ff",
+    "#56d49a",
+    "#f7d66b",
+    "#ff9f5e",
+    "#c084fc",
+    "#ff6b8a",
+    "#61dafb",
+    "#9aa7b5",
+    "#e0aaff"
 ];
 
 
 function tropicalDomId(value) {
-  return String(
-    value ||
-    "system"
-  )
-    .replace(
-      /[^a-z0-9_-]/gi,
-      "-"
+    return String(
+        value ||
+        "system"
     )
-    .toLowerCase();
+        .replace(
+            /[^a-z0-9_-]/gi,
+            "-"
+        )
+        .toLowerCase();
 }
 
 
 function tropicalSystemPanel(
-  system
+    system
 ) {
 
-  const name =
-    system.displayName ||
-    system.name ||
-    system.id ||
-    "Tropical system";
+    const name =
+        system.displayName ||
+        system.name ||
+        system.id ||
+        "Tropical system";
 
 
-  const classification =
-    system.classification ||
-    (
-      system.isInvest
-        ? "Tropical Disturbance"
-        : "Tropical Cyclone"
-    );
+    const classification =
+        system.classification ||
+        (
+            system.isInvest
+                ? "Tropical Disturbance"
+                : "Tropical Cyclone"
+        );
 
 
-  const movement =
-    [
-      system.movementDirection,
+    const movement =
+        [
+            system.movementDirection,
 
-      system.movementMph != null
-        ? `at ${system.movementMph} mph`
-        : null
-    ]
-      .filter(Boolean)
-      .join(" ");
+            system.movementMph != null
+                ? `at ${system.movementMph} mph`
+                : null
+        ]
+            .filter(Boolean)
+            .join(" ");
 
 
-  const position =
-    system.latitude != null &&
-    system.longitude != null
+    const position =
+        system.latitude != null &&
+            system.longitude != null
 
-      ? (
-          `${Math.abs(
-            Number(
-              system.latitude
+            ? (
+                `${Math.abs(
+                    Number(
+                        system.latitude
+                    )
+                ).toFixed(1)}°${Number(
+                    system.latitude
+                ) >= 0
+                    ? "N"
+                    : "S"
+                }, ` +
+
+                `${Math.abs(
+                    Number(
+                        system.longitude
+                    )
+                ).toFixed(1)}°${Number(
+                    system.longitude
+                ) >= 0
+                    ? "E"
+                    : "W"
+                }`
             )
-          ).toFixed(1)}°${
-            Number(
-              system.latitude
-            ) >= 0
-              ? "N"
-              : "S"
-          }, ` +
 
-          `${Math.abs(
-            Number(
-              system.longitude
-            )
-          ).toFixed(1)}°${
-            Number(
-              system.longitude
-            ) >= 0
-              ? "E"
-              : "W"
-          }`
-        )
-
-      : null;
+            : null;
 
 
-  const metricCards =
-    [];
+    const metricCards =
+        [];
 
 
-  if (
-    system.windMph != null
-  ) {
+    if (
+        system.windMph != null
+    ) {
 
-    metricCards.push(`
+        metricCards.push(`
       <div class="metric">
         <span class="metric-value">
           ${esc(system.windMph)} mph
@@ -888,14 +891,14 @@ function tropicalSystemPanel(
         </span>
       </div>
     `);
-  }
+    }
 
 
-  if (
-    system.pressureMb != null
-  ) {
+    if (
+        system.pressureMb != null
+    ) {
 
-    metricCards.push(`
+        metricCards.push(`
       <div class="metric">
         <span class="metric-value">
           ${esc(system.pressureMb)} mb
@@ -906,12 +909,12 @@ function tropicalSystemPanel(
         </span>
       </div>
     `);
-  }
+    }
 
 
-  if (movement) {
+    if (movement) {
 
-    metricCards.push(`
+        metricCards.push(`
       <div class="metric">
         <span class="metric-value">
           ${esc(movement)}
@@ -922,12 +925,12 @@ function tropicalSystemPanel(
         </span>
       </div>
     `);
-  }
+    }
 
 
-  if (position) {
+    if (position) {
 
-    metricCards.push(`
+        metricCards.push(`
       <div class="metric">
         <span class="metric-value">
           ${esc(position)}
@@ -938,49 +941,48 @@ function tropicalSystemPanel(
         </span>
       </div>
     `);
-  }
+    }
 
 
-  const details =
-    [];
+    const details =
+        [];
 
 
-  if (
-    system.updatedAt
-  ) {
+    if (
+        system.updatedAt
+    ) {
 
-    details.push(`
+        details.push(`
       <li>
         <strong>Updated:</strong>
         ${esc(fmt(system.updatedAt))}
       </li>
     `);
-  }
+    }
 
 
-  if (
-    system.id
-  ) {
+    if (
+        system.id
+    ) {
 
-    details.push(`
+        details.push(`
       <li>
         <strong>ATCF ID:</strong>
         ${esc(system.id)}
       </li>
     `);
-  }
+    }
 
 
-  return `
+    return `
     <div class="panel-heading">
 
       <div>
         <p class="panel-kicker">
-          ${
-            system._historicalTest
-              ? "Historical tropical system"
-              : "Active tropical system"
-          }
+          ${system._historicalTest
+            ? "Historical tropical system"
+            : "Active tropical system"
+        }
         </p>
 
         <h2 class="tropical-system-name">
@@ -993,46 +995,42 @@ function tropicalSystemPanel(
       </div>
 
       <span class="tropical-badge">
-        ${
-          esc(
+        ${esc(
             system.isInvest
-              ? "Invest"
-              : (
-                  system.classificationCode ||
-                  "Active"
+                ? "Invest"
+                : (
+                    system.classificationCode ||
+                    "Active"
                 )
-          )
+        )
         }
       </span>
 
     </div>
 
 
-    ${
-      metricCards.length
-        ? `
+    ${metricCards.length
+            ? `
           <div class="tropical-metrics">
             ${metricCards.join("")}
           </div>
         `
-        : ""
-    }
+            : ""
+        }
 
 
-    ${
-      details.length
-        ? `
+    ${details.length
+            ? `
           <ul class="tropical-detail-list">
             ${details.join("")}
           </ul>
         `
-        : ""
-    }
+            : ""
+        }
 
 
-    ${
-      system._historicalTest
-        ? `
+    ${system._historicalTest
+            ? `
           <p class="tropical-test-note">
             Historical test mode.
             Remove
@@ -1040,25 +1038,25 @@ function tropicalSystemPanel(
             from the URL to return to live systems only.
           </p>
         `
-        : ""
-    }
+            : ""
+        }
   `;
 }
 
 
 function tropicalRow(
-  system,
-  index
+    system,
+    index
 ) {
 
-  const id =
-    tropicalDomId(
-      system.id ||
-      `system-${index}`
-    );
+    const id =
+        tropicalDomId(
+            system.id ||
+            `system-${index}`
+        );
 
 
-  return `
+    return `
     <section
       class="tropical-system-row"
       data-system-id="${esc(system.id || "")}"
@@ -1100,11 +1098,11 @@ function tropicalRow(
             id="tropical-map-${id}"
             class="tropical-model-map"
             aria-label="Model guidance map for ${esc(
-              system.displayName ||
-              system.name ||
-              system.id ||
-              "tropical system"
-            )}"
+        system.displayName ||
+        system.name ||
+        system.id ||
+        "tropical system"
+    )}"
           ></div>
 
 
@@ -1140,563 +1138,571 @@ function tropicalRow(
 
 function clearTropicalMaps() {
 
-  for (
-    const map
-    of tropicalMaps
-  ) {
+    for (
+        const map
+        of tropicalMaps
+    ) {
 
-    try {
+        try {
 
-      map.remove();
+            map.remove();
 
-    } catch (_) {
+        } catch (_) {
 
-      /*
-       * Ignore Leaflet maps that have
-       * already been removed.
-       */
+            /*
+             * Ignore Leaflet maps that have
+             * already been removed.
+             */
+        }
     }
-  }
 
 
-  tropicalMaps =
-    [];
+    tropicalMaps =
+        [];
 }
 
 
 async function renderTropicalModelMap(
-  system
+    system
 ) {
 
-  const id =
-    tropicalDomId(
-      system.id
-    );
-
-
-  const mapElement =
-    document.getElementById(
-      `tropical-map-${id}`
-    );
-
-
-  const loading =
-    document.getElementById(
-      `tropical-loading-${id}`
-    );
-
-
-  const legend =
-    document.getElementById(
-      `tropical-legend-${id}`
-    );
-
-
-  const note =
-    document.getElementById(
-      `tropical-note-${id}`
-    );
-
-
-  if (!mapElement) {
-    return;
-  }
-
-
-  try {
-
-    const data =
-      await get(
-        `${API_ROOT}/tropical-models?id=${
-          encodeURIComponent(
+    const id =
+        tropicalDomId(
             system.id
-          )
-        }`
-      );
+        );
 
 
-    const models =
-      Array.isArray(
-        data.models
-      )
-
-        ? data.models.filter(
-            model =>
-              Array.isArray(
-                model.points
-              ) &&
-              model.points.length >= 2
-          )
-
-        : [];
+    const mapElement =
+        document.getElementById(
+            `tropical-map-${id}`
+        );
 
 
-    if (
-      !models.length
-    ) {
-
-      loading.textContent =
-        "No model tracks are available for the latest cycle.";
+    const loading =
+        document.getElementById(
+            `tropical-loading-${id}`
+        );
 
 
-      note.textContent =
-        data.cycleTime
-
-          ? `ATCF cycle ${fmt(data.cycleTime)}`
-
-          : "No usable ATCF guidance was returned.";
+    const legend =
+        document.getElementById(
+            `tropical-legend-${id}`
+        );
 
 
-      return;
+    const note =
+        document.getElementById(
+            `tropical-note-${id}`
+        );
+
+
+    if (!mapElement) {
+        return;
     }
 
 
-    const map =
-      L.map(
-        mapElement,
-        {
-          zoomControl: true,
-          attributionControl: true,
-          minZoom: 2,
-          maxZoom: 10
-        }
-      );
+    try {
 
-
-    tropicalMaps.push(
-      map
-    );
-
-
-    L.tileLayer(
-      "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
-      {
-        maxZoom:
-          19,
-
-        attribution:
-          '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
-      }
-    ).addTo(
-      map
-    );
-
-
-    const allLatLngs =
-      [];
-
-
-    models.forEach(
-      (
-        model,
-        modelIndex
-      ) => {
-
-        const points =
-          model.points
-
-            .filter(
-              point =>
-                point.latitude != null &&
-                point.longitude != null
+        let modelUrl =
+            `${API_ROOT}/tropical-models?id=${encodeURIComponent(
+                system.id
             )
-
-            .map(
-              point => [
-                Number(
-                  point.latitude
-                ),
-
-                Number(
-                  point.longitude
-                )
-              ]
-            );
-
-
-        if (
-          points.length < 2
-        ) {
-
-          return;
-        }
-
-
-        allLatLngs.push(
-          ...points
-        );
-
-
-        const modelColor =
-          TROPICAL_MODEL_COLORS[
-            modelIndex %
-            TROPICAL_MODEL_COLORS.length
-          ];
-
-
-        const weight =
-          model.official
-            ? 5
-            : 3;
-
-
-        const opacity =
-          model.official
-            ? 1
-            : 0.85;
-
-
-        const line =
-          L.polyline(
-            points,
-            {
-              color:
-                modelColor,
-
-              weight,
-
-              opacity
-            }
-          )
-            .addTo(
-              map
-            );
-
-
-        line.bindTooltip(
-          `${
-            esc(
-              model.label ||
-              model.code ||
-              "Model"
-            )
-          } ${
-            model.code
-              ? `(${esc(model.code)})`
-              : ""
-          }`,
-          {
-            sticky:
-              true
-          }
-        );
-
-
-        /*
-         * Mark the starting point of each model.
-         */
-
-        const firstPoint =
-          model.points.find(
-            point =>
-              point.latitude != null &&
-              point.longitude != null
-          );
-
-
-        if (
-          firstPoint
-        ) {
-
-          L.circleMarker(
-            [
-              Number(
-                firstPoint.latitude
-              ),
-
-              Number(
-                firstPoint.longitude
-              )
-            ],
-            {
-              radius:
-                model.official
-                  ? 5
-                  : 3.5,
-
-              color:
-                modelColor,
-
-              weight:
-                1,
-
-              fillColor:
-                modelColor,
-
-              fillOpacity:
-                0.9
-            }
-          )
-            .bindTooltip(
-              `${
-                esc(
-                  model.label ||
-                  model.code ||
-                  "Model"
-                )
-              } start`
-            )
-            .addTo(
-              map
-            );
-        }
-
-
-        /*
-         * Build legend.
-         */
-
-        if (
-          legend
-        ) {
-
-          const item =
-            document.createElement(
-              "span"
-            );
-
-
-          item.className =
-            "tropical-model-key";
-
-
-          const swatch =
-            document.createElement(
-              "i"
-            );
-
-
-          swatch.className =
-            `tropical-model-line${
-              model.official
-                ? " official"
-                : ""
             }`;
 
+        if (
+            system._historicalTest &&
+            TROPICAL_TEST_CYCLE
+        ) {
+            modelUrl +=
+                `&cycle=${encodeURIComponent(
+                    TROPICAL_TEST_CYCLE
+                )
+                }`;
+        }
 
-          swatch.style.setProperty(
-            "--model-color",
-            modelColor
-          );
-
-
-          const label =
-            document.createElement(
-              "span"
+        const data =
+            await get(
+                modelUrl
             );
 
 
-          label.textContent =
-            model.label ||
-            model.code ||
-            "Model";
+        const models =
+            Array.isArray(
+                data.models
+            )
+
+                ? data.models.filter(
+                    model =>
+                        Array.isArray(
+                            model.points
+                        ) &&
+                        model.points.length >= 2
+                )
+
+                : [];
 
 
-          item.append(
-            swatch,
-            label
-          );
+        if (
+            !models.length
+        ) {
+
+            loading.textContent =
+                "No model tracks are available for the latest cycle.";
 
 
-          legend.appendChild(
-            item
-          );
+            note.textContent =
+                data.cycleTime
+
+                    ? `ATCF cycle ${fmt(data.cycleTime)}`
+
+                    : "No usable ATCF guidance was returned.";
+
+
+            return;
         }
-      }
-    );
 
 
-    if (
-      allLatLngs.length
-    ) {
+        const map =
+            L.map(
+                mapElement,
+                {
+                    zoomControl: true,
+                    attributionControl: true,
+                    minZoom: 2,
+                    maxZoom: 10
+                }
+            );
 
-      const bounds =
-        L.latLngBounds(
-          allLatLngs
+
+        tropicalMaps.push(
+            map
         );
 
 
-      map.fitBounds(
-        bounds.pad(
-          0.16
-        ),
-        {
-          maxZoom:
-            6
+        L.tileLayer(
+            "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
+            {
+                maxZoom:
+                    19,
+
+                attribution:
+                    '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+            }
+        ).addTo(
+            map
+        );
+
+
+        const allLatLngs =
+            [];
+
+
+        models.forEach(
+            (
+                model,
+                modelIndex
+            ) => {
+
+                const points =
+                    model.points
+
+                        .filter(
+                            point =>
+                                point.latitude != null &&
+                                point.longitude != null
+                        )
+
+                        .map(
+                            point => [
+                                Number(
+                                    point.latitude
+                                ),
+
+                                Number(
+                                    point.longitude
+                                )
+                            ]
+                        );
+
+
+                if (
+                    points.length < 2
+                ) {
+
+                    return;
+                }
+
+
+                allLatLngs.push(
+                    ...points
+                );
+
+
+                const modelColor =
+                    TROPICAL_MODEL_COLORS[
+                    modelIndex %
+                    TROPICAL_MODEL_COLORS.length
+                    ];
+
+
+                const weight =
+                    model.official
+                        ? 5
+                        : 3;
+
+
+                const opacity =
+                    model.official
+                        ? 1
+                        : 0.85;
+
+
+                const line =
+                    L.polyline(
+                        points,
+                        {
+                            color:
+                                modelColor,
+
+                            weight,
+
+                            opacity
+                        }
+                    )
+                        .addTo(
+                            map
+                        );
+
+
+                line.bindTooltip(
+                    `${esc(
+                        model.label ||
+                        model.code ||
+                        "Model"
+                    )
+                    } ${model.code
+                        ? `(${esc(model.code)})`
+                        : ""
+                    }`,
+                    {
+                        sticky:
+                            true
+                    }
+                );
+
+
+                /*
+                 * Mark the starting point of each model.
+                 */
+
+                const firstPoint =
+                    model.points.find(
+                        point =>
+                            point.latitude != null &&
+                            point.longitude != null
+                    );
+
+
+                if (
+                    firstPoint
+                ) {
+
+                    L.circleMarker(
+                        [
+                            Number(
+                                firstPoint.latitude
+                            ),
+
+                            Number(
+                                firstPoint.longitude
+                            )
+                        ],
+                        {
+                            radius:
+                                model.official
+                                    ? 5
+                                    : 3.5,
+
+                            color:
+                                modelColor,
+
+                            weight:
+                                1,
+
+                            fillColor:
+                                modelColor,
+
+                            fillOpacity:
+                                0.9
+                        }
+                    )
+                        .bindTooltip(
+                            `${esc(
+                                model.label ||
+                                model.code ||
+                                "Model"
+                            )
+                            } start`
+                        )
+                        .addTo(
+                            map
+                        );
+                }
+
+
+                /*
+                 * Build legend.
+                 */
+
+                if (
+                    legend
+                ) {
+
+                    const item =
+                        document.createElement(
+                            "span"
+                        );
+
+
+                    item.className =
+                        "tropical-model-key";
+
+
+                    const swatch =
+                        document.createElement(
+                            "i"
+                        );
+
+
+                    swatch.className =
+                        `tropical-model-line${model.official
+                            ? " official"
+                            : ""
+                        }`;
+
+
+                    swatch.style.setProperty(
+                        "--model-color",
+                        modelColor
+                    );
+
+
+                    const label =
+                        document.createElement(
+                            "span"
+                        );
+
+
+                    label.textContent =
+                        model.label ||
+                        model.code ||
+                        "Model";
+
+
+                    item.append(
+                        swatch,
+                        label
+                    );
+
+
+                    legend.appendChild(
+                        item
+                    );
+                }
+            }
+        );
+
+
+        if (
+            allLatLngs.length
+        ) {
+
+            const bounds =
+                L.latLngBounds(
+                    allLatLngs
+                );
+
+
+            map.fitBounds(
+                bounds.pad(
+                    0.16
+                ),
+                {
+                    maxZoom:
+                        6
+                }
+            );
         }
-      );
+
+
+        loading.hidden =
+            true;
+
+
+        note.textContent =
+            `${data.modelCount ||
+            models.length
+            } model tracks` +
+
+            (
+                data.cycleTime
+                    ? ` · cycle ${fmt(data.cycleTime)}`
+                    : ""
+            );
+
+
+        /*
+         * Leaflet can occasionally measure a new
+         * dynamically inserted panel too early.
+         */
+
+        setTimeout(
+            () =>
+                map.invalidateSize(),
+            50
+        );
+
+
+    } catch (error) {
+
+        console.error(
+            `Tropical model load failed for ${system.id}:`,
+            error
+        );
+
+
+        loading.textContent =
+            "Model guidance could not be loaded.";
+
+
+        note.textContent =
+            "ATCF model data is temporarily unavailable.";
     }
-
-
-    loading.hidden =
-      true;
-
-
-    note.textContent =
-      `${
-        data.modelCount ||
-        models.length
-      } model tracks` +
-
-      (
-        data.cycleTime
-          ? ` · cycle ${fmt(data.cycleTime)}`
-          : ""
-      );
-
-
-    /*
-     * Leaflet can occasionally measure a new
-     * dynamically inserted panel too early.
-     */
-
-    setTimeout(
-      () =>
-        map.invalidateSize(),
-      50
-    );
-
-
-  } catch (error) {
-
-    console.error(
-      `Tropical model load failed for ${system.id}:`,
-      error
-    );
-
-
-    loading.textContent =
-      "Model guidance could not be loaded.";
-
-
-    note.textContent =
-      "ATCF model data is temporarily unavailable.";
-  }
 }
 
 
 async function tropicalSystems(
-  data
+    data
 ) {
 
-  const container =
-    $("#tropical-systems");
+    const container =
+        $("#tropical-systems");
 
 
-  if (!container) {
-    return;
-  }
+    if (!container) {
+        return;
+    }
 
 
-  clearTropicalMaps();
+    clearTropicalMaps();
 
 
-  let systems =
-    Array.isArray(
-      data?.systems
-    )
+    let systems =
+        Array.isArray(
+            data?.systems
+        )
 
-      ? [
-          ...data.systems
-        ]
+            ? [
+                ...data.systems
+            ]
 
-      : [];
-
-
-  /*
-   * Historical test mode.
-   *
-   * Example:
-   *
-   * /weather/?testStorm=AL092024
-   */
-
-  if (
-    TROPICAL_TEST_STORM &&
-
-    !systems.some(
-      system =>
-        String(
-          system.id ||
-          ""
-        ).toUpperCase() ===
-        TROPICAL_TEST_STORM
-    )
-  ) {
-
-    systems.unshift(
-      {
-        id:
-          TROPICAL_TEST_STORM,
-
-        name:
-          `Historical Test: ${TROPICAL_TEST_STORM}`,
-
-        displayName:
-          `Historical Test: ${TROPICAL_TEST_STORM}`,
-
-        classification:
-          "Historical model guidance test",
-
-        classificationCode:
-          "TEST",
-
-        isInvest:
-          false,
-
-        _historicalTest:
-          true
-      }
-    );
-  }
+            : [];
 
 
-  /*
-   * Quiet Atlantic:
-   * hide the entire section.
-   */
+    /*
+     * Historical test mode.
+     *
+     * Example:
+     *
+     * /weather/?testStorm=AL092024
+     */
 
-  if (
-    !systems.length
-  ) {
+    if (
+        TROPICAL_TEST_STORM &&
+
+        !systems.some(
+            system =>
+                String(
+                    system.id ||
+                    ""
+                ).toUpperCase() ===
+                TROPICAL_TEST_STORM
+        )
+    ) {
+
+        systems.unshift(
+            {
+                id:
+                    TROPICAL_TEST_STORM,
+
+                name:
+                    `Historical Test: ${TROPICAL_TEST_STORM}`,
+
+                displayName:
+                    `Historical Test: ${TROPICAL_TEST_STORM}`,
+
+                classification:
+                    "Historical model guidance test",
+
+                classificationCode:
+                    "TEST",
+
+                isInvest:
+                    false,
+
+                _historicalTest:
+                    true
+            }
+        );
+    }
+
+
+    /*
+     * Quiet Atlantic:
+     * hide the entire section.
+     */
+
+    if (
+        !systems.length
+    ) {
+
+        container.innerHTML =
+            "";
+
+        return;
+    }
+
 
     container.innerHTML =
-      "";
+        systems
 
-    return;
-  }
+            .map(
+                (
+                    system,
+                    index
+                ) =>
+                    tropicalRow(
+                        system,
+                        index
+                    )
+            )
 
-
-  container.innerHTML =
-    systems
-
-      .map(
-        (
-          system,
-          index
-        ) =>
-          tropicalRow(
-            system,
-            index
-          )
-      )
-
-      .join("");
+            .join("");
 
 
-  /*
-   * Each storm gets its own independent
-   * Leaflet spaghetti map.
-   */
+    /*
+     * Each storm gets its own independent
+     * Leaflet spaghetti map.
+     */
 
-  await Promise.allSettled(
-    systems.map(
-      system =>
-        renderTropicalModelMap(
-          system
+    await Promise.allSettled(
+        systems.map(
+            system =>
+                renderTropicalModelMap(
+                    system
+                )
         )
-    )
-  );
+    );
 }
 
 
@@ -1706,61 +1712,61 @@ async function tropicalSystems(
 
 async function load() {
 
-  const button =
-    $("#refresh-button");
+    const button =
+        $("#refresh-button");
 
 
-  button.disabled =
-    true;
+    button.disabled =
+        true;
 
 
-  $("#dashboard-status").textContent =
-    "Refreshing official data…";
+    $("#dashboard-status").textContent =
+        "Refreshing official data…";
 
 
-  loadWave(
-    currentWaveHour
-  );
-
-
-  const results =
-    await Promise.allSettled([
-      get(
-        `${API_ROOT}/alerts`
-      ),
-
-      get(
-        `${API_ROOT}/buoy`
-      ),
-
-      get(
-        `${API_ROOT}/tropical-systems`
-      )
-    ]);
-
-
-  let ok =
-    0;
-
-
-  /*
-   * Alerts
-   */
-
-  if (
-    results[0].status ===
-    "fulfilled"
-  ) {
-
-    alerts(
-      results[0].value
+    loadWave(
+        currentWaveHour
     );
 
-    ok++;
 
-  } else {
+    const results =
+        await Promise.allSettled([
+            get(
+                `${API_ROOT}/alerts`
+            ),
 
-    $("#alerts-list").innerHTML = `
+            get(
+                `${API_ROOT}/buoy`
+            ),
+
+            get(
+                `${API_ROOT}/tropical-systems`
+            )
+        ]);
+
+
+    let ok =
+        0;
+
+
+    /*
+     * Alerts
+     */
+
+    if (
+        results[0].status ===
+        "fulfilled"
+    ) {
+
+        alerts(
+            results[0].value
+        );
+
+        ok++;
+
+    } else {
+
+        $("#alerts-list").innerHTML = `
       <div class="error-card">
         NWS alerts could not be loaded.
         Use the official NWS Melbourne link below.
@@ -1768,144 +1774,143 @@ async function load() {
     `;
 
 
-    $("#alert-count").textContent =
-      "Unavailable";
-  }
+        $("#alert-count").textContent =
+            "Unavailable";
+    }
 
 
-  /*
-   * Buoy
-   */
+    /*
+     * Buoy
+     */
 
-  if (
-    results[1].status ===
-    "fulfilled"
-  ) {
+    if (
+        results[1].status ===
+        "fulfilled"
+    ) {
 
-    buoy(
-      results[1].value
-    );
+        buoy(
+            results[1].value
+        );
 
-    ok++;
+        ok++;
 
-  } else {
+    } else {
 
-    $("#buoy-data").innerHTML = `
+        $("#buoy-data").innerHTML = `
       <div class="error-card">
         Buoy data could not be loaded.
       </div>
     `;
 
 
-    $("#buoy-time").textContent =
-      "Use the NOAA station link for current observations.";
-  }
-
-
-  /*
-   * Tropical systems
-   */
-
-  if (
-    results[2].status ===
-    "fulfilled"
-  ) {
-
-    await tropicalSystems(
-      results[2].value
-    );
-
-    ok++;
-
-  } else {
-
-    console.error(
-      "Tropical systems could not be loaded.",
-      results[2].reason
-    );
+        $("#buoy-time").textContent =
+            "Use the NOAA station link for current observations.";
+    }
 
 
     /*
-     * If historical test mode is enabled,
-     * still show the test storm even if the
-     * live-system endpoint failed.
+     * Tropical systems
      */
 
     if (
-      TROPICAL_TEST_STORM
+        results[2].status ===
+        "fulfilled"
     ) {
 
-      await tropicalSystems(
-        {
-          systems: []
-        }
-      );
+        await tropicalSystems(
+            results[2].value
+        );
+
+        ok++;
 
     } else {
 
-      const container =
-        $("#tropical-systems");
+        console.error(
+            "Tropical systems could not be loaded.",
+            results[2].reason
+        );
 
 
-      if (container) {
+        /*
+         * If historical test mode is enabled,
+         * still show the test storm even if the
+         * live-system endpoint failed.
+         */
 
-        container.innerHTML = `
+        if (
+            TROPICAL_TEST_STORM
+        ) {
+
+            await tropicalSystems(
+                {
+                    systems: []
+                }
+            );
+
+        } else {
+
+            const container =
+                $("#tropical-systems");
+
+
+            if (container) {
+
+                container.innerHTML = `
           <div class="error-card">
             Active tropical systems could not be loaded.
           </div>
         `;
-      }
+            }
+        }
     }
-  }
 
 
-  const time =
-    new Intl.DateTimeFormat(
-      "en-US",
-      {
-        hour:
-          "numeric",
+    const time =
+        new Intl.DateTimeFormat(
+            "en-US",
+            {
+                hour:
+                    "numeric",
 
-        minute:
-          "2-digit",
+                minute:
+                    "2-digit",
 
-        timeZoneName:
-          "short"
-      }
-    )
-      .format(
-        new Date()
-      );
-
-
-  $("#dashboard-status").textContent =
-    ok === 3
-
-      ? `Official data updated ${time}`
-
-      : `Updated ${time} · Some sources unavailable`;
+                timeZoneName:
+                    "short"
+            }
+        )
+            .format(
+                new Date()
+            );
 
 
-  $("#footer-update").textContent =
-    `Updated ${time}`;
+    $("#dashboard-status").textContent =
+        ok === 3
+
+            ? `Official data updated ${time}`
+
+            : `Updated ${time} · Some sources unavailable`;
 
 
-  /*
-   * Cache-bust the NHC outlook image approximately
-   * once per REFRESH_MS interval.
-   */
-
-  $("#outlook-image").src =
-    `https://www.nhc.noaa.gov/xgtwo/two_atl_7d0.png?t=${
-      Math.floor(
-        Date.now() /
-        REFRESH_MS
-      )
-    }`;
+    $("#footer-update").textContent =
+        `Updated ${time}`;
 
 
-  button.disabled =
-    false;
+    /*
+     * Cache-bust the NHC outlook image approximately
+     * once per REFRESH_MS interval.
+     */
+
+    $("#outlook-image").src =
+        `https://www.nhc.noaa.gov/xgtwo/two_atl_7d0.png?t=${Math.floor(
+            Date.now() /
+            REFRESH_MS
+        )
+        }`;
+
+
+    button.disabled =
+        false;
 }
 
 
@@ -1914,83 +1919,82 @@ async function load() {
    ========================================================= */
 
 document
-  .querySelectorAll(
-    ".wave-time"
-  )
-  .forEach(
-    button => {
+    .querySelectorAll(
+        ".wave-time"
+    )
+    .forEach(
+        button => {
 
-      button.addEventListener(
-        "click",
-        () => {
+            button.addEventListener(
+                "click",
+                () => {
 
-          loadWave(
-            Number(
-              button.dataset.hour
-            )
-          );
+                    loadWave(
+                        Number(
+                            button.dataset.hour
+                        )
+                    );
+                }
+            );
         }
-      );
-    }
-  );
+    );
 
 
 $("#refresh-button")
-  .addEventListener(
-    "click",
-    load
-  );
+    .addEventListener(
+        "click",
+        load
+    );
 
 
 $("#alert-modal-close")
-  .addEventListener(
-    "click",
-    () => {
+    .addEventListener(
+        "click",
+        () => {
 
-      $("#alert-modal")
-        .close();
-    }
-  );
+            $("#alert-modal")
+                .close();
+        }
+    );
 
 
 $("#alert-modal")
-  .addEventListener(
-    "click",
-    event => {
+    .addEventListener(
+        "click",
+        event => {
 
-      if (
-        event.target ===
-        $("#alert-modal")
-      ) {
+            if (
+                event.target ===
+                $("#alert-modal")
+            ) {
 
-        $("#alert-modal")
-          .close();
-      }
-    }
-  );
+                $("#alert-modal")
+                    .close();
+            }
+        }
+    );
 
 
 window.addEventListener(
-  "DOMContentLoaded",
-  () => {
+    "DOMContentLoaded",
+    () => {
 
-    initWaveMap();
+        initWaveMap();
 
 
-    /*
-     * Give Leaflet's initial fitBounds()
-     * a moment to finish before loading data.
-     */
+        /*
+         * Give Leaflet's initial fitBounds()
+         * a moment to finish before loading data.
+         */
 
-    setTimeout(
-      load,
-      300
-    );
-  }
+        setTimeout(
+            load,
+            300
+        );
+    }
 );
 
-
 setInterval(
-  load,
-  REFRESH_MS
+    load,
+    REFRESH_MS
 );
