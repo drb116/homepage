@@ -1,72 +1,224 @@
-<html>
-  <head>
-    <meta charset="utf-8">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  </head>
-  <body class="bg-dark text-light">
-    <div class="container">
-      <div class="row">
-        <div class="col-12">
-          <h1 id="title" class="display-6">Upcoming Launches</h1>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="Upcoming rocket launches from Florida's Space Coast."
+    >
+
+    <title>Space Coast Launches | DavidB.xyz</title>
+
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/launch/style.css">
+</head>
+
+<body>
+
+<main class="page-shell">
+
+    <header class="topbar">
+        <a class="brand" href="/" aria-label="DavidB.xyz home">
+            <span class="brand-mark">&lt;/&gt;</span>
+            <span>DavidB.xyz</span>
+        </a>
+
+        <a class="back-link" href="/">← Home</a>
+    </header>
+
+
+    <section class="launch-hero">
+        <p class="eyebrow">Live data</p>
+
+        <div class="launch-title-row">
+            <div class="launch-icon" aria-hidden="true">🚀</div>
+
+            <div>
+                <h1>Space Coast<br>Launches<span class="title-dot">.</span></h1>
+
+                <p class="subtitle">
+                    Upcoming rocket launches from
+                    <strong>Florida's Space Coast.</strong>
+                    Track mission windows and launch details from
+                    Cape Canaveral and Kennedy Space Center.
+                </p>
+            </div>
         </div>
-      </div>
-      <div class="row">
-        <table class="table table-bordered table-secondary table-striped">
-          <thead class="table-primary">
+    </section>
+
+
+    <section class="launch-panel">
+
+        <div class="launch-panel-header">
+            <div>
+                <p class="card-kicker">Launch schedule</p>
+                <h2>Upcoming Missions</h2>
+            </div>
+
+            <span class="launch-count" id="launch-count">Loading…</span>
+        </div>
+
+
+        <div class="launch-table-wrap">
+
+            <table class="launch-table">
+
+                <thead>
+                    <tr>
+                        <th>Mission</th>
+                        <th>Window Open</th>
+                        <th>Window Close</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody id="data">
+
+                    <tr>
+                        <td colspan="4" class="loading-row">
+                            Loading upcoming launches…
+                        </td>
+                    </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <footer>
+        <span>DavidB.xyz · Space Coast Launches</span>
+        <span class="status">Live launch data</span>
+    </footer>
+
+</main>
+
+
+<script>
+
+getData();
+
+
+async function getData() {
+
+    try {
+
+        const response = await fetch(
+            'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?location__ids=12,27&limit=20'
+        );
+
+        if (!response.ok) {
+            throw new Error(`Launch API returned ${response.status}`);
+        }
+
+        const data = await response.json();
+        const results = data.results;
+
+        document.getElementById("launch-count").textContent =
+            `${results.length} upcoming`;
+
+
+        let temp = "";
+
+
+        for (let i = 0; i < results.length; i++) {
+
+            const launch = results[i];
+
+            const link =
+                "info.html?id=" + launch.id;
+
+
+            const open =
+                new Date(launch.window_start);
+
+            const close =
+                new Date(launch.window_end);
+
+
+            const openStr =
+                open.toLocaleString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
+
+
+            const closeStr =
+                close.toLocaleString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
+
+
+            temp += `
+                <tr>
+
+                    <td class="mission-cell">
+                        <span class="mission-name">
+                            ${launch.name}
+                        </span>
+                    </td>
+
+                    <td>
+                        ${openStr}
+                    </td>
+
+                    <td>
+                        ${closeStr}
+                    </td>
+
+                    <td class="details-cell">
+                        <a
+                            class="details-link"
+                            href="${link}"
+                        >
+                            Details
+                            <span aria-hidden="true">→</span>
+                        </a>
+                    </td>
+
+                </tr>
+            `;
+
+        }
+
+
+        document.getElementById("data").innerHTML = temp;
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        document.getElementById("launch-count").textContent =
+            "Unavailable";
+
+        document.getElementById("data").innerHTML = `
             <tr>
-              <th scope="col">Mission</th>
-              <th scope="col">Window Open</th>
-              <th scope="col">Window Close</th>
-              <th scope="col">Details</th>
+                <td colspan="4" class="loading-row">
+                    Launch data is temporarily unavailable.
+                </td>
             </tr>
-          </thead>
-          <tbody id="data">
-          </tbody>
-        </table>
-      </div>   
-    </div>
-    <script>
+        `;
 
-      getData();
+    }
 
-      async function getData(){
-           const response= await fetch('https://ll.thespacedevs.com/2.2.0/launch/upcoming/?location__ids=12,27&limit=20')
-           const data= await response.json();
-           results = data['results'];
-           console.log(results);
-           length=results.length;
-           var temp="";
-           for(i=0;i<length;i++)
-           {
-              link = "info.html?id="+ results[i]['id'];
-              open = new Date(results[i]['window_start'])
-              close = new Date(results[i]['window_end'])
-              openStr = open.toLocaleString('en-US', {
-                    weekday: 'long', // long, short, narrow
-                    day: 'numeric', // numeric, 2-digit
-                    month: 'long', // numeric, 2-digit, long, short, narrow
-                    hour: 'numeric', // numeric, 2-digit
-                    minute: 'numeric', // numeric, 2-digit
-                });
-              closeStr = close.toLocaleString('en-US', {
-                    weekday: 'long', // long, short, narrow
-                    day: 'numeric', // numeric, 2-digit
-                    month: 'long', // numeric, 2-digit, long, short, narrow
-                    hour: 'numeric', // numeric, 2-digit
-                    minute: 'numeric', // numeric, 2-digit
-                });
-              temp+="<tr>";
-              temp+="<td>"+results[i]['name']+"</td>";
-              temp+="<td>"+openStr+"</td>";
-              temp+="<td>"+closeStr+"</td>";
-              temp+="<td>"+"<a href="+link+">More Info</a></td>";
-           }
+}
 
-        document.getElementById("data").innerHTML=temp;
-      }
+</script>
 
-    </script>
-  </body>
+</body>
 </html>

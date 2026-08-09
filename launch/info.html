@@ -1,129 +1,391 @@
-<html>
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="style.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  </head>
-<body class="bg-dark text-light">
-    <div class="container">
-      <div class="row">
-        <div class="col-12">
-          <h1 id="title" class="display-6"></h1>
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <meta
+        name="description"
+        content="Space Coast rocket launch details."
+    >
+
+    <title>Launch Details | DavidB.xyz</title>
+
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/launch/style.css">
+</head>
+
+<body>
+
+<main class="page-shell">
+
+    <header class="topbar">
+        <a class="brand" href="/" aria-label="DavidB.xyz home">
+            <span class="brand-mark">&lt;/&gt;</span>
+            <span>DavidB.xyz</span>
+        </a>
+
+        <a class="back-link" href="/launch/list">← Launches</a>
+    </header>
+
+
+    <section class="launch-detail-hero">
+
+        <p class="eyebrow">Space Coast launch</p>
+
+        <h1 id="title">
+            Loading launch…
+        </h1>
+
+        <p class="subtitle" id="launch-meta">
+            Retrieving mission details.
+        </p>
+
+    </section>
+
+
+    <section class="launch-detail-grid">
+
+        <div class="launch-image-card">
+
+            <img
+                id="image"
+                class="launch-image"
+                alt=""
+            >
+
         </div>
-      </div>
-      <div class="row">
-        <div class="col-lg-4 col-md-6 col-sm-12" >
-            <img class="rounded-circle" id="image">
+
+
+        <div class="launch-info-panel">
+
+            <div class="launch-info-section">
+                <p class="card-kicker">Mission</p>
+                <h2>Mission Overview</h2>
+                <p id="mission">
+                    Loading mission information…
+                </p>
+            </div>
+
+
+            <div class="launch-info-section">
+                <p class="card-kicker">Launch status</p>
+                <h2>Current Status</h2>
+
+                <p id="launch">
+                    Loading status…
+                </p>
+
+                <div
+                    class="weather-probability"
+                    id="weather-probability"
+                    hidden
+                >
+                    <span class="probability-number" id="probability"></span>
+
+                    <span class="probability-label">
+                        probability of favorable weather
+                    </span>
+                </div>
+            </div>
+
+
+            <div
+                class="launch-info-section"
+                id="landing-section"
+                hidden
+            >
+                <p class="card-kicker">Recovery</p>
+                <h2>Booster Landing</h2>
+                <p id="landing"></p>
+            </div>
+
         </div>
-        <div class="col-lg-8 col-md-6 col-sm-12">
-         <p id="mission"></p>
-         <p id="launch"></p>
-         <p id="landing"></p>
-        </div>
-      </div>
-    </div>
+
+    </section>
+
+
+    <footer>
+        <span>DavidB.xyz · Space Coast Launches</span>
+        <span class="status">Launch Library data</span>
+    </footer>
+
+</main>
+
 
 <script>
 
-    function GetURLParameter(sParam)
-    {
-        var sPageURL = window.location.search.substring(1);
-        var sURLVariables = sPageURL.split('&');
-        for (var i = 0; i < sURLVariables.length; i++) 
-        {
-            var sParameterName = sURLVariables[i].split('=');
-            if (sParameterName[0] == sParam) 
-            {
-                return sParameterName[1];
-            }
+function getURLParameter(name) {
+    return new URLSearchParams(window.location.search).get(name);
+}
+
+
+function lowerFirstLetter(text) {
+
+    if (!text) {
+        return "";
+    }
+
+    return text.charAt(0).toLowerCase() + text.slice(1);
+}
+
+
+function formatLaunchDate(dateString) {
+
+    const date = new Date(dateString);
+
+    return date.toLocaleString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: '2-digit'
+    });
+
+}
+
+
+async function getData() {
+
+    const launchId = getURLParameter("id");
+
+
+    if (!launchId) {
+
+        document.getElementById("title").textContent =
+            "Launch not found";
+
+        document.getElementById("launch-meta").textContent =
+            "No launch ID was provided.";
+
+        return;
+
+    }
+
+
+    const url =
+        "https://ll.thespacedevs.com/2.2.0/launch/" +
+        encodeURIComponent(launchId);
+
+
+    try {
+
+        const response = await fetch(url);
+
+        if (!response.ok) {
+            throw new Error(
+                `Launch API returned ${response.status}`
+            );
         }
+
+
+        const data = await response.json();
+
+        console.log(data);
+
+
+        const provider =
+            data.launch_service_provider?.name ??
+            "Launch provider";
+
+
+        const rocket =
+            data.rocket?.configuration?.full_name ??
+            "rocket";
+
+
+        const pad =
+            data.pad?.name ??
+            "the Space Coast";
+
+
+        const launchDate =
+            formatLaunchDate(data.window_start);
+
+
+        /*
+         * Page title
+         */
+
+        document.getElementById("title").textContent =
+            `${provider} Launch`;
+
+
+        document.getElementById("launch-meta").textContent =
+            `${launchDate} · ${rocket} · ${pad}`;
+
+
+        document.title =
+            `${provider} Launch | DavidB.xyz`;
+
+
+        /*
+         * Launch image
+         */
+
+        const image =
+            document.getElementById("image");
+
+
+        if (data.image) {
+
+            image.src = data.image;
+
+            image.alt =
+                `${provider} ${rocket} launch`;
+
+        }
+
+        else {
+
+            image.closest(
+                ".launch-image-card"
+            ).classList.add(
+                "no-launch-image"
+            );
+
+        }
+
+
+        /*
+         * Mission overview
+         */
+
+        let missionText =
+            `${provider} will attempt to launch the ` +
+            `${rocket} from ${pad}.`;
+
+
+        if (data.mission?.description) {
+
+            missionText +=
+                ` The mission is to launch ` +
+                lowerFirstLetter(
+                    data.mission.description
+                );
+
+        }
+
+
+        document.getElementById("mission").textContent =
+            missionText;
+
+
+        /*
+         * Status
+         */
+
+        const status =
+            data.status?.description ??
+            "No current status information is available.";
+
+
+        document.getElementById("launch").textContent =
+            status;
+
+
+        /*
+         * Weather probability
+         */
+
+        if (
+            data.probability !== null &&
+            data.probability !== undefined &&
+            data.probability !== -1
+        ) {
+
+            document.getElementById(
+                "weather-probability"
+            ).hidden = false;
+
+
+            document.getElementById(
+                "probability"
+            ).textContent =
+                `${data.probability}%`;
+
+
+            if (data.weather_concerns) {
+
+                const weatherText =
+                    document.createElement("p");
+
+                weatherText.className =
+                    "weather-concerns";
+
+                weatherText.textContent =
+                    `Primary weather concerns: ` +
+                    `${data.weather_concerns}.`;
+
+
+                document.getElementById(
+                    "weather-probability"
+                ).after(weatherText);
+
+            }
+
+        }
+
+
+        /*
+         * Booster landing
+         */
+
+        const landingDescription =
+            data.rocket
+                ?.launcher_stage
+                ?.[0]
+                ?.landing
+                ?.description;
+
+
+        if (landingDescription) {
+
+            document.getElementById(
+                "landing-section"
+            ).hidden = false;
+
+
+            document.getElementById(
+                "landing"
+            ).textContent =
+                landingDescription;
+
+        }
+
     }
 
-    function lowerFirstLetter(string) {
-      return string.charAt(0).toLowerCase() + string.slice(1);
+    catch (error) {
+
+        console.error(error);
+
+
+        document.getElementById("title").textContent =
+            "Launch details unavailable";
+
+
+        document.getElementById("launch-meta").textContent =
+            "The launch information could not be loaded.";
+
+
+        document.querySelector(
+            ".launch-detail-grid"
+        ).innerHTML = `
+            <div class="launch-error-panel">
+                Launch data is temporarily unavailable.
+                Please return to the launch list and try again.
+            </div>
+        `;
+
     }
 
-    
-    
+}
 
-    launchId = GetURLParameter("id");
 
-    url = "https://ll.thespacedevs.com/2.2.0/launch/" + launchId;
-    
-    async function getData(){
-      const response= await fetch(url)
-      const data= await response.json();
-      console.log(data);
-      document.getElementById("image").src=data['image'];
+getData();
 
-      let title = "";
-      title+=data['launch_service_provider']['name'];
-      title+=' Launch ';
-
-      open = new Date(data['window_start']);
-      openStr = open.toLocaleString('en-US', {
-            weekday: 'long', // long, short, narrow
-            day: 'numeric', // numeric, 2-digit
-            month: 'long', // numeric, 2-digit, long, short, narrow
-            hour: 'numeric', // numeric, 2-digit
-            minute: 'numeric', // numeric, 2-digit
-        });
-      title+= openStr;
-      document.getElementById("title").innerHTML=title;
-
-      let mission="";
-      mission+=data['launch_service_provider']['name'];
-      mission+=' will be attempting to launch the ';
-      mission+=data['rocket']['configuration']['full_name'];
-      mission+=' from ';
-      mission+=data["pad"]["name"] + '. ';
-      mission+=' The mission is to launch ';
-      mission+=lowerFirstLetter(data["mission"]["description"]);
-      document.getElementById("mission").innerHTML=mission;
-
-      let launch="";
-      launch+='<strong>Status:</strong> ';
-      launch+=data["status"]["description"];
-      if (data["probability"] != null && data["probability"] != -1) {
-        launch+=' There is a ';
-        launch+=data["probability"];
-        launch+='% chance of a go with the main concerns being ';
-        launch+=data["weather_concerns"].toLowerCase() + '.';
-        
-      } 
-      document.getElementById("launch").innerHTML=launch;
-
-      if (data["rocket"]["launcher_stage"][0]["landing"]["description"] != null) {
-        let landing=data["rocket"]["launcher_stage"][0]["landing"]["description"];
-        document.getElementById("landing").innerHTML=landing;
-      }
-      
-    }
-    // temp+="<tr>";
-    // temp+="<td>"+data["mission"]["description"]+"</td>";
-    // document.getElementById("data").innerHTML=temp;
-
-    // temp+="<tr>";
-    // temp+="<td>"+data["pad"]["name"]+"</td>";
-    // document.getElementById("data").innerHTML=temp;
-
-    // temp+="<tr>";
-    // temp+="<td>"+data["rocket"]["launcher_stage"][0]["landing"]["description"]+"</td>";
-    // document.getElementById("data").innerHTML=temp;
-
-    // temp+="<tr>";
-    // temp+="<td>"+data["status"]["description"]+"</td>";
-    // document.getElementById("data").innerHTML=temp;
-
-    // if (data["probability"] != null && data["probability"] != -1) {
-    //   temp+="<tr>";
-    //   temp+="<td>"+data["probability"]+"</td>";
-    //   temp+="<td>"+data["weather_concerns"]+"</td>";
-    //   document.getElementById("data").innerHTML=temp;
-    // }
-    getData();
 </script>
+
 </body>
 </html>
