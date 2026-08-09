@@ -336,18 +336,6 @@
     box-shadow: var(--shadow);
 }
 
-.mission-with-logo {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-}
-
-.provider-logo {
-    width: 42px;
-    height: 28px;
-    object-fit: contain;
-    flex: 0 0 auto;
-}
 
 .launch-image {
     display: block;

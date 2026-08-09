@@ -2,123 +2,126 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <meta name="description" content="Upcoming rocket launches from Florida's Space Coast.">
+    <meta
+        name="description"
+        content="Upcoming rocket launches from Florida's Space Coast."
+    >
 
-  <title>Space Coast Launches | DavidB.xyz</title>
+    <title>Space Coast Launches | DavidB.xyz</title>
 
-  <link rel="stylesheet" href="/styles.css">
-  <link rel="stylesheet" href="/launch/style.css">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/launch/style.css">
 </head>
 
 <body>
 
-  <main class="page-shell">
+<main class="page-shell">
 
     <header class="topbar">
-      <a class="brand" href="/" aria-label="DavidB.xyz home">
-        <span class="brand-mark">&lt;/&gt;</span>
-        <span>DavidB.xyz</span>
-      </a>
+        <a class="brand" href="/" aria-label="DavidB.xyz home">
+            <span class="brand-mark">&lt;/&gt;</span>
+            <span>DavidB.xyz</span>
+        </a>
 
-      <a class="back-link" href="/">← Home</a>
+        <a class="back-link" href="/">← Home</a>
     </header>
 
 
     <section class="launch-hero">
-      <p class="eyebrow">Live data</p>
+        <p class="eyebrow">Live data</p>
 
-      <div class="launch-title-row">
-        <div class="launch-icon" aria-hidden="true">🚀</div>
+        <div class="launch-title-row">
+            <div class="launch-icon" aria-hidden="true">🚀</div>
 
-        <div>
-          <h1>Space Coast<br>Launches<span class="title-dot">.</span></h1>
+            <div>
+                <h1>Space Coast<br>Launches<span class="title-dot">.</span></h1>
 
-          <p class="subtitle">
-            Upcoming rocket launches from
-            <strong>Florida's Space Coast.</strong>
-            Track mission windows and launch details from
-            Cape Canaveral and Kennedy Space Center.
-          </p>
+                <p class="subtitle">
+                    Upcoming rocket launches from
+                    <strong>Florida's Space Coast.</strong>
+                    Track mission windows and launch details from
+                    Cape Canaveral and Kennedy Space Center.
+                </p>
+            </div>
         </div>
-      </div>
     </section>
 
 
     <section class="launch-panel">
 
-      <div class="launch-panel-header">
-        <div>
-          <p class="card-kicker">Launch schedule</p>
-          <h2>Upcoming Missions</h2>
+        <div class="launch-panel-header">
+            <div>
+                <p class="card-kicker">Launch schedule</p>
+                <h2>Upcoming Missions</h2>
+            </div>
+
+            <span class="launch-count" id="launch-count">Loading…</span>
         </div>
 
-        <span class="launch-count" id="launch-count">Loading…</span>
-      </div>
 
+        <div class="launch-table-wrap">
 
-      <div class="launch-table-wrap">
+            <table class="launch-table">
 
-        <table class="launch-table">
+                <thead>
+                    <tr>
+                        <th>Mission</th>
+                        <th>Window Open</th>
+                        <th>Window Close</th>
+                        <th></th>
+                    </tr>
+                </thead>
 
-          <thead>
-            <tr>
-              <th>Mission</th>
-              <th>Window Open</th>
-              <th>Window Close</th>
-              <th></th>
-            </tr>
-          </thead>
+                <tbody id="data">
 
-          <tbody id="data">
+                    <tr>
+                        <td colspan="4" class="loading-row">
+                            Loading upcoming launches…
+                        </td>
+                    </tr>
 
-            <tr>
-              <td colspan="4" class="loading-row">
-                Loading upcoming launches…
-              </td>
-            </tr>
+                </tbody>
 
-          </tbody>
+            </table>
 
-        </table>
-
-      </div>
+        </div>
 
     </section>
 
 
     <footer>
-      <span>DavidB.xyz · Space Coast Launches</span>
-      <span class="status">Live launch data</span>
+        <span>DavidB.xyz · Space Coast Launches</span>
+        <span class="status">Live launch data</span>
     </footer>
 
-  </main>
+</main>
 
 
-  <script>
+<script>
 
-    getData();
+getData();
 
 
-    async function getData() {
+async function getData() {
 
-      try {
+    try {
 
         const response = await fetch(
-          'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?location__ids=12,27&limit=20'
+            'https://ll.thespacedevs.com/2.2.0/launch/upcoming/?location__ids=12,27&limit=20'
         );
 
         if (!response.ok) {
-          throw new Error(`Launch API returned ${response.status}`);
+            throw new Error(`Launch API returned ${response.status}`);
         }
 
         const data = await response.json();
         const results = data.results;
 
         document.getElementById("launch-count").textContent =
-          `${results.length} upcoming`;
+            `${results.length} upcoming`;
 
 
         let temp = "";
@@ -126,57 +129,46 @@
 
         for (let i = 0; i < results.length; i++) {
 
-          const launch = results[i];
+            const launch = results[i];
 
-          const link =
-            "info.html?id=" + launch.id;
-
-
-          const open =
-            new Date(launch.window_start);
-
-          const close =
-            new Date(launch.window_end);
+            const link =
+                "info.html?id=" + launch.id;
 
 
-          const openStr =
-            open.toLocaleString('en-US', {
-              weekday: 'short',
-              month: 'short',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit'
-            });
+            const open =
+                new Date(launch.window_start);
+
+            const close =
+                new Date(launch.window_end);
 
 
-          const closeStr =
-            close.toLocaleString('en-US', {
-              weekday: 'short',
-              month: 'short',
-              day: 'numeric',
-              hour: 'numeric',
-              minute: '2-digit'
-            });
+            const openStr =
+                open.toLocaleString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
 
 
-          temp += `
+            const closeStr =
+                close.toLocaleString('en-US', {
+                    weekday: 'short',
+                    month: 'short',
+                    day: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit'
+                });
+
+
+            temp += `
                 <tr>
+
                     <td class="mission-cell">
-                        <div class="mission-with-logo">
-
-                            ${launch.launch_service_provider?.logo_url
-                                  ? `<img
-                                        class="provider-logo"
-                                        src="${launch.launch_service_provider.logo_url}"
-                                        alt="${launch.launch_service_provider.name}"
-                                      >`
-                                  : ''
-                                }
-
-                            <span class="mission-name">
-                                ${launch.name}
-                            </span>
-                        </div>
+                        <span class="mission-name">
+                            ${launch.name}
+                        </span>
                     </td>
 
                     <td>
@@ -205,14 +197,14 @@
 
         document.getElementById("data").innerHTML = temp;
 
-      }
+    }
 
-      catch (error) {
+    catch (error) {
 
         console.error(error);
 
         document.getElementById("launch-count").textContent =
-          "Unavailable";
+            "Unavailable";
 
         document.getElementById("data").innerHTML = `
             <tr>
@@ -222,12 +214,11 @@
             </tr>
         `;
 
-      }
-
     }
 
-  </script>
+}
+
+</script>
 
 </body>
-
 </html>
