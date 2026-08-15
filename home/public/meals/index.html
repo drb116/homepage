@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Family dinner planner, recipe collection, and shopping list.">
+  <title>Meals & Recipes | Family Home</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/meals/meals.css">
+</head>
+<body>
+  <div class="page-shell meals-shell">
+    <header class="topbar meals-topbar">
+      <a class="brand" href="/">
+        <span class="brand-mark">DB</span>
+        <span>Family Home</span>
+      </a>
+      <a class="back-link" href="/">← Family home</a>
+    </header>
+
+    <main>
+      <section class="hero meals-hero">
+        <p class="eyebrow">Meals & recipes</p>
+        <h1>Meals<span class="title-dot">.</span></h1>
+        <p class="subtitle">Plan dinner, find a favorite recipe, and turn the week into a shopping list.</p>
+      </section>
+
+      <section class="planner-panel" aria-labelledby="planner-title">
+        <div class="planner-toolbar">
+          <div class="week-nav">
+            <button class="icon-button" id="btn-prev-week" type="button" aria-label="Previous week">←</button>
+            <div>
+              <p class="panel-kicker">Weekly menu</p>
+              <h2 id="planner-title">This week</h2>
+              <p class="week-range" id="week-range"></p>
+            </div>
+            <button class="icon-button" id="btn-next-week" type="button" aria-label="Next week">→</button>
+          </div>
+
+          <div class="planner-actions">
+            <span class="save-status" id="save-status" aria-live="polite">
+              <span class="save-dot"></span>
+              Loading shared menu…
+            </span>
+            <button class="icon-button" id="btn-refresh" type="button" aria-label="Refresh menu" title="Refresh shared menu">↻</button>
+            <button class="button button-secondary" id="btn-this-week" type="button">This week</button>
+            <button class="button button-secondary" id="btn-custom" type="button">+ Custom meal</button>
+            <button class="button button-primary" id="btn-shopping" type="button">Shopping list</button>
+          </div>
+        </div>
+
+        <div class="week-scroll">
+          <div class="week-grid" id="week-grid" aria-describedby="drag-help"></div>
+        </div>
+        <p id="drag-help" class="sr-only">Drag a recipe into a day, or use the Add button on a recipe card.</p>
+      </section>
+
+      <section class="library-section" aria-labelledby="recipe-title">
+        <div class="section-heading">
+          <div>
+            <p class="panel-kicker">Recipe collection</p>
+            <h2 id="recipe-title">What sounds good?</h2>
+          </div>
+          <p class="recipe-count" id="recipe-count"></p>
+        </div>
+
+        <div class="library-tools">
+          <label class="search-box">
+            <span class="sr-only">Search recipes</span>
+            <span aria-hidden="true">⌕</span>
+            <input id="recipe-search" type="search" placeholder="Search recipes…" autocomplete="off">
+          </label>
+
+          <div class="filter-row" id="filter-row" aria-label="Recipe filters">
+            <button class="filter-chip active" type="button" data-filter="all">All</button>
+            <button class="filter-chip" type="button" data-filter="dinners">Dinners</button>
+            <button class="filter-chip" type="button" data-filter="sides">Sides</button>
+            <button class="filter-chip" type="button" data-filter="breads">Breads</button>
+            <button class="filter-chip" type="button" data-filter="desserts">Desserts</button>
+            <button class="filter-chip" type="button" data-filter="drinks">Drinks</button>
+          </div>
+        </div>
+
+        <div class="effort-legend" aria-label="Recipe effort">
+          <span><i class="effort-dot quick"></i>Quick</span>
+          <span><i class="effort-dot medium"></i>Medium</span>
+          <span><i class="effort-dot long"></i>Longer</span>
+        </div>
+
+        <div class="recipe-grid" id="recipe-grid"></div>
+        <div class="empty-state" id="recipe-empty" hidden>No recipes match that search.</div>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal" id="add-modal" role="dialog" aria-modal="true" aria-labelledby="add-title">
+    <div class="modal-card small-modal">
+      <div class="modal-head">
+        <div>
+          <p class="panel-kicker">Add to menu</p>
+          <h2 id="add-title">Choose a day</h2>
+          <p class="modal-subtitle" id="add-recipe-name"></p>
+        </div>
+        <button class="icon-button" id="btn-add-close" type="button" aria-label="Close">×</button>
+      </div>
+      <div class="day-picker" id="day-picker"></div>
+    </div>
+  </div>
+
+  <div class="modal" id="shopping-modal" role="dialog" aria-modal="true" aria-labelledby="shopping-title">
+    <div class="modal-card shopping-card">
+      <div class="modal-head">
+        <div>
+          <p class="panel-kicker">This week's recipes</p>
+          <h2 id="shopping-title">Shopping list</h2>
+          <p class="modal-subtitle" id="shopping-summary"></p>
+        </div>
+        <div class="modal-actions">
+          <button class="button button-secondary" id="btn-copy" type="button">Copy</button>
+          <button class="icon-button" id="btn-close-shopping" type="button" aria-label="Close">×</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <ol id="shopping-list" class="shopping-list"></ol>
+        <div id="shopping-warnings"></div>
+        <div id="shopping-errors" class="errors"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/meals/recipe-data.js"></script>
+  <script src="/meals/meals.js"></script>
+</body>
+</html>

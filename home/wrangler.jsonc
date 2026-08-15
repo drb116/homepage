@@ -1,0 +1,24 @@
+{
+    "$schema": "node_modules/wrangler/config-schema.json",
+    "name": "family-home",
+    "main": "src/index.js",
+    "compatibility_date": "2026-08-15",
+    "workers_dev": false,
+    "routes": [
+        {
+            "pattern": "home.davidb.xyz",
+            "custom_domain": true
+        }
+    ],
+    "assets": {
+        "directory": "./public",
+        "binding": "ASSETS"
+    },
+	"d1_databases": [
+        {
+            "binding": "family_home_db",
+            "database_name": "family-home-db",
+            "database_id": "57031aa9-bfe4-440d-a302-ed22edd34efc"
+        }
+    ]
+}

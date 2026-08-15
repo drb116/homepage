@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Private family dashboard for meals, schedules, lists, and home information.">
+  <title>Family Home | DavidB.xyz</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/dashboard.css">
+</head>
+<body>
+  <div class="page-shell dashboard-shell">
+    <header class="topbar dashboard-topbar">
+      <div class="dashboard-header-left">
+        <a class="brand" href="/" aria-label="Family Home">
+          <span class="brand-mark">DB</span>
+          <span>Family Home</span>
+        </a>
+      </div>
+
+      <div class="dashboard-clock" aria-label="Current date and time">
+        <span class="header-date" id="header-date">Today</span>
+        <span class="clock-separator" aria-hidden="true">•</span>
+        <span id="header-time"></span>
+      </div>
+    </header>
+
+    <main>
+
+      <section class="dashboard-section" aria-labelledby="meals-heading">
+        <div class="section-bar">
+          <div>
+            <p class="panel-kicker">Meals & recipes</p>
+            <h2 id="meals-heading">Dinner plans</h2>
+          </div>
+
+          <div class="section-actions">
+            <span class="sync-status" id="meal-sync-status" aria-live="polite">
+              <span class="sync-dot"></span>
+              Loading…
+            </span>
+            <button class="refresh-button" id="btn-refresh-meals" type="button" aria-label="Refresh dinner plans" title="Refresh dinner plans">↻</button>
+            <a class="manage-link" href="/meals/">Meals & recipes <span aria-hidden="true">→</span></a>
+          </div>
+        </div>
+
+        <div class="meal-dashboard-grid">
+          <article class="tonight-card" id="tonight-card">
+            <div class="tonight-glow" aria-hidden="true"></div>
+            <div class="tonight-heading">
+              <div>
+                <p class="card-kicker">Tonight</p>
+                <p class="tonight-date" id="tonight-date"></p>
+              </div>
+              <span class="meal-icon" aria-hidden="true">🍽️</span>
+            </div>
+
+            <div class="tonight-content" id="tonight-content">
+              <div class="meal-loading">Checking the menu…</div>
+            </div>
+
+            <div class="tonight-footer">
+              <a href="/meals/" class="tonight-plan-link">Open weekly planner <span aria-hidden="true">→</span></a>
+            </div>
+          </article>
+
+          <article class="upcoming-card">
+            <div class="card-heading">
+              <div>
+                <p class="card-kicker upcoming-kicker">Coming up</p>
+                <h3>Next dinners</h3>
+              </div>
+              <span class="upcoming-range" id="upcoming-range"></span>
+            </div>
+
+            <div class="upcoming-list" id="upcoming-list">
+              <div class="upcoming-placeholder">Loading upcoming dinners…</div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="future-modules" aria-label="Future family dashboard modules">
+        <article class="future-card">
+          <span class="future-icon" aria-hidden="true">▦</span>
+          <div>
+            <p>Calendar</p>
+            <span>Coming next</span>
+          </div>
+        </article>
+
+        <article class="future-card">
+          <span class="future-icon" aria-hidden="true">✓</span>
+          <div>
+            <p>Lists & tasks</p>
+            <span>Coming later</span>
+          </div>
+        </article>
+
+        <article class="future-card">
+          <span class="future-icon" aria-hidden="true">☀</span>
+          <div>
+            <p>Weather</p>
+            <span>Coming later</span>
+          </div>
+        </article>
+      </section>
+    </main>
+  </div>
+
+  <script src="/dashboard.js"></script>
+</body>
+</html>
