@@ -1,3 +1,6 @@
 # ignore backup files
 *.bak
 /words/
+node_modules/
+.wrangler/
+.dev.vars
