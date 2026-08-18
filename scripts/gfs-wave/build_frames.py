@@ -107,7 +107,7 @@ def build_nomads_url(cycle_dt, forecast_hour, variables):
     fhr = f"{forecast_hour:03d}"
 
     params = {
-        "file": f"gfswave.t{cycle}z.atlocn.0p16.f{fhr}.grib2",
+        "file": f"gfswave.t{cycle}z.global.0p16.f{fhr}.grib2",
         "lev_surface": "on",
         "subregion": "",
         "leftlon": str(LEFT_LON_360),
