@@ -1,0 +1,18 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "davidb-api",
+  "main": "src/index.js",
+  "compatibility_date": "2026-08-15",
+  "workers_dev": false,
+
+  "vars": {
+    "YOLINK_TEMPERATURE_DEVICE_ID": "d88b4c01000e3f7c"
+  },
+
+  "routes": [
+    {
+      "pattern": "api.davidb.xyz",
+      "custom_domain": true
+    }
+  ]
+}

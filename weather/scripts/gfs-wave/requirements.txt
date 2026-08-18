@@ -1,0 +1,5 @@
+boto3>=1.40
+eccodes==2.43.0
+matplotlib>=3.10
+numpy>=2.2
+requests>=2.32

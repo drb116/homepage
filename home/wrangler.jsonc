@@ -4,6 +4,10 @@
     "main": "src/index.js",
     "compatibility_date": "2026-08-15",
     "workers_dev": false,
+    "vars": {
+        "GOOGLE_REDIRECT_URI": "https://home.davidb.xyz/api/google/callback",
+        "GOOGLE_CALENDAR_ID": "family10531582547686885726@group.calendar.google.com"
+    },
     "routes": [
         {
             "pattern": "home.davidb.xyz",
@@ -14,7 +18,7 @@
         "directory": "./public",
         "binding": "ASSETS"
     },
-	"d1_databases": [
+    "d1_databases": [
         {
             "binding": "family_home_db",
             "database_name": "family-home-db",

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <meta name="description" content="Private family dashboard for meals, schedules, lists, and home information.">
+  <meta name="description" content="Private family dashboard for meals, schedules, weather, and home information.">
   <title>Family Home | DavidB.xyz</title>
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/dashboard.css">
@@ -11,12 +11,10 @@
 <body>
   <div class="page-shell dashboard-shell">
     <header class="topbar dashboard-topbar">
-      <div class="dashboard-header-left">
-        <a class="brand" href="/" aria-label="Family Home">
-          <span class="brand-mark">DB</span>
-          <span>Family Home</span>
-        </a>
-      </div>
+      <a class="brand" href="/" aria-label="Family Home">
+        <span class="brand-mark">DB</span>
+        <span>Family Home</span>
+      </a>
 
       <div class="dashboard-clock" aria-label="Current date and time">
         <span class="header-date" id="header-date">Today</span>
@@ -26,84 +24,86 @@
     </header>
 
     <main>
-
-      <section class="dashboard-section" aria-labelledby="meals-heading">
-        <div class="section-bar">
+      <!-- Calendar layout intentionally left unchanged. -->
+      <section class="dashboard-section calendar-section" aria-labelledby="calendar-heading">
+        <div class="section-bar calendar-section-bar">
           <div>
-            <p class="panel-kicker">Meals & recipes</p>
-            <h2 id="meals-heading">Dinner plans</h2>
+            <p class="panel-kicker calendar-kicker">Google Family calendar</p>
+            <h2 id="calendar-heading">Coming up</h2>
           </div>
 
           <div class="section-actions">
-            <span class="sync-status" id="meal-sync-status" aria-live="polite">
+            <span class="sync-status" id="calendar-sync-status" aria-live="polite">
               <span class="sync-dot"></span>
               Loading…
             </span>
-            <button class="refresh-button" id="btn-refresh-meals" type="button" aria-label="Refresh dinner plans" title="Refresh dinner plans">↻</button>
-            <a class="manage-link" href="/meals/">Meals & recipes <span aria-hidden="true">→</span></a>
+            <button class="refresh-button calendar-refresh" id="btn-refresh-calendar" type="button" aria-label="Refresh family calendar" title="Refresh family calendar">↻</button>
+            <a class="manage-link calendar-manage-link" href="https://calendar.google.com/calendar/u/0/r" target="_blank" rel="noopener">Google Calendar <span aria-hidden="true">↗</span></a>
           </div>
         </div>
 
-        <div class="meal-dashboard-grid">
-          <article class="tonight-card" id="tonight-card">
-            <div class="tonight-glow" aria-hidden="true"></div>
-            <div class="tonight-heading">
-              <div>
-                <p class="card-kicker">Tonight</p>
-                <p class="tonight-date" id="tonight-date"></p>
-              </div>
-              <span class="meal-icon" aria-hidden="true">🍽️</span>
-            </div>
-
-            <div class="tonight-content" id="tonight-content">
-              <div class="meal-loading">Checking the menu…</div>
-            </div>
-
-            <div class="tonight-footer">
-              <a href="/meals/" class="tonight-plan-link">Open weekly planner <span aria-hidden="true">→</span></a>
-            </div>
-          </article>
-
-          <article class="upcoming-card">
-            <div class="card-heading">
-              <div>
-                <p class="card-kicker upcoming-kicker">Coming up</p>
-                <h3>Next dinners</h3>
-              </div>
-              <span class="upcoming-range" id="upcoming-range"></span>
-            </div>
-
-            <div class="upcoming-list" id="upcoming-list">
-              <div class="upcoming-placeholder">Loading upcoming dinners…</div>
-            </div>
-          </article>
-        </div>
+        <article class="calendar-card">
+          <div class="calendar-days" id="calendar-days">
+            <div class="calendar-loading">Loading family calendar…</div>
+          </div>
+        </article>
       </section>
 
-      <section class="future-modules" aria-label="Future family dashboard modules">
-        <article class="future-card">
-          <span class="future-icon" aria-hidden="true">▦</span>
-          <div>
-            <p>Calendar</p>
-            <span>Coming next</span>
-          </div>
-        </article>
+      <section class="dashboard-section glance-section" aria-label="Weather and dinner plans">
+        <div class="glance-grid">
+          <article class="weather-card">
+            <div class="compact-card-heading">
+              <div>
+                <p class="panel-kicker weather-kicker">Weather</p>
+                <h2>At home</h2>
+              </div>
+              <button class="refresh-button weather-refresh" id="btn-refresh-weather" type="button" aria-label="Refresh weather" title="Refresh weather">↻</button>
+            </div>
 
-        <article class="future-card">
-          <span class="future-icon" aria-hidden="true">✓</span>
-          <div>
-            <p>Lists & tasks</p>
-            <span>Coming later</span>
-          </div>
-        </article>
+            <div class="weather-current">
+              <div class="weather-icon" id="weather-icon" aria-hidden="true">–</div>
+              <div class="weather-current-reading">
+                <span class="weather-current-temp" id="weather-current-temp">--°</span>
+                <span class="weather-current-label">Outside</span>
+              </div>
+            </div>
 
-        <article class="future-card">
-          <span class="future-icon" aria-hidden="true">☀</span>
-          <div>
-            <p>Weather</p>
-            <span>Coming later</span>
-          </div>
-        </article>
+            <div class="forecast-rows">
+              <div class="forecast-row">
+                <span>Today</span>
+                <strong id="weather-today">--° / --°</strong>
+              </div>
+              <div class="forecast-row">
+                <span>Tomorrow</span>
+                <strong id="weather-tomorrow">--° / --°</strong>
+              </div>
+            </div>
+
+            <div class="weather-status" id="weather-status" aria-live="polite">Loading weather…</div>
+          </article>
+
+          <article class="dinner-card">
+            <div class="compact-card-heading">
+              <div>
+                <p class="panel-kicker dinner-kicker">Meals & recipes</p>
+                <h2>Dinner plans</h2>
+              </div>
+
+              <div class="compact-actions">
+                <span class="sync-status compact-sync-status" id="meal-sync-status" aria-live="polite">
+                  <span class="sync-dot"></span>
+                  Loading…
+                </span>
+                <button class="refresh-button" id="btn-refresh-meals" type="button" aria-label="Refresh dinner plans" title="Refresh dinner plans">↻</button>
+                <a class="compact-manage-link" href="/meals/" aria-label="Open meals and recipes">↗</a>
+              </div>
+            </div>
+
+            <div class="dinner-list" id="dinner-list">
+              <div class="dinner-placeholder">Loading dinner plans…</div>
+            </div>
+          </article>
+        </div>
       </section>
     </main>
   </div>

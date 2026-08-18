@@ -1,13 +1,18 @@
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const AUTO_REFRESH_MS = 60_000;
-const UPCOMING_DAY_COUNT = 5;
+const DINNER_DAY_COUNT = 6; // Today + next five days
+const CALENDAR_DAY_COUNT = 5;
 
-let refreshInProgress = false;
+let mealRefreshInProgress = false;
+let calendarRefreshInProgress = false;
+let weatherRefreshInProgress = false;
 
 const $ = selector => document.querySelector(selector);
 
 updateClock();
+loadCalendarDashboard({ showLoading: true });
 loadMealDashboard({ showLoading: true });
+loadWeatherDashboard({ showLoading: true });
 wireDashboardEvents();
 startDashboardRefresh();
 window.setInterval(updateClock, 30_000);
@@ -33,6 +38,11 @@ function keyFromDateLocal(date) {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
+}
+
+function dateFromDateOnly(value) {
+  const [year, month, day] = String(value).split("-").map(Number);
+  return new Date(year, month - 1, day);
 }
 
 function emptyWeek() {
@@ -64,17 +74,16 @@ function updateClock() {
     hour: "numeric",
     minute: "2-digit"
   });
-
-
-  $("#tonight-date").textContent = now.toLocaleDateString(undefined, {
-    weekday: "long",
-    month: "short",
-    day: "numeric"
-  });
 }
 
-function setSyncStatus(text, state = "") {
+function setMealSyncStatus(text, state = "") {
   const status = $("#meal-sync-status");
+  status.className = `sync-status compact-sync-status${state ? ` ${state}` : ""}`;
+  status.innerHTML = `<span class="sync-dot"></span>${escapeHtml(text)}`;
+}
+
+function setCalendarSyncStatus(text, state = "") {
+  const status = $("#calendar-sync-status");
   status.className = `sync-status${state ? ` ${state}` : ""}`;
   status.innerHTML = `<span class="sync-dot"></span>${escapeHtml(text)}`;
 }
@@ -94,34 +103,31 @@ async function fetchWeek(weekStart) {
 }
 
 async function loadMealDashboard({ showLoading = false } = {}) {
-  if (refreshInProgress) return;
-  refreshInProgress = true;
+  if (mealRefreshInProgress) return;
+  mealRefreshInProgress = true;
 
   const refreshButton = $("#btn-refresh-meals");
   if (refreshButton) refreshButton.disabled = true;
-  if (showLoading) setSyncStatus("Refreshing…", "loading");
+  if (showLoading) setMealSyncStatus("Refreshing…", "loading");
 
   try {
     const today = atMidnightLocal(new Date());
     const currentWeekStart = startOfWeekSundayLocal(today);
     const nextWeekStart = addDays(currentWeekStart, 7);
 
-    // Fetch both weeks so a Friday/Saturday dashboard can still show
-    // upcoming dinners from the following week.
     const [currentWeek, nextWeek] = await Promise.all([
       fetchWeek(currentWeekStart),
       fetchWeek(nextWeekStart)
     ]);
 
-    renderTonight(today, currentWeek);
-    renderUpcoming(today, currentWeekStart, currentWeek, nextWeek);
-    setSyncStatus("Up to date");
+    renderDinnerList(today, currentWeekStart, currentWeek, nextWeek);
+    setMealSyncStatus("Up to date");
   } catch (error) {
     console.error("Could not refresh meal dashboard:", error);
-    setSyncStatus("Could not refresh", "error");
-    renderLoadError();
+    setMealSyncStatus("Could not refresh", "error");
+    $("#dinner-list").innerHTML = `<div class="dinner-placeholder">Dinner plans unavailable.</div>`;
   } finally {
-    refreshInProgress = false;
+    mealRefreshInProgress = false;
     if (refreshButton) refreshButton.disabled = false;
   }
 }
@@ -129,14 +135,8 @@ async function loadMealDashboard({ showLoading = false } = {}) {
 function entriesForDate(date, currentWeekStart, currentWeek, nextWeek) {
   const offset = Math.round((atMidnightLocal(date) - currentWeekStart) / 86_400_000);
 
-  if (offset >= 0 && offset <= 6) {
-    return currentWeek[DAYS[offset]] || [];
-  }
-
-  if (offset >= 7 && offset <= 13) {
-    return nextWeek[DAYS[offset - 7]] || [];
-  }
-
+  if (offset >= 0 && offset <= 6) return currentWeek[DAYS[offset]] || [];
+  if (offset >= 7 && offset <= 13) return nextWeek[DAYS[offset - 7]] || [];
   return [];
 }
 
@@ -147,44 +147,10 @@ function splitEntries(entries) {
   };
 }
 
-function renderTonight(today, currentWeek) {
-  const dayName = DAYS[today.getDay()];
-  const { meals, notes } = splitEntries(currentWeek[dayName] || []);
-  const container = $("#tonight-content");
-
-  if (!meals.length) {
-    container.innerHTML = `
-      <p class="no-dinner">Nothing planned yet.</p>
-      <p class="no-dinner-detail">Open the weekly planner to add tonight's dinner.</p>
-      ${notes.map(note => `<span class="tonight-note">${escapeHtml(note.text)}</span>`).join("")}
-    `;
-    return;
-  }
-
-  const mealHtml = meals.map(meal => {
-    const title = escapeHtml(meal.title);
-    if (meal.href) {
-      return `<p class="tonight-meal"><a href="${escapeAttribute(normalizeRecipeHref(meal.href))}" target="_blank" rel="noopener">${title}</a></p>`;
-    }
-    return `<p class="tonight-meal">${title}</p>`;
-  }).join("");
-
-  const noteHtml = notes
-    .map(note => `<span class="tonight-note">${escapeHtml(note.text)}</span>`)
-    .join("");
-
-  container.innerHTML = `<div class="tonight-meals">${mealHtml}${noteHtml}</div>`;
-}
-
-function renderUpcoming(today, currentWeekStart, currentWeek, nextWeek) {
-  const list = $("#upcoming-list");
+function renderDinnerList(today, currentWeekStart, currentWeek, nextWeek) {
   const rows = [];
-  const firstDate = addDays(today, 1);
-  const lastDate = addDays(today, UPCOMING_DAY_COUNT);
 
-  $("#upcoming-range").textContent = `${formatShortDate(firstDate)} – ${formatShortDate(lastDate)}`;
-
-  for (let i = 1; i <= UPCOMING_DAY_COUNT; i += 1) {
+  for (let i = 0; i < DINNER_DAY_COUNT; i += 1) {
     const date = addDays(today, i);
     const entries = entriesForDate(date, currentWeekStart, currentWeek, nextWeek);
     const { meals, notes } = splitEntries(entries);
@@ -193,43 +159,207 @@ function renderUpcoming(today, currentWeekStart, currentWeek, nextWeek) {
       ? meals.map(meal => {
           const title = escapeHtml(meal.title);
           if (meal.href) {
-            return `<a class="upcoming-meal recipe" href="${escapeAttribute(normalizeRecipeHref(meal.href))}" target="_blank" rel="noopener">${title}</a>`;
+            return `<a class="dinner-meal recipe" href="${escapeAttribute(normalizeRecipeHref(meal.href))}" target="_blank" rel="noopener">${title}</a>`;
           }
-          return `<span class="upcoming-meal">${title}</span>`;
+          return `<span class="dinner-meal">${title}</span>`;
         }).join("")
-      : `<span class="upcoming-empty">Not planned</span>`;
+      : `<span class="dinner-empty">Not planned</span>`;
 
     const noteHtml = notes.length
-      ? notes.map(note => `<span class="upcoming-note">${escapeHtml(note.text)}</span>`).join("")
+      ? notes.map(note => `<span class="dinner-note">${escapeHtml(note.text)}</span>`).join("")
       : "";
 
     rows.push(`
-      <div class="upcoming-row">
-        <div class="upcoming-day">
-          <strong>${escapeHtml(date.toLocaleDateString(undefined, { weekday: "short" }))}</strong>
+      <div class="dinner-row${i === 0 ? " today" : ""}">
+        <div class="dinner-day">
+          <strong>${i === 0 ? "Today" : escapeHtml(date.toLocaleDateString(undefined, { weekday: "short" }))}</strong>
           <span>${escapeHtml(date.toLocaleDateString(undefined, { month: "short", day: "numeric" }))}</span>
         </div>
-        <div class="upcoming-meals">${mealHtml}${noteHtml}</div>
+        <div class="dinner-meals">${mealHtml}${noteHtml}</div>
       </div>
     `);
   }
 
-  list.innerHTML = rows.join("");
+  $("#dinner-list").innerHTML = rows.join("");
 }
 
-function renderLoadError() {
-  $("#tonight-content").innerHTML = `
-    <p class="no-dinner">Dinner plans unavailable.</p>
-    <p class="no-dinner-detail">Use the refresh button to try again.</p>
-  `;
+async function loadWeatherDashboard({ showLoading = false } = {}) {
+  if (weatherRefreshInProgress) return;
+  weatherRefreshInProgress = true;
 
-  $("#upcoming-list").innerHTML = `
-    <div class="upcoming-placeholder">Could not load upcoming dinners.</div>
-  `;
+  const button = $("#btn-refresh-weather");
+  if (button) button.disabled = true;
+  if (showLoading) setWeatherStatus("Refreshing…");
+
+  try {
+    const response = await fetch("/api/weather-card", { cache: "no-store" });
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok || !data?.ok) {
+      throw new Error(data?.error || `Weather request failed (${response.status})`);
+    }
+
+    renderWeather(data);
+    setWeatherStatus(data.partial ? "Some weather data unavailable" : "Updated just now", data.partial);
+  } catch (error) {
+    console.error("Could not refresh weather:", error);
+    setWeatherStatus("Weather unavailable", true);
+  } finally {
+    weatherRefreshInProgress = false;
+    if (button) button.disabled = false;
+  }
 }
 
-function formatShortDate(date) {
-  return date.toLocaleDateString(undefined, { month: "short", day: "numeric" });
+function renderWeather(data) {
+  const currentF = data?.current?.temperature_f;
+  const forecast = data?.forecast;
+
+  $("#weather-current-temp").textContent = Number.isFinite(Number(currentF))
+    ? `${Math.round(Number(currentF))}°`
+    : "--°";
+
+  if (forecast) {
+    $("#weather-icon").textContent = weatherIcon(forecast.weather_code);
+    $("#weather-today").textContent = formatHighLow(forecast.today);
+    $("#weather-tomorrow").textContent = formatHighLow(forecast.tomorrow);
+  } else {
+    $("#weather-icon").textContent = "–";
+    $("#weather-today").textContent = "--° / --°";
+    $("#weather-tomorrow").textContent = "--° / --°";
+  }
+}
+
+function formatHighLow(day) {
+  const high = Number(day?.high_f);
+  const low = Number(day?.low_f);
+  const highText = Number.isFinite(high) ? `${Math.round(high)}°` : "--°";
+  const lowText = Number.isFinite(low) ? `${Math.round(low)}°` : "--°";
+  return `${highText} / ${lowText}`;
+}
+
+function weatherIcon(codeValue) {
+  const code = Number(codeValue);
+  if (code === 0) return "☀️";
+  if (code === 1) return "🌤️";
+  if (code === 2) return "⛅";
+  if (code === 3) return "☁️";
+  if ([45, 48].includes(code)) return "🌫️";
+  if ([51, 53, 55, 56, 57].includes(code)) return "🌦️";
+  if ([61, 63, 65, 66, 67, 80, 81, 82].includes(code)) return "🌧️";
+  if ([71, 73, 75, 77, 85, 86].includes(code)) return "🌨️";
+  if ([95, 96, 99].includes(code)) return "⛈️";
+  return "🌤️";
+}
+
+function setWeatherStatus(text, isError = false) {
+  const status = $("#weather-status");
+  status.textContent = text;
+  status.className = `weather-status${isError ? " error" : ""}`;
+}
+
+// Calendar code below is intentionally unchanged from the current dashboard.
+async function loadCalendarDashboard({ showLoading = false } = {}) {
+  if (calendarRefreshInProgress) return;
+  calendarRefreshInProgress = true;
+
+  const button = $("#btn-refresh-calendar");
+  if (button) button.disabled = true;
+  if (showLoading) setCalendarSyncStatus("Refreshing…", "loading");
+
+  try {
+    const response = await fetch("/api/calendar", { cache: "no-store" });
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok || !data?.ok) {
+      throw new Error(data?.error || `Calendar request failed (${response.status})`);
+    }
+
+    renderCalendar(data.events || []);
+    setCalendarSyncStatus("Up to date");
+  } catch (error) {
+    console.error("Could not refresh family calendar:", error);
+    setCalendarSyncStatus("Could not refresh", "error");
+    renderCalendarError(error?.message || "Could not load the Family calendar.");
+  } finally {
+    calendarRefreshInProgress = false;
+    if (button) button.disabled = false;
+  }
+}
+
+function calendarEventDate(event) {
+  if (event.all_day) return dateFromDateOnly(event.start);
+  return new Date(event.start);
+}
+
+function eventDateKey(event) {
+  return keyFromDateLocal(calendarEventDate(event));
+}
+
+function renderCalendar(events) {
+  const container = $("#calendar-days");
+  const today = atMidnightLocal(new Date());
+  const byDate = new Map();
+
+  events.forEach(event => {
+    const key = eventDateKey(event);
+    if (!byDate.has(key)) byDate.set(key, []);
+    byDate.get(key).push(event);
+  });
+
+  const columns = [];
+
+  for (let i = 0; i < CALENDAR_DAY_COUNT; i += 1) {
+    const date = addDays(today, i);
+    const key = keyFromDateLocal(date);
+    const dayEvents = byDate.get(key) || [];
+
+    dayEvents.sort((a, b) => {
+      if (a.all_day !== b.all_day) return a.all_day ? -1 : 1;
+      return calendarEventDate(a) - calendarEventDate(b);
+    });
+
+    const eventHtml = dayEvents.length
+      ? dayEvents.map(renderCalendarEvent).join("")
+      : `<div class="calendar-empty">No events</div>`;
+
+    columns.push(`
+      <section class="calendar-day${i === 0 ? " today" : ""}">
+        <div class="calendar-day-heading">
+          <span class="calendar-day-name">${i === 0 ? "Today" : escapeHtml(date.toLocaleDateString(undefined, { weekday: "long" }))}</span>
+          <span class="calendar-day-date">${escapeHtml(date.toLocaleDateString(undefined, { month: "short", day: "numeric" }))}</span>
+        </div>
+        <div class="calendar-events">${eventHtml}</div>
+      </section>
+    `);
+  }
+
+  container.innerHTML = columns.join("");
+}
+
+function renderCalendarEvent(event) {
+  const title = escapeHtml(event.title || "Untitled event");
+  const time = event.all_day
+    ? "All day"
+    : new Date(event.start).toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+
+  const content = `
+    <span class="calendar-event-time">${escapeHtml(time)}</span>
+    <span class="calendar-event-title">${title}</span>
+  `;
+
+  if (event.html_link) {
+    return `<a class="calendar-event${event.all_day ? " all-day" : ""}" href="${escapeAttribute(event.html_link)}" target="_blank" rel="noopener">${content}</a>`;
+  }
+
+  return `<div class="calendar-event${event.all_day ? " all-day" : ""}">${content}</div>`;
+}
+
+function renderCalendarError(message) {
+  $("#calendar-days").innerHTML = `
+    <div class="calendar-error">
+      <div><strong>Family calendar unavailable.</strong>${escapeHtml(message)}</div>
+    </div>
+  `;
 }
 
 function normalizeRecipeHref(href) {
@@ -247,18 +377,30 @@ function wireDashboardEvents() {
   $("#btn-refresh-meals").addEventListener("click", () => {
     loadMealDashboard({ showLoading: true });
   });
+
+  $("#btn-refresh-calendar").addEventListener("click", () => {
+    loadCalendarDashboard({ showLoading: true });
+  });
+
+  $("#btn-refresh-weather").addEventListener("click", () => {
+    loadWeatherDashboard({ showLoading: true });
+  });
 }
 
 function startDashboardRefresh() {
   window.setInterval(() => {
     if (document.hidden) return;
     loadMealDashboard();
+    loadCalendarDashboard();
+    loadWeatherDashboard();
   }, AUTO_REFRESH_MS);
 
   document.addEventListener("visibilitychange", () => {
     if (!document.hidden) {
       updateClock();
       loadMealDashboard();
+      loadCalendarDashboard();
+      loadWeatherDashboard();
     }
   });
 }
