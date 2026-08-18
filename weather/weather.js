@@ -522,6 +522,14 @@ function waveFrameUrl(
         );
     }
 
+    if (
+        waveManifest?.generatedAt
+    ) {
+        params.set(
+            "v",
+            waveManifest.generatedAt
+        );
+    }
 
     return `${API_ROOT}/wave-frame?${params.toString()}`;
 }
@@ -1141,8 +1149,8 @@ function scheduleWavePlayback() {
 
                 const nextHour =
                     index >= 0 &&
-                    index <
-                    hours.length - 1
+                        index <
+                        hours.length - 1
 
                         ? hours[index + 1]
 
@@ -1283,13 +1291,13 @@ function initWaveControls() {
 
                 const next =
                     index >= 0 &&
-                    index <
-                    hours.length - 1
+                        index <
+                        hours.length - 1
 
                         ? hours[index + 1]
 
                         : hours[
-                            hours.length - 1
+                        hours.length - 1
                         ];
 
 
