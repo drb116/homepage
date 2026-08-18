@@ -12,6 +12,9 @@ on:
           - test
           - full
 
+  schedule:
+    - cron: "30 0,6,12,18 * * *"
+
 permissions:
   contents: read
 
@@ -48,4 +51,4 @@ jobs:
           R2_ENDPOINT: ${{ secrets.R2_ENDPOINT }}
           R2_BUCKET: stormwatch-gfs-wave
         run: |
-          python scripts/gfs-wave/build_frames.py --mode "${{ inputs.mode }}"
+          python scripts/gfs-wave/build_frames.py --mode "${{ inputs.mode || 'full' }}"
