@@ -297,50 +297,88 @@ function buoy(data) {
 
 
 /* =========================================================
-   Caribbean / Atlantic Wave Map
+   Atlantic GFS-Wave Animation
    ========================================================= */
 
 let waveMap;
-let waveLayer;
+let waveOverlay;
+let waveManifest = null;
 let currentWaveHour = 0;
 
-let waveRequestController = null;
-let waveMoveTimer = null;
+let waveLoadSerial = 0;
+let wavePlayTimer = null;
+let waveIsPlaying = false;
 
-let initialMapReady = false;
+const WAVE_PLAY_MS = 650;
 
-const waveCache =
-    new Map();
-
-const WAVE_CACHE_MS =
-    10 * 60 * 1000;
-
-
-/*
- * These bounds are only used for the frontend
- * viewport/query logic.
- *
- * The Worker owns the actual cached model grid.
- */
-
-const WAVE_REGION = {
-    south: 11,
+const DEFAULT_WAVE_BOUNDS = {
+    south: 7,
     north: 40,
     west: -99,
     east: -30
 };
 
 
+function waveBounds() {
+
+    const source =
+        waveManifest?.bounds ||
+        DEFAULT_WAVE_BOUNDS;
+
+
+    const south =
+        Number(source.south);
+
+    const north =
+        Number(source.north);
+
+    const west =
+        Number(source.west);
+
+    const east =
+        Number(source.east);
+
+
+    if (
+        Number.isFinite(south) &&
+        Number.isFinite(north) &&
+        Number.isFinite(west) &&
+        Number.isFinite(east)
+    ) {
+
+        return [
+            [south, west],
+            [north, east]
+        ];
+    }
+
+
+    return [
+        [
+            DEFAULT_WAVE_BOUNDS.south,
+            DEFAULT_WAVE_BOUNDS.west
+        ],
+        [
+            DEFAULT_WAVE_BOUNDS.north,
+            DEFAULT_WAVE_BOUNDS.east
+        ]
+    ];
+}
+
+
 function initWaveMap() {
-    waveMap = L.map(
-        "wave-map",
-        {
-            zoomControl: true,
-            attributionControl: true,
-            minZoom: 2,
-            maxZoom: 10
-        }
-    );
+
+    waveMap =
+        L.map(
+            "wave-map",
+            {
+                zoomControl: true,
+                attributionControl: true,
+                minZoom: 2,
+                maxZoom: 10
+            }
+        );
+
 
     L.tileLayer(
         "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
@@ -350,231 +388,252 @@ function initWaveMap() {
             attribution:
                 '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         }
-    ).addTo(waveMap);
-
-    waveLayer =
-        L.layerGroup()
-            .addTo(waveMap);
-
-    waveMap.fitBounds([
-        [11, -99],
-        [40, -30]
-    ]);
-
-    /*
-     * fitBounds itself triggers moveend.
-     * Ignore the initial event.
-     */
-
-    setTimeout(
-        () => {
-            initialMapReady =
-                true;
-        },
-        1000
+    ).addTo(
+        waveMap
     );
 
-    waveMap.on(
-        "moveend",
-        () => {
 
-            if (!initialMapReady) {
-                return;
-            }
-
-            clearTimeout(
-                waveMoveTimer
-            );
-
-            /*
-             * The Worker now returns the same cached
-             * broad grid regardless of zoom.
-             *
-             * We still allow this reload so the map
-             * can refresh if the cached forecast changed.
-             */
-
-            waveMoveTimer =
-                setTimeout(
-                    () => {
-
-                        loadWave(
-                            currentWaveHour,
-                            {
-                                preserveExisting: true
-                            }
-                        );
-
-                    },
-                    900
-                );
+    waveMap.fitBounds(
+        waveBounds(),
+        {
+            padding: [4, 4]
         }
     );
 }
 
 
-function waveColor(feet) {
-    if (feet == null) {
-        return "#7a8794";
-    }
+function availableWaveHours() {
 
-    if (feet < 3) {
-        return "#4cb3d4";
-    }
-
-    if (feet < 5) {
-        return "#65c466";
-    }
-
-    if (feet < 8) {
-        return "#e2cf4f";
-    }
-
-    if (feet < 12) {
-        return "#ef8c3d";
-    }
-
-    return "#e84f5f";
-}
-
-
-function waveRadius(feet) {
-    if (feet == null) {
-        return 4;
-    }
-
-    const zoom =
-        waveMap
-            ? waveMap.getZoom()
-            : 4;
-
-    const base =
-        zoom >= 7
-            ? 4
-            : zoom >= 5
-                ? 4.75
-                : 5.25;
-
-    return Math.max(
-        base,
-        Math.min(
-            base + 4,
-            base + feet * 0.22
+    const manifestHours =
+        Array.isArray(
+            waveManifest?.forecastHours
         )
-    );
-}
+            ? waveManifest.forecastHours
+                .map(Number)
+                .filter(Number.isFinite)
+                .sort((a, b) => a - b)
 
-
-function waveCacheKey(hour) {
-    return String(hour);
-}
-
-
-function renderWaveGrid(data) {
-    waveLayer.clearLayers();
-
-    const points =
-        Array.isArray(data.points)
-            ? data.points
             : [];
 
-    for (const point of points) {
+
+    if (
+        manifestHours.length
+    ) {
+        return manifestHours;
+    }
+
+
+    return Array.from(
+        {
+            length:
+                81
+        },
+        (
+            _,
+            index
+        ) =>
+            index * 3
+    );
+}
+
+
+function normalizeWaveHour(
+    value
+) {
+
+    const number =
+        Number(value);
+
+
+    const rounded =
+        Number.isFinite(number)
+            ? Math.round(number / 3) * 3
+            : 0;
+
+
+    const hours =
+        availableWaveHours();
+
+
+    if (
+        hours.includes(
+            rounded
+        )
+    ) {
+        return rounded;
+    }
+
+
+    let best =
+        hours[0] ??
+        0;
+
+
+    for (
+        const hour
+        of hours
+    ) {
 
         if (
-            point.waveHeightFt == null ||
-            point.latitude == null ||
-            point.longitude == null
+            Math.abs(
+                hour -
+                rounded
+            ) <
+            Math.abs(
+                best -
+                rounded
+            )
         ) {
-            continue;
+
+            best =
+                hour;
         }
+    }
 
-        const feet =
-            Number(
-                point.waveHeightFt
-            );
 
-        const marker =
-            L.circleMarker(
-                [
-                    point.latitude,
-                    point.longitude
-                ],
-                {
-                    radius:
-                        waveRadius(feet),
+    return best;
+}
 
-                    color:
-                        "rgba(255,255,255,0.62)",
 
-                    weight:
-                        0.8,
+function waveFrameUrl(
+    hour
+) {
 
-                    fillColor:
-                        waveColor(feet),
+    const params =
+        new URLSearchParams({
+            hour:
+                String(hour)
+        });
 
-                    fillOpacity:
-                        0.82
-                }
-            );
 
-        marker.bindTooltip(
-            `${feet.toFixed(1)} ft`,
-            {
-                permanent: false,
-                direction: "top",
-                className:
-                    "wave-dot-label"
-            }
-        );
+    /*
+     * The production Worker ignores this extra query
+     * parameter, but it gives the browser a new URL
+     * whenever a new model cycle is published.
+     */
 
-        marker.bindPopup(`
-      <strong>
-        ${feet.toFixed(1)} ft
-      </strong>
-      <br>
-      Significant wave height
-      <br>
-      ${esc(fmt(data.validTime))}
-    `);
+    if (
+        waveManifest?.cycle
+    ) {
 
-        marker.addTo(
-            waveLayer
+        params.set(
+            "cycle",
+            waveManifest.cycle
         );
     }
 
 
-    const density =
-        data.stepDegrees != null
-            ? `${data.stepDegrees}° grid`
-            : "model grid";
-
-
-    $("#wave-time-label").textContent =
-        `${data.modelLabel || "GFS-Wave"} · ` +
-        `valid ${fmt(data.validTime)} · ` +
-        `${points.length} ocean points · ` +
-        `${density}`;
-
-
-    $("#wave-loading").hidden =
-        true;
+    return `${API_ROOT}/wave-frame?${params.toString()}`;
 }
 
 
-async function loadWave(
-    hour,
-    {
-        preserveExisting = false
-    } = {}
+function waveHourLabel(
+    hour
 ) {
 
-    currentWaveHour =
-        hour;
+    if (
+        hour === 0
+    ) {
+
+        return "Analysis · +0h";
+    }
+
+
+    const days =
+        hour /
+        24;
+
+
+    const dayText =
+        Number.isInteger(days)
+            ? `Day ${days}`
+            : `Day ${days.toFixed(1)}`;
+
+
+    return `${dayText} · +${hour}h`;
+}
+
+
+function waveValidTime(
+    hour
+) {
+
+    const cycle =
+        waveManifest?.cycleTime;
+
+
+    if (
+        !cycle
+    ) {
+        return null;
+    }
+
+
+    const start =
+        new Date(
+            cycle
+        );
+
+
+    if (
+        Number.isNaN(
+            start.getTime()
+        )
+    ) {
+        return null;
+    }
+
+
+    return new Date(
+        start.getTime() +
+        hour * 60 * 60 * 1000
+    );
+}
+
+
+function updateWaveControls(
+    hour
+) {
+
+    const normalized =
+        normalizeWaveHour(
+            hour
+        );
+
+
+    const slider =
+        $("#wave-slider");
+
+
+    if (
+        slider
+    ) {
+
+        slider.value =
+            String(
+                normalized
+            );
+    }
+
+
+    const label =
+        $("#wave-forecast-label");
+
+
+    if (
+        label
+    ) {
+
+        label.textContent =
+            waveHourLabel(
+                normalized
+            );
+    }
 
 
     document
         .querySelectorAll(
-            ".wave-time"
+            ".wave-jump"
         )
         .forEach(
             button => {
@@ -583,166 +642,749 @@ async function loadWave(
                     "active",
                     Number(
                         button.dataset.hour
-                    ) === hour
+                    ) ===
+                    normalized
+                );
+            }
+        );
+}
+
+
+function updateWaveNote(
+    hour
+) {
+
+    const note =
+        $("#wave-time-label");
+
+
+    if (
+        !note
+    ) {
+        return;
+    }
+
+
+    const pieces =
+        [
+            "Significant wave height + surface wind"
+        ];
+
+
+    if (
+        waveManifest?.cycle
+    ) {
+
+        pieces.push(
+            `cycle ${waveManifest.cycle}`
+        );
+    }
+
+
+    const validTime =
+        waveValidTime(
+            hour
+        );
+
+
+    if (
+        validTime
+    ) {
+
+        pieces.push(
+            `valid ${fmt(
+                validTime.toISOString()
+            )}`
+        );
+    }
+
+
+    note.textContent =
+        pieces.join(
+            " · "
+        );
+}
+
+
+async function loadWaveManifest(
+    {
+        force = false
+    } = {}
+) {
+
+    if (
+        waveManifest &&
+        !force
+    ) {
+
+        return waveManifest;
+    }
+
+
+    const response =
+        await fetch(
+            `${API_ROOT}/wave-manifest?t=${Date.now()}`,
+            {
+                cache:
+                    "no-store"
+            }
+        );
+
+
+    if (
+        !response.ok
+    ) {
+
+        throw new Error(
+            `Wave manifest request failed (${response.status})`
+        );
+    }
+
+
+    const manifest =
+        await response.json();
+
+
+    if (
+        !Array.isArray(
+            manifest.forecastHours
+        ) ||
+        !manifest.forecastHours.length
+    ) {
+
+        throw new Error(
+            "Wave manifest did not contain forecast hours."
+        );
+    }
+
+
+    waveManifest =
+        manifest;
+
+
+    if (
+        waveMap
+    ) {
+
+        /*
+         * Bounds are expected to stay the same, but reading
+         * them from the manifest keeps the frontend tied to
+         * the actual generated product.
+         */
+
+        if (
+            waveOverlay
+        ) {
+
+            waveOverlay.setBounds(
+                waveBounds()
+            );
+        }
+    }
+
+
+    return waveManifest;
+}
+
+
+function preloadWaveFrames(
+    hour
+) {
+
+    const hours =
+        availableWaveHours();
+
+
+    const index =
+        hours.indexOf(
+            hour
+        );
+
+
+    if (
+        index < 0
+    ) {
+        return;
+    }
+
+
+    const candidates =
+        [
+            hours[index + 1],
+            hours[index + 2],
+            hours[index + 3],
+            hours[index - 1]
+        ]
+            .filter(
+                value =>
+                    value !==
+                    undefined
+            );
+
+
+    for (
+        const candidate
+        of candidates
+    ) {
+
+        const image =
+            new Image();
+
+
+        image.decoding =
+            "async";
+
+
+        image.src =
+            waveFrameUrl(
+                candidate
+            );
+    }
+}
+
+
+async function loadWaveFrame(
+    hour,
+    {
+        showLoading = true
+    } = {}
+) {
+
+    if (
+        !waveManifest
+    ) {
+
+        await loadWaveManifest();
+    }
+
+
+    const normalized =
+        normalizeWaveHour(
+            hour
+        );
+
+
+    currentWaveHour =
+        normalized;
+
+
+    updateWaveControls(
+        normalized
+    );
+
+
+    const loading =
+        $("#wave-loading");
+
+
+    if (
+        loading &&
+        (
+            !waveOverlay ||
+            showLoading
+        )
+    ) {
+
+        loading.hidden =
+            false;
+
+        loading.textContent =
+            "Loading GFS-Wave forecast…";
+    }
+
+
+    const serial =
+        ++waveLoadSerial;
+
+
+    const url =
+        waveFrameUrl(
+            normalized
+        );
+
+
+    const preloader =
+        new Image();
+
+
+    preloader.decoding =
+        "async";
+
+
+    await new Promise(
+        (
+            resolve,
+            reject
+        ) => {
+
+            preloader.onload =
+                resolve;
+
+            preloader.onerror =
+                () =>
+                    reject(
+                        new Error(
+                            `Could not load wave frame +${normalized}h`
+                        )
+                    );
+
+            preloader.src =
+                url;
+        }
+    );
+
+
+    if (
+        serial !==
+        waveLoadSerial
+    ) {
+
+        return;
+    }
+
+
+    if (
+        !waveOverlay
+    ) {
+
+        waveOverlay =
+            L.imageOverlay(
+                url,
+                waveBounds(),
+                {
+                    opacity:
+                        0.94,
+
+                    interactive:
+                        false,
+
+                    zIndex:
+                        300
+                }
+            )
+                .addTo(
+                    waveMap
+                );
+
+    } else {
+
+        waveOverlay.setBounds(
+            waveBounds()
+        );
+
+        waveOverlay.setUrl(
+            url
+        );
+    }
+
+
+    if (
+        loading
+    ) {
+
+        loading.hidden =
+            true;
+    }
+
+
+    updateWaveNote(
+        normalized
+    );
+
+
+    preloadWaveFrames(
+        normalized
+    );
+}
+
+
+async function refreshWave() {
+
+    const loading =
+        $("#wave-loading");
+
+
+    try {
+
+        await loadWaveManifest(
+            {
+                force:
+                    true
+            }
+        );
+
+
+        await loadWaveFrame(
+            currentWaveHour,
+            {
+                showLoading:
+                    !waveOverlay
+            }
+        );
+
+    } catch (error) {
+
+        console.error(
+            "GFS-Wave refresh failed.",
+            error
+        );
+
+
+        if (
+            loading
+        ) {
+
+            if (
+                waveOverlay
+            ) {
+
+                loading.hidden =
+                    true;
+
+            } else {
+
+                loading.hidden =
+                    false;
+
+                loading.textContent =
+                    "GFS-Wave guidance could not be loaded.";
+            }
+        }
+    }
+}
+
+
+function setWavePlaying(
+    playing
+) {
+
+    waveIsPlaying =
+        Boolean(
+            playing
+        );
+
+
+    const button =
+        $("#wave-play");
+
+
+    if (
+        button
+    ) {
+
+        button.textContent =
+            waveIsPlaying
+                ? "❚❚ Pause"
+                : "▶ Play";
+
+
+        button.setAttribute(
+            "aria-label",
+            waveIsPlaying
+                ? "Pause wave forecast animation"
+                : "Play wave forecast animation"
+        );
+    }
+
+
+    if (
+        !waveIsPlaying &&
+        wavePlayTimer
+    ) {
+
+        clearTimeout(
+            wavePlayTimer
+        );
+
+        wavePlayTimer =
+            null;
+    }
+}
+
+
+function scheduleWavePlayback() {
+
+    if (
+        !waveIsPlaying
+    ) {
+        return;
+    }
+
+
+    if (
+        wavePlayTimer
+    ) {
+
+        clearTimeout(
+            wavePlayTimer
+        );
+    }
+
+
+    wavePlayTimer =
+        setTimeout(
+            async () => {
+
+                wavePlayTimer =
+                    null;
+
+
+                const hours =
+                    availableWaveHours();
+
+
+                const index =
+                    hours.indexOf(
+                        currentWaveHour
+                    );
+
+
+                const nextHour =
+                    index >= 0 &&
+                    index <
+                    hours.length - 1
+
+                        ? hours[index + 1]
+
+                        : hours[0];
+
+
+                try {
+
+                    await loadWaveFrame(
+                        nextHour,
+                        {
+                            showLoading:
+                                false
+                        }
+                    );
+
+                } catch (error) {
+
+                    console.warn(
+                        "Wave animation frame failed.",
+                        error
+                    );
+                }
+
+
+                scheduleWavePlayback();
+
+            },
+            WAVE_PLAY_MS
+        );
+}
+
+
+function startWavePlayback() {
+
+    if (
+        waveIsPlaying
+    ) {
+        return;
+    }
+
+
+    setWavePlaying(
+        true
+    );
+
+
+    scheduleWavePlayback();
+}
+
+
+function stopWavePlayback() {
+
+    setWavePlaying(
+        false
+    );
+}
+
+
+function initWaveControls() {
+
+    $("#wave-play")
+        ?.addEventListener(
+            "click",
+            () => {
+
+                if (
+                    waveIsPlaying
+                ) {
+
+                    stopWavePlayback();
+
+                } else {
+
+                    startWavePlayback();
+                }
+            }
+        );
+
+
+    $("#wave-prev")
+        ?.addEventListener(
+            "click",
+            async () => {
+
+                stopWavePlayback();
+
+
+                const hours =
+                    availableWaveHours();
+
+
+                const index =
+                    hours.indexOf(
+                        currentWaveHour
+                    );
+
+
+                const previous =
+                    index > 0
+                        ? hours[index - 1]
+                        : hours[0];
+
+
+                try {
+
+                    await loadWaveFrame(
+                        previous
+                    );
+
+                } catch (error) {
+
+                    console.warn(
+                        error
+                    );
+                }
+            }
+        );
+
+
+    $("#wave-next")
+        ?.addEventListener(
+            "click",
+            async () => {
+
+                stopWavePlayback();
+
+
+                const hours =
+                    availableWaveHours();
+
+
+                const index =
+                    hours.indexOf(
+                        currentWaveHour
+                    );
+
+
+                const next =
+                    index >= 0 &&
+                    index <
+                    hours.length - 1
+
+                        ? hours[index + 1]
+
+                        : hours[
+                            hours.length - 1
+                        ];
+
+
+                try {
+
+                    await loadWaveFrame(
+                        next
+                    );
+
+                } catch (error) {
+
+                    console.warn(
+                        error
+                    );
+                }
+            }
+        );
+
+
+    document
+        .querySelectorAll(
+            ".wave-jump"
+        )
+        .forEach(
+            button => {
+
+                button.addEventListener(
+                    "click",
+                    async () => {
+
+                        stopWavePlayback();
+
+
+                        try {
+
+                            await loadWaveFrame(
+                                Number(
+                                    button.dataset.hour
+                                )
+                            );
+
+                        } catch (error) {
+
+                            console.warn(
+                                error
+                            );
+                        }
+                    }
                 );
             }
         );
 
 
-    if (!waveMap) {
-        return;
-    }
+    const slider =
+        $("#wave-slider");
 
 
-    /*
-     * Since the Worker now owns the complete
-     * 2-degree grid, we only need the hour.
-     */
+    slider
+        ?.addEventListener(
+            "input",
+            () => {
 
-    const cacheKey =
-        waveCacheKey(hour);
-
-
-    const cached =
-        waveCache.get(
-            cacheKey
-        );
-
-
-    if (
-        cached &&
-        Date.now() -
-        cached.savedAt <
-        WAVE_CACHE_MS
-    ) {
-
-        renderWaveGrid(
-            cached.data
-        );
-
-        return;
-    }
-
-
-    if (
-        waveRequestController
-    ) {
-
-        waveRequestController.abort();
-    }
-
-
-    waveRequestController =
-        new AbortController();
-
-
-    if (
-        !preserveExisting ||
-        waveLayer
-            .getLayers()
-            .length === 0
-    ) {
-
-        $("#wave-loading").hidden =
-            false;
-
-        $("#wave-loading").textContent =
-            "Loading wave guidance…";
-    }
-
-
-    try {
-
-        const response =
-            await fetch(
-                `${API_ROOT}/wave-grid?hour=${encodeURIComponent(hour)}`,
-                {
-                    cache:
-                        "no-store",
-
-                    signal:
-                        waveRequestController.signal
-                }
-            );
-
-
-        if (
-            response.status === 429
-        ) {
-
-            $("#wave-loading").hidden =
-                true;
-
-            console.warn(
-                "Wave API rate limited; keeping existing map."
-            );
-
-            return;
-        }
-
-
-        if (!response.ok) {
-
-            throw new Error(
-                `Request failed (${response.status})`
-            );
-        }
-
-
-        const data =
-            await response.json();
-
-
-        waveCache.set(
-            cacheKey,
-            {
-                savedAt:
-                    Date.now(),
-
-                data
+                updateWaveControls(
+                    Number(
+                        slider.value
+                    )
+                );
             }
         );
 
 
-        renderWaveGrid(
-            data
+    slider
+        ?.addEventListener(
+            "change",
+            async () => {
+
+                stopWavePlayback();
+
+
+                try {
+
+                    await loadWaveFrame(
+                        Number(
+                            slider.value
+                        )
+                    );
+
+                } catch (error) {
+
+                    console.warn(
+                        error
+                    );
+                }
+            }
         );
-
-    } catch (error) {
-
-        if (
-            error.name ===
-            "AbortError"
-        ) {
-
-            return;
-        }
-
-
-        if (
-            waveLayer
-                .getLayers()
-                .length > 0
-        ) {
-
-            $("#wave-loading").hidden =
-                true;
-
-            console.warn(
-                "Wave refresh failed; keeping existing data.",
-                error
-            );
-
-            return;
-        }
-
-
-        $("#wave-loading").hidden =
-            false;
-
-        $("#wave-loading").textContent =
-            "Wave guidance could not be loaded.";
-    }
 }
 
 
@@ -1723,9 +2365,7 @@ async function load() {
         "Refreshing official data…";
 
 
-    loadWave(
-        currentWaveHour
-    );
+    refreshWave();
 
 
     const results =
@@ -1917,28 +2557,6 @@ async function load() {
    Events
    ========================================================= */
 
-document
-    .querySelectorAll(
-        ".wave-time"
-    )
-    .forEach(
-        button => {
-
-            button.addEventListener(
-                "click",
-                () => {
-
-                    loadWave(
-                        Number(
-                            button.dataset.hour
-                        )
-                    );
-                }
-            );
-        }
-    );
-
-
 $("#refresh-button")
     .addEventListener(
         "click",
@@ -1979,6 +2597,7 @@ window.addEventListener(
     () => {
 
         initWaveMap();
+        initWaveControls();
 
 
         /*

@@ -44,7 +44,7 @@
         </h1>
 
         <p class="subtitle">
-          Tropical outlooks, Caribbean wave guidance, Space Coast alerts,
+          Tropical outlooks, Atlantic wave guidance, Space Coast alerts,
           and offshore conditions in one place.
         </p>
       </section>
@@ -100,73 +100,109 @@
         </article>
 
 
-        <!-- TOP RIGHT: CARIBBEAN WAVES -->
+        <!-- TOP RIGHT: ATLANTIC GFS-WAVE -->
         <article class="weather-panel wave-panel">
           <div class="panel-heading">
             <div>
-              <p class="panel-kicker">NCEP GFS-Wave · via Open-Meteo</p>
-              <h2>Caribbean wave forecast</h2>
+              <p class="panel-kicker">NOAA / NCEP GFS-Wave</p>
+              <h2>Atlantic wave model</h2>
             </div>
 
             <a
               class="source-link"
-              href="https://open-meteo.com/en/docs/marine-weather-api"
+              href="https://nomads.ncep.noaa.gov/gribfilter.php?ds=gfswave"
               target="_blank"
               rel="noopener"
             >
-              Data ↗
+              NOAA ↗
             </a>
           </div>
 
+          <div class="wave-player-bar">
+            <button
+              id="wave-play"
+              class="wave-player-button wave-play-button"
+              type="button"
+              aria-label="Play wave forecast animation"
+            >
+              ▶ Play
+            </button>
+
+            <button
+              id="wave-prev"
+              class="wave-player-button"
+              type="button"
+              aria-label="Previous three-hour forecast frame"
+            >
+              −3h
+            </button>
+
+            <button
+              id="wave-next"
+              class="wave-player-button"
+              type="button"
+              aria-label="Next three-hour forecast frame"
+            >
+              +3h
+            </button>
+
+            <div class="wave-hour-readout" aria-live="polite">
+              <strong id="wave-forecast-label">Analysis · +0h</strong>
+              <span>3-hour frames through Day 10</span>
+            </div>
+          </div>
+
           <div
-            class="wave-controls"
+            class="wave-jump-controls"
             role="group"
-            aria-label="Wave forecast time"
+            aria-label="Jump to wave forecast day"
           >
-            <button class="wave-time active" type="button" data-hour="0">
-              Now
-            </button>
+            <button class="wave-jump active" type="button" data-hour="0">Now</button>
+            <button class="wave-jump" type="button" data-hour="72">Day 3</button>
+            <button class="wave-jump" type="button" data-hour="120">Day 5</button>
+            <button class="wave-jump" type="button" data-hour="168">Day 7</button>
+            <button class="wave-jump" type="button" data-hour="240">Day 10</button>
+          </div>
 
-            <button class="wave-time" type="button" data-hour="72">
-              Day 3
-            </button>
-
-            <button class="wave-time" type="button" data-hour="120">
-              Day 5
-            </button>
-
-            <button class="wave-time" type="button" data-hour="168">
-              Day 7
-            </button>
-
-            <button class="wave-time" type="button" data-hour="240">
-              Day 10
-            </button>
+          <div class="wave-slider-row">
+            <label for="wave-slider">Forecast hour</label>
+            <input
+              id="wave-slider"
+              type="range"
+              min="0"
+              max="240"
+              step="3"
+              value="0"
+            >
           </div>
 
           <div class="wave-map-shell">
             <div
               id="wave-map"
               class="wave-map"
-              aria-label="Caribbean significant wave height forecast map"
+              aria-label="Atlantic GFS-Wave significant wave height and surface wind forecast map"
             ></div>
 
             <div id="wave-loading" class="wave-loading">
-              Loading wave guidance…
+              Loading latest GFS-Wave frame…
             </div>
           </div>
 
           <div class="wave-map-footer">
-            <div class="wave-legend" aria-label="Wave height legend">
-              <span><i class="wave-swatch wave-1"></i> &lt;3 ft</span>
-              <span><i class="wave-swatch wave-2"></i> 3–5 ft</span>
-              <span><i class="wave-swatch wave-3"></i> 5–8 ft</span>
-              <span><i class="wave-swatch wave-4"></i> 8–12 ft</span>
-              <span><i class="wave-swatch wave-5"></i> 12+ ft</span>
+            <div class="wave-gradient-legend" aria-label="Significant wave height color scale">
+              <span class="wave-gradient-bar" aria-hidden="true"></span>
+              <div class="wave-gradient-labels">
+                <span>0 ft</span>
+                <span>6</span>
+                <span>12</span>
+                <span>18</span>
+                <span>24</span>
+                <span>30+ ft</span>
+              </div>
             </div>
 
             <p id="wave-time-label" class="data-note wave-note">
-              Significant wave height · model guidance
+              Significant wave height + surface wind · loading model cycle…
             </p>
           </div>
         </article>
@@ -266,11 +302,11 @@
             </a>
 
             <a
-              href="https://open-meteo.com/en/docs/marine-weather-api"
+              href="https://nomads.ncep.noaa.gov/gribfilter.php?ds=gfswave"
               target="_blank"
               rel="noopener"
             >
-              🌊 Marine Data
+              🌊 GFS-Wave Data
             </a>
 
           </div>
@@ -281,8 +317,8 @@
       <aside class="safety-note">
         <strong>Safety note:</strong>
         StormWatch summarizes government weather information and numerical
-        model guidance. The Caribbean wave map is not an official marine
-        forecast and should not be used for navigation.
+        model guidance. The GFS-Wave layer is numerical model guidance, not an
+        official marine forecast, and should not be used for navigation.
       </aside>
 
     </main>
