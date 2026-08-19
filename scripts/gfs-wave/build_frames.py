@@ -26,13 +26,13 @@ from eccodes import (
 
 NOMADS_FILTER = "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfswave.pl"
 
-WEST = -105.0
+WEST = -115.0
 EAST = -10.0
-SOUTH = 0.0
+SOUTH = -10.0
 NORTH = 50.0
 
 # NOAA's request uses 0–360 longitude.
-LEFT_LON_360 = 255
+LEFT_LON_360 = 245
 RIGHT_LON_360 = 350
 
 USER_AGENT = "DavidB.xyz StormWatch (https://davidb.xyz)"

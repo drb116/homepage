@@ -319,6 +319,13 @@ const DEFAULT_WAVE_BOUNDS = {
 };
 
 
+const INITIAL_WAVE_VIEW = {
+    south: 7,
+    north: 40,
+    west: -99,
+    east: -30
+};
+
 function waveBounds() {
 
     const source =
@@ -394,7 +401,16 @@ function initWaveMap() {
 
 
     waveMap.fitBounds(
-        waveBounds(),
+        [
+            [
+                INITIAL_WAVE_VIEW.south,
+                INITIAL_WAVE_VIEW.west
+            ],
+            [
+                INITIAL_WAVE_VIEW.north,
+                INITIAL_WAVE_VIEW.east
+            ]
+        ],
         {
             padding: [4, 4]
         }
