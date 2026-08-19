@@ -27,20 +27,20 @@ from eccodes import (
 NOMADS_FILTER = "https://nomads.ncep.noaa.gov/cgi-bin/filter_gfswave.pl"
 
 WEST = -115.0
-EAST = -10.0
+EAST = 40.0
 SOUTH = -10.0
 NORTH = 50.0
 
 # NOAA's request uses 0–360 longitude.
 LEFT_LON_360 = 245
-RIGHT_LON_360 = 350
+RIGHT_LON_360 = 40
 
 USER_AGENT = "DavidB.xyz StormWatch (https://davidb.xyz)"
 
 TEST_HOURS = [0, 3, 6]
 FULL_HOURS = list(range(0, 241, 3))
 
-PNG_WIDTH = 1400
+PNG_WIDTH = 2100
 PNG_HEIGHT = 700
 
 # Color anchors are expressed in feet. The palette intentionally emphasizes
@@ -484,6 +484,66 @@ def upload_json(s3, bucket, key, payload, cache_control):
     )
     print(f"Uploaded s3://{bucket}/{key}")
 
+def delete_old_cycles(
+    s3,
+    bucket,
+    current_frame_prefix
+):
+    keep_prefix = (
+        current_frame_prefix.rstrip("/")
+        + "/"
+    )
+
+    paginator = s3.get_paginator(
+        "list_objects_v2"
+    )
+
+    old_keys = []
+
+    for page in paginator.paginate(
+        Bucket=bucket,
+        Prefix="cycles/"
+    ):
+        for item in page.get("Contents", []):
+            key = item["Key"]
+
+            if not key.startswith(keep_prefix):
+                old_keys.append(key)
+
+    if not old_keys:
+        print("No old GFS-Wave cycles to delete.")
+        return
+
+    print(
+        f"Deleting {len(old_keys)} objects "
+        "from older GFS-Wave cycles..."
+    )
+
+    # S3 bulk-delete requests accept up to
+    # 1000 object keys at a time.
+    for start in range(
+        0,
+        len(old_keys),
+        1000
+    ):
+        batch = old_keys[
+            start:start + 1000
+        ]
+
+        s3.delete_objects(
+            Bucket=bucket,
+            Delete={
+                "Objects": [
+                    {
+                        "Key": key
+                    }
+                    for key in batch
+                ],
+                "Quiet": True
+            }
+        )
+
+    print("Old GFS-Wave cycles deleted.")
 
 def main():
     args = parse_args()
@@ -574,6 +634,13 @@ def main():
         manifest,
         "no-cache, max-age=60",
     )
+
+    if args.mode == "full":
+        delete_old_cycles(
+            s3,
+            bucket,
+            frame_prefix
+        )
 
     print()
     print("Build complete.")
