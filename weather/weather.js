@@ -312,10 +312,10 @@ let waveIsPlaying = false;
 const WAVE_PLAY_MS = 650;
 
 const DEFAULT_WAVE_BOUNDS = {
-    south: 7,
-    north: 40,
-    west: -99,
-    east: -30
+    south: 0,
+    north: 50,
+    west: -105,
+    east: -10
 };
 
 
