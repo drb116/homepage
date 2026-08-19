@@ -32,8 +32,8 @@ SOUTH = -10.0
 NORTH = 50.0
 
 # NOAA's request uses 0–360 longitude.
-LEFT_LON_360 = 245
-RIGHT_LON_360 = 40
+# LEFT_LON_360 = 245
+# RIGHT_LON_360 = 40
 
 USER_AGENT = "DavidB.xyz StormWatch (https://davidb.xyz)"
 
@@ -110,8 +110,8 @@ def build_nomads_url(cycle_dt, forecast_hour, variables):
         "file": f"gfswave.t{cycle}z.global.0p16.f{fhr}.grib2",
         "lev_surface": "on",
         "subregion": "",
-        "leftlon": str(LEFT_LON_360),
-        "rightlon": str(RIGHT_LON_360),
+        "leftlon": str(WEST),
+        "rightlon": str(EAST),
         "toplat": str(int(NORTH)),
         "bottomlat": str(int(SOUTH)),
         "dir": f"/gfs.{date}/{cycle}/wave/gridded",
