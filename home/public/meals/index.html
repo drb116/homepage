@@ -71,24 +71,44 @@
             <input id="recipe-search" type="search" placeholder="Search recipes…" autocomplete="off">
           </label>
 
-          <div class="filter-row" id="filter-row" aria-label="Recipe filters">
-            <button class="filter-chip active" type="button" data-filter="all">All</button>
-            <button class="filter-chip" type="button" data-filter="dinners">Dinners</button>
-            <button class="filter-chip" type="button" data-filter="sides">Sides</button>
-            <button class="filter-chip" type="button" data-filter="breads">Breads</button>
-            <button class="filter-chip" type="button" data-filter="desserts">Desserts</button>
-            <button class="filter-chip" type="button" data-filter="drinks">Drinks</button>
+          <div class="filter-controls" aria-label="Recipe filters">
+            <label class="filter-field" for="section-filter">
+              <span>Section</span>
+              <select id="section-filter">
+                <option value="all">All sections</option>
+                <option value="dinners">Dinners</option>
+                <option value="sides">Side dishes</option>
+                <option value="breads">Breads &amp; rolls</option>
+                <option value="desserts">Desserts</option>
+                <option value="drinks">Drinks</option>
+              </select>
+            </label>
+
+            <details class="category-filter" id="category-filter">
+              <summary>
+                <span class="filter-label">Category</span>
+                <span class="filter-value" id="category-filter-value">All categories</span>
+              </summary>
+              <div class="category-menu">
+                <div class="category-options" id="category-options"></div>
+                <button class="category-clear" id="category-clear" type="button">Clear categories</button>
+              </div>
+            </details>
+
+            <label class="filter-field" for="effort-filter">
+              <span>Effort</span>
+              <select id="effort-filter">
+                <option value="all">All effort levels</option>
+                <option value="quick">Quick</option>
+                <option value="medium">Medium</option>
+                <option value="long">Longer</option>
+              </select>
+            </label>
           </div>
         </div>
 
-        <div class="effort-legend" aria-label="Recipe effort">
-          <span><i class="effort-dot quick"></i>Quick</span>
-          <span><i class="effort-dot medium"></i>Medium</span>
-          <span><i class="effort-dot long"></i>Longer</span>
-        </div>
-
         <div class="recipe-grid" id="recipe-grid"></div>
-        <div class="empty-state" id="recipe-empty" hidden>No recipes match that search.</div>
+        <div class="empty-state" id="recipe-empty" hidden>No recipes match those filters.</div>
       </section>
     </main>
   </div>

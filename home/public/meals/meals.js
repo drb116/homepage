@@ -11,7 +11,7 @@ let weeks = loadWeeks();
 let dirtyWeeks = loadDirtyWeeks();
 let saveQueue = Promise.resolve();
 const saveRevisions = {};
-let activeFilter = "all";
+const selectedCategories = new Set();
 let pendingAddItem = null;
 let refreshInProgress = false;
 
@@ -20,6 +20,7 @@ const recipeGrid = $("#recipe-grid");
 
 buildWeekScaffold();
 renderWeek();
+buildCategoryFilter();
 renderRecipeLibrary();
 wireEvents();
 refreshCurrentWeek({ showLoading: true, source: "initial" });
@@ -486,18 +487,29 @@ function addDayDropHandlers(dayElement) {
 
 function renderRecipeLibrary() {
   const search = ($("#recipe-search")?.value || "").trim().toLowerCase();
+  const sectionFilter = $("#section-filter")?.value || "all";
+  const effortFilter = $("#effort-filter")?.value || "all";
 
   const filtered = LIBRARY.filter(item => {
+    const categories = itemCategories(item);
     const matchesSearch =
       !search ||
       item.title.toLowerCase().includes(search) ||
-      (item.category || "").toLowerCase().includes(search);
+      categories.some(category => category.toLowerCase().includes(search));
 
-    const matchesFilter =
-      activeFilter === "all" ||
-      libraryGroup(item) === activeFilter;
+    const matchesSection =
+      sectionFilter === "all" ||
+      libraryGroup(item) === sectionFilter;
 
-    return matchesSearch && matchesFilter;
+    const matchesEffort =
+      effortFilter === "all" ||
+      item.effort === effortFilter;
+
+    const matchesCategories = [...selectedCategories].every(selectedCategory =>
+      categories.includes(selectedCategory)
+    );
+
+    return matchesSearch && matchesSection && matchesEffort && matchesCategories;
   });
 
   recipeGrid.innerHTML = "";
@@ -512,7 +524,7 @@ function renderRecipeLibrary() {
       item.effort === "quick" ? "Quick" :
       item.effort === "long" ? "Longer" : "Medium";
 
-    const categoryLabel = cleanCategory(item.category);
+    const categoryLabel = itemCategories(item).map(cleanCategory).join(" · ") || "Dinner";
 
     card.innerHTML = `
       <div class="recipe-meta">
@@ -562,11 +574,59 @@ function libraryGroup(item) {
   return "dinners";
 }
 
+function itemCategories(item) {
+  if (Array.isArray(item.category)) {
+    return item.category.map(String).map(category => category.trim()).filter(Boolean);
+  }
+
+  return item.category ? [String(item.category).trim()].filter(Boolean) : [];
+}
+
 function cleanCategory(category = "") {
-  return category
+  return String(category)
     .replace(/^[^\p{L}\p{N}]+/u, "")
     .replace(/\s+Dinners$/i, "")
     .trim() || "Dinner";
+}
+
+function buildCategoryFilter() {
+  const options = $("#category-options");
+  if (!options) return;
+
+  const categories = [...new Set(LIBRARY.flatMap(itemCategories))]
+    .sort((left, right) => cleanCategory(left).localeCompare(cleanCategory(right)));
+
+  categories.forEach(category => {
+    const label = document.createElement("label");
+    label.className = "category-option";
+
+    const input = document.createElement("input");
+    input.type = "checkbox";
+    input.value = category;
+
+    const text = document.createElement("span");
+    text.textContent = cleanCategory(category);
+
+    label.append(input, text);
+    options.appendChild(label);
+  });
+}
+
+function updateCategoryFilterLabel() {
+  const value = $("#category-filter-value");
+  if (!value) return;
+
+  if (selectedCategories.size === 0) {
+    value.textContent = "All categories";
+    return;
+  }
+
+  if (selectedCategories.size === 1) {
+    value.textContent = cleanCategory([...selectedCategories][0]);
+    return;
+  }
+
+  value.textContent = `${selectedCategories.size} selected`;
 }
 
 function openAddModal(item) {
@@ -680,16 +740,34 @@ function wireEvents() {
   });
 
   $("#recipe-search").addEventListener("input", renderRecipeLibrary);
+  $("#section-filter").addEventListener("change", renderRecipeLibrary);
+  $("#effort-filter").addEventListener("change", renderRecipeLibrary);
 
-  $("#filter-row").addEventListener("click", event => {
-    const button = event.target.closest("[data-filter]");
-    if (!button) return;
+  $("#category-options").addEventListener("change", event => {
+    const input = event.target.closest('input[type="checkbox"]');
+    if (!input) return;
 
-    activeFilter = button.dataset.filter;
-    $$(".filter-chip", $("#filter-row")).forEach(chip => {
-      chip.classList.toggle("active", chip === button);
-    });
+    if (input.checked) selectedCategories.add(input.value);
+    else selectedCategories.delete(input.value);
+
+    updateCategoryFilterLabel();
     renderRecipeLibrary();
+  });
+
+  $("#category-clear").addEventListener("click", () => {
+    selectedCategories.clear();
+    $$('#category-options input[type="checkbox"]').forEach(input => {
+      input.checked = false;
+    });
+    updateCategoryFilterLabel();
+    renderRecipeLibrary();
+  });
+
+  document.addEventListener("click", event => {
+    const categoryFilter = $("#category-filter");
+    if (categoryFilter?.open && !categoryFilter.contains(event.target)) {
+      categoryFilter.removeAttribute("open");
+    }
   });
 
   $("#btn-add-close").addEventListener("click", closeAddModal);

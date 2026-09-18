@@ -3,7 +3,7 @@ window.RECIPE_LIBRARY = [
     "title": "Chicken and Rice Casserole",
     "href": "/recipes/chicken-rice-casserole.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Rice", "Comfort", "Casserole"],
     "effort": "quick",
     "manual": false
   },
@@ -11,7 +11,7 @@ window.RECIPE_LIBRARY = [
     "title": "Chicken and Wild Rice (Obe)",
     "href": "/recipes/chicken-wild-rice-casserole.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Rice", "Comfort", "Casserole"],
     "effort": "medium",
     "manual": false
   },
@@ -19,7 +19,7 @@ window.RECIPE_LIBRARY = [
     "title": "Chicken and Mushroom Stroganoff",
     "href": "/recipes/chicken-stroganoff.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Pasta", "Comfort"],
     "effort": "medium",
     "manual": false
   },
@@ -27,7 +27,7 @@ window.RECIPE_LIBRARY = [
     "title": "Chicken Tikka Masala",
     "href": "/recipes/chicken-tikka-masala.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Asian"],
     "effort": "long",
     "manual": false
   },
@@ -35,7 +35,7 @@ window.RECIPE_LIBRARY = [
     "title": "Asian Orange Chicken",
     "href": "/recipes/asian-orange-chicken.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Asian"],
     "effort": "long",
     "manual": false
   },
@@ -43,7 +43,7 @@ window.RECIPE_LIBRARY = [
     "title": "Chicken Stir-Fry",
     "href": "/recipes/chicken-stir-fry.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Asian"],
     "effort": "quick",
     "manual": false
   },
@@ -51,7 +51,7 @@ window.RECIPE_LIBRARY = [
     "title": "Instant Pot Chicken Risotto",
     "href": "/recipes/instant-pot-chicken-risotto.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Rice", "Italian"],
     "effort": "medium",
     "manual": false
   },
@@ -59,7 +59,7 @@ window.RECIPE_LIBRARY = [
     "title": "Pad Prik King",
     "href": "/recipes/pad-prik-king.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Asian"],
     "effort": "medium",
     "manual": false
   },
@@ -67,7 +67,7 @@ window.RECIPE_LIBRARY = [
     "title": "Instant Pot Butter Chicken",
     "href": "/recipes/instant-pot-butter-chicken.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Asian"],
     "effort": "medium",
     "manual": false
   },
@@ -75,7 +75,7 @@ window.RECIPE_LIBRARY = [
     "title": "Butter Chicken",
     "href": "/recipes/butter-chicken.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Asian"],
     "effort": "long",
     "manual": false
   },
@@ -83,7 +83,7 @@ window.RECIPE_LIBRARY = [
     "title": "Ragù alla Petrellese",
     "href": "/recipes/ragu-alla-petrellese.html",
     "section": "🍽️ Dinners",
-    "category": "Other  Dinners",
+    "category": ["Other", "Pasta", "Italian"],
     "effort": "long",
     "manual": false
   },
@@ -91,7 +91,7 @@ window.RECIPE_LIBRARY = [
     "title": "Crispy Pepperoni Chicken",
     "href": "/recipes/crispy-pepperoni-chicken.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Italian", "Comfort"],
     "effort": "quick",
     "manual": false
   },
@@ -99,7 +99,7 @@ window.RECIPE_LIBRARY = [
     "title": "Chicken Korma",
     "href": "/recipes/chicken-korma.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Asian"],
     "effort": "medium",
     "manual": false
   },
@@ -107,7 +107,7 @@ window.RECIPE_LIBRARY = [
     "title": "Chicken and Stuffing\n        Casserole",
     "href": "/recipes/quick-chicken-and-stuffing-casserole.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Comfort", "Casserole"],
     "effort": "quick",
     "manual": false
   },
@@ -115,7 +115,7 @@ window.RECIPE_LIBRARY = [
     "title": "Chicken Parmesan Meatballs",
     "href": "/recipes/cheesy-chicken-parmesan-meatballs.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Italian", "Comfort"],
     "effort": "medium",
     "manual": false
   },
@@ -123,7 +123,7 @@ window.RECIPE_LIBRARY = [
     "title": "Chicken Divan",
     "href": "/recipes/chicken-divan.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Comfort", "Casserole"],
     "effort": "medium",
     "manual": false
   },
@@ -131,7 +131,7 @@ window.RECIPE_LIBRARY = [
     "title": "Chinese Chicken Casserole",
     "href": "/recipes/chinese-chicken-casserole.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Asian", "Casserole"],
     "effort": "quick",
     "manual": false
   },
@@ -139,7 +139,7 @@ window.RECIPE_LIBRARY = [
     "title": "Chicken Enchilada",
     "href": "/recipes/chicken-enchilada.html",
     "section": "🍽️ Dinners",
-    "category": "Chicken Dinners",
+    "category": ["Chicken", "Mexican", "Casserole"],
     "effort": "medium",
     "manual": false
   },
@@ -147,7 +147,7 @@ window.RECIPE_LIBRARY = [
     "title": "Grandma’s Casserole",
     "href": "/recipes/grandmas-casserole.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Pasta", "Comfort", "Casserole"],
     "effort": "long",
     "manual": false
   },
@@ -155,7 +155,7 @@ window.RECIPE_LIBRARY = [
     "title": "Beef Enchiladas",
     "href": "/recipes/beef-enchiladas.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Mexican"],
     "effort": "medium",
     "manual": false
   },
@@ -163,7 +163,7 @@ window.RECIPE_LIBRARY = [
     "title": "Goulash",
     "href": "/recipes/goulash.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Pasta", "Comfort"],
     "effort": "medium",
     "manual": false
   },
@@ -171,7 +171,7 @@ window.RECIPE_LIBRARY = [
     "title": "Ground Beef and Spinach Casserole",
     "href": "/recipes/ground-beef-spinach-casserole.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Pasta", "Comfort", "Casserole"],
     "effort": "medium",
     "manual": false
   },
@@ -179,7 +179,7 @@ window.RECIPE_LIBRARY = [
     "title": "Hamburger Potato Casserole",
     "href": "/recipes/hamburger-potato-casserole.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Comfort", "Casserole"],
     "effort": "medium",
     "manual": false
   },
@@ -187,7 +187,7 @@ window.RECIPE_LIBRARY = [
     "title": "Easy Korean Ground Beef Bowl",
     "href": "/recipes/easy-korean-ground-beef-bowl.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Rice", "Asian"],
     "effort": "quick",
     "manual": false
   },
@@ -195,7 +195,7 @@ window.RECIPE_LIBRARY = [
     "title": "World’s Best Lasagna",
     "href": "/recipes/lasagna.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Pasta", "Italian", "Comfort"],
     "effort": "long",
     "manual": false
   },
@@ -203,7 +203,7 @@ window.RECIPE_LIBRARY = [
     "title": "Mexican Lasagna",
     "href": "/recipes/mexican-lasagna.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Mexican", "Comfort", "Casserole"],
     "effort": "medium",
     "manual": false
   },
@@ -211,7 +211,7 @@ window.RECIPE_LIBRARY = [
     "title": "Shepherd’s Pie",
     "href": "/recipes/shepherds-pie-vi.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Comfort", "Casserole"],
     "effort": "medium",
     "manual": false
   },
@@ -219,7 +219,7 @@ window.RECIPE_LIBRARY = [
     "title": "Taco Bake Casserole",
     "href": "/recipes/taco-bake-casserole.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Mexican", "Comfort", "Casserole"],
     "effort": "quick",
     "manual": false
   },
@@ -227,7 +227,7 @@ window.RECIPE_LIBRARY = [
     "title": "One-Pot Ground Beef Stroganoff",
     "href": "/recipes/one-pot-ground-beef-stroganoff.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Pasta", "Comfort"],
     "effort": "quick",
     "manual": false
   },
@@ -235,7 +235,7 @@ window.RECIPE_LIBRARY = [
     "title": "Spicy Creamy Weeknight\n      Bolognese",
     "href": "/recipes/spicy-creamy-weeknight-bolognese.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Pasta", "Italian", "Comfort"],
     "effort": "medium",
     "manual": false
   },
@@ -243,7 +243,7 @@ window.RECIPE_LIBRARY = [
     "title": "Smothered Hamburger Steak",
     "href": "/recipes/smothered-hamburger-steak.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Comfort"],
     "effort": "quick",
     "manual": false
   },
@@ -251,7 +251,7 @@ window.RECIPE_LIBRARY = [
     "title": "Slow Cooker Chili",
     "href": "/recipes/slow-cooker-chili.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Comfort"],
     "effort": "long",
     "manual": false
   },
@@ -259,7 +259,7 @@ window.RECIPE_LIBRARY = [
     "title": "Slow Cooker Short Ribs",
     "href": "/recipes/slow-cooker-short-ribs.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Comfort"],
     "effort": "medium",
     "manual": false
   },
@@ -267,7 +267,7 @@ window.RECIPE_LIBRARY = [
     "title": "Shredded Beef Tacos",
     "href": "/recipes/shredded-beef-tacos.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Mexican"],
     "effort": "medium",
     "manual": false
   },
@@ -275,7 +275,7 @@ window.RECIPE_LIBRARY = [
     "title": "Sloppy Ottos",
     "href": "/recipes/sloppy-ottos.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Comfort"],
     "effort": "quick",
     "manual": false
   },
@@ -283,7 +283,7 @@ window.RECIPE_LIBRARY = [
     "title": "Hamburger and Rice Casserole",
     "href": "/recipes/hamburger-rice-casserole.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Rice", "Comfort", "Casserole"],
     "effort": "quick",
     "manual": false
   },
@@ -291,7 +291,7 @@ window.RECIPE_LIBRARY = [
     "title": "One-Pot Cheddar Tomato Mac",
     "href": "/recipes/cheddar-tomato-mac.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Pasta", "Comfort"],
     "effort": "medium",
     "manual": false
   },
@@ -299,7 +299,7 @@ window.RECIPE_LIBRARY = [
     "title": "Cheesburger Rice",
     "href": "/recipes/cheesburger-rice.html",
     "section": "🍽️ Dinners",
-    "category": "Beef Dinners",
+    "category": ["Beef", "Rice", "Comfort"],
     "effort": "medium",
     "manual": false
   },
@@ -307,7 +307,7 @@ window.RECIPE_LIBRARY = [
     "title": "Jambalaya",
     "href": "/recipes/jambalaya.html",
     "section": "🍽️ Dinners",
-    "category": "Other Dinners",
+    "category": ["Sausage", "Rice", "Comfort"],
     "effort": "long",
     "manual": false
   },
@@ -315,7 +315,7 @@ window.RECIPE_LIBRARY = [
     "title": "Moussaka",
     "href": "/recipes/moussaka.html",
     "section": "🍽️ Dinners",
-    "category": "Other Dinners",
+    "category": ["Other", "Comfort", "Casserole"],
     "effort": "long",
     "manual": false
   },
@@ -323,7 +323,7 @@ window.RECIPE_LIBRARY = [
     "title": "NYT Mac and Cheese",
     "href": "/recipes/mac-cheese-nyt.html",
     "section": "🍽️ Dinners",
-    "category": "Other Dinners",
+    "category": ["Vegetarian", "Pasta", "Comfort"],
     "effort": "quick",
     "manual": false
   },
@@ -331,7 +331,7 @@ window.RECIPE_LIBRARY = [
     "title": "Crispy Gnocchi with Sausage and\n      Broccoli",
     "href": "/recipes/crispy-gnocchi-sausage-broccoli.html",
     "section": "🍽️ Dinners",
-    "category": "Other Dinners",
+    "category": ["Sausage", "Pasta", "Italian"],
     "effort": "quick",
     "manual": false
   },
@@ -339,7 +339,7 @@ window.RECIPE_LIBRARY = [
     "title": "Cheesy Gnocchi with Corn and Pesto",
     "href": "/recipes/cheesy-gnocchi.html",
     "section": "🍽️ Dinners",
-    "category": "Other Dinners",
+    "category": ["Vegetarian", "Pasta", "Italian"],
     "effort": "quick",
     "manual": false
   },
@@ -347,7 +347,7 @@ window.RECIPE_LIBRARY = [
     "title": "Homemade Four-Cheese Ravioli",
     "href": "/recipes/homemade-four-cheese-ravioli.html",
     "section": "🍽️ Dinners",
-    "category": "Other Dinners",
+    "category": ["Vegetarian", "Pasta", "Italian"],
     "effort": "medium",
     "manual": false
   },
@@ -355,7 +355,7 @@ window.RECIPE_LIBRARY = [
     "title": "Hot Dog Casserole",
     "href": "/recipes/hot-dog-casserole.html",
     "section": "🍽️ Dinners",
-    "category": "Other Dinners",
+    "category": ["Other", "Comfort", "Casserole"],
     "effort": "quick",
     "manual": false
   },
@@ -363,7 +363,7 @@ window.RECIPE_LIBRARY = [
     "title": "Pork and Garlic-Chive Potstickers",
     "href": "/recipes/pork-potstickers.html",
     "section": "🍽️ Dinners",
-    "category": "Other Dinners",
+    "category": ["Other", "Asian"],
     "effort": "long",
     "manual": false
   },
@@ -371,7 +371,7 @@ window.RECIPE_LIBRARY = [
     "title": "Takeout Pizza",
     "href": "",
     "section": "🍽️ Dinners",
-    "category": "Options without Recipes",
+    "category": ["Other", "Italian", "Comfort"],
     "effort": "quick",
     "manual": true
   },
@@ -379,7 +379,7 @@ window.RECIPE_LIBRARY = [
     "title": "Homemade Pizza",
     "href": "",
     "section": "🍽️ Dinners",
-    "category": "Options without Recipes",
+    "category": ["Other", "Italian", "Comfort"],
     "effort": "long",
     "manual": true
   },
@@ -387,7 +387,7 @@ window.RECIPE_LIBRARY = [
     "title": "Grilled Cheese",
     "href": "",
     "section": "🍽️ Dinners",
-    "category": "Options without Recipes",
+    "category": ["Vegetarian", "Comfort"],
     "effort": "medium",
     "manual": true
   },
@@ -395,7 +395,7 @@ window.RECIPE_LIBRARY = [
     "title": "Eat Out",
     "href": "",
     "section": "🍽️ Dinners",
-    "category": "Options without Recipes",
+    "category": ["Other"],
     "effort": "quick",
     "manual": true
   },
@@ -403,7 +403,7 @@ window.RECIPE_LIBRARY = [
     "title": "Chili Dogs",
     "href": "",
     "section": "🍽️ Dinners",
-    "category": "Options without Recipes",
+    "category": ["Other", "Comfort"],
     "effort": "quick",
     "manual": true
   },
@@ -411,7 +411,7 @@ window.RECIPE_LIBRARY = [
     "title": "Burgers",
     "href": "",
     "section": "🍽️ Dinners",
-    "category": "Options without Recipes",
+    "category": ["Beef", "Comfort"],
     "effort": "quick",
     "manual": true
   },
@@ -419,7 +419,7 @@ window.RECIPE_LIBRARY = [
     "title": "Steaks",
     "href": "",
     "section": "🍽️ Dinners",
-    "category": "Options without Recipes",
+    "category": ["Beef"],
     "effort": "quick",
     "manual": true
   },
@@ -427,7 +427,7 @@ window.RECIPE_LIBRARY = [
     "title": "Pasta",
     "href": "",
     "section": "🍽️ Dinners",
-    "category": "Options without Recipes",
+    "category": ["Other", "Pasta", "Italian", "Comfort"],
     "effort": "medium",
     "manual": true
   },
@@ -435,7 +435,7 @@ window.RECIPE_LIBRARY = [
     "title": "Slow Cooked Sausage",
     "href": "",
     "section": "🍽️ Dinners",
-    "category": "Options without Recipes",
+    "category": ["Sausage", "Comfort"],
     "effort": "quick",
     "manual": true
   },
@@ -443,7 +443,7 @@ window.RECIPE_LIBRARY = [
     "title": "Leftovers",
     "href": "",
     "section": "🍽️ Dinners",
-    "category": "Options without Recipes",
+    "category": ["Other"],
     "effort": "quick",
     "manual": true
   },
@@ -451,7 +451,7 @@ window.RECIPE_LIBRARY = [
     "title": "Gyros",
     "href": "",
     "section": "🍽️ Dinners",
-    "category": "Options without Recipes",
+    "category": ["Other"],
     "effort": "quick",
     "manual": true
   },
@@ -459,7 +459,7 @@ window.RECIPE_LIBRARY = [
     "title": "Mexican Lasagna",
     "href": "",
     "section": "🍽️ Dinners",
-    "category": "Options without Recipes",
+    "category": ["Other", "Mexican", "Comfort", "Casserole"],
     "effort": "medium",
     "manual": true
   },
