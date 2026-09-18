@@ -128,6 +128,31 @@
     "manual": false
   },
   {
+    "title": "Pasta Amatriciana",
+    "href": "/recipes/pasta-amatriciana.html",
+    "section": "🍽️ Dinners",
+    "category": [
+      "Other",
+      "Pasta",
+      "Italian"
+    ],
+    "effort": "medium",
+    "manual": false
+  },
+  {
+    "title": "Creamy Mushroom Pasta With Garlic Crumbs",
+    "href": "/recipes/creamy-mushroom-pasta-with-garlic-crumbs.html",
+    "section": "🍽️ Dinners",
+    "category": [
+      "Vegetarian",
+      "Pasta",
+      "Italian",
+      "Comfort"
+    ],
+    "effort": "medium",
+    "manual": false
+  },
+  {
     "title": "Crispy Pepperoni Chicken",
     "href": "/recipes/crispy-pepperoni-chicken.html",
     "section": "🍽️ Dinners",

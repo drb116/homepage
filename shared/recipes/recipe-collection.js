@@ -49,7 +49,7 @@ export async function mountRecipeCollection({
       );
 
       return matchesSearch && matchesSection && matchesEffort && matchesCategories;
-    });
+    }).sort((left, right) => left.title.localeCompare(right.title));
 
     const grid = get("[data-recipe-grid]");
     grid.innerHTML = "";
