@@ -360,6 +360,14 @@ window.RECIPE_LIBRARY = [
     "manual": false
   },
   {
+    "title": "Takeout Pizza",
+    "href": "",
+    "section": "🍽️ Dinners",
+    "category": "Options without Recipes",
+    "effort": "quick",
+    "manual": true
+  },
+  {
     "title": "Homemade Pizza",
     "href": "",
     "section": "🍽️ Dinners",
