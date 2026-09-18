@@ -7,6 +7,7 @@
   <title>Meals & Recipes | Family Home</title>
   <link rel="stylesheet" href="/styles.css">
   <link rel="stylesheet" href="/meals/meals.css">
+  <link rel="stylesheet" href="/shared/recipes/recipe-collection.css">
 </head>
 <body>
   <div class="page-shell meals-shell">
@@ -55,61 +56,7 @@
         <p id="drag-help" class="sr-only">Drag a recipe into a day, or use the Add button on a recipe card.</p>
       </section>
 
-      <section class="library-section" aria-labelledby="recipe-title">
-        <div class="section-heading">
-          <div>
-            <p class="panel-kicker">Recipe collection</p>
-            <h2 id="recipe-title">What sounds good?</h2>
-          </div>
-          <p class="recipe-count" id="recipe-count"></p>
-        </div>
-
-        <div class="library-tools">
-          <label class="search-box">
-            <span class="sr-only">Search recipes</span>
-            <span aria-hidden="true">⌕</span>
-            <input id="recipe-search" type="search" placeholder="Search recipes…" autocomplete="off">
-          </label>
-
-          <div class="filter-controls" aria-label="Recipe filters">
-            <label class="filter-field" for="section-filter">
-              <span>Section</span>
-              <select id="section-filter">
-                <option value="all">All sections</option>
-                <option value="dinners">Dinners</option>
-                <option value="sides">Side dishes</option>
-                <option value="breads">Breads &amp; rolls</option>
-                <option value="desserts">Desserts</option>
-                <option value="drinks">Drinks</option>
-              </select>
-            </label>
-
-            <details class="category-filter" id="category-filter">
-              <summary>
-                <span class="filter-label">Category</span>
-                <span class="filter-value" id="category-filter-value">All categories</span>
-              </summary>
-              <div class="category-menu">
-                <div class="category-options" id="category-options"></div>
-                <button class="category-clear" id="category-clear" type="button">Clear categories</button>
-              </div>
-            </details>
-
-            <label class="filter-field" for="effort-filter">
-              <span>Effort</span>
-              <select id="effort-filter">
-                <option value="all">All effort levels</option>
-                <option value="quick">Quick</option>
-                <option value="medium">Medium</option>
-                <option value="long">Longer</option>
-              </select>
-            </label>
-          </div>
-        </div>
-
-        <div class="recipe-grid" id="recipe-grid"></div>
-        <div class="empty-state" id="recipe-empty" hidden>No recipes match those filters.</div>
-      </section>
+      <section id="recipe-collection" aria-label="Recipe collection"></section>
     </main>
   </div>
 
@@ -148,7 +95,6 @@
     </div>
   </div>
 
-  <script src="/meals/recipe-data.js"></script>
-  <script src="/meals/meals.js"></script>
+  <script type="module" src="/meals/meals.js"></script>
 </body>
 </html>

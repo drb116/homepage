@@ -1,152 +1,40 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="utf-8" />
-  <title>David’s Recipe Collection — Weekly Planner</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <link rel="stylesheet" href="index-style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Browse David's recipe collection by section, category, and effort.">
+  <title>Recipes | DavidB.xyz</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/recipes/index-style.css">
+  <link rel="stylesheet" href="/shared/recipes/recipe-collection.css">
 </head>
-
 <body>
-  <div class="container">
-    <div class="header">
-      <h1>David’s Recipe Collection</h1>
-    </div>
+  <div class="page-shell meals-shell">
+    <header class="topbar meals-topbar">
+      <a class="brand" href="/" aria-label="DavidB.xyz home">
+        <span class="brand-mark">&lt;/&gt;</span>
+        <span>DavidB.xyz</span>
+      </a>
+      <a class="back-link" href="/">← Home</a>
+    </header>
 
-    <section aria-label="Weekly Menu Planner" class="menu-panel" id="menu-planner">
-      <div class="menu-toolbar">
-        <button class="btn nav-btn nav-prev" id="btn-prev-week" title="Previous Week"
-          aria-label="Previous Week">◀</button>
+    <main>
+      <section class="hero meals-hero">
+        <p class="eyebrow">Kitchen favorites</p>
+        <h1>Recipes<span class="title-dot">.</span></h1>
+        <p class="subtitle">Browse the collection and find something good to make.</p>
+      </section>
 
-        <strong id="week-title">Weekly Menu</strong>
+      <section id="recipe-collection" aria-label="Recipe collection"></section>
+    </main>
 
-        <div class="toolbar-actions">
-          <button class="btn" id="btn-this-week" title="Jump to this week" aria-label="This Week">This Week</button>
-          <button class="btn btn-primary" id="btn-shopping">Shopping List</button>
-          <button class="btn" id="btn-save">Save</button>
-          <button class="btn btn-danger" id="btn-clear">Clear Menu</button>
-          <button class="btn nav-btn nav-next" id="btn-next-week" title="Next Week" aria-label="Next Week">▶</button>
-        </div>
-      </div>
-
-      <div class="week-grid" id="week-grid" aria-describedby="drag-help"></div>
-      <p id="drag-help" class="sr-only">Drag a recipe link and drop it into a day to add. Use Delete button on each chip
-        to remove.</p>
-    </section>
-    <h2 class="section-title">🍽️ Dinners</h2>
-    <h3>Chicken Dinners</h3>
-    <p>
-      <a href="./chicken-rice-casserole.html" target="_blank"  style="border-color:green">Chicken and Rice Casserole</a>
-      <a href="./chicken-wild-rice-casserole.html" target="_blank"  style="border-color:darkkhaki">Chicken and Wild Rice (Obe)</a>
-      <a href="./chicken-stroganoff.html" target="_blank"  style="border-color:darkkhaki">Chicken and Mushroom Stroganoff</a>
-      <a href="./chicken-tikka-masala.html" target="_blank"  style="border-color: darkred">Chicken Tikka Masala</a>
-      <a href="./asian-orange-chicken.html" target="_blank"  style="border-color: darkred">Asian Orange Chicken</a>
-      <a href="./chicken-stir-fry.html" target="_blank"  style="border-color: green">Chicken Stir-Fry</a>
-      <a href="./instant-pot-chicken-risotto.html" target="_blank"  style="border-color: darkkhaki">Instant Pot Chicken Risotto</a>
-      <a href="./pad-prik-king.html" target="_blank"  style="border-color:  darkkhaki">Pad Prik King</a>
-      <a href="./instant-pot-butter-chicken.html" target="_blank"  style="border-color: darkkhaki">Instant Pot Butter Chicken</a>
-      <a href="./butter-chicken.html" target="_blank"  style="border-color: darkred">Butter Chicken</a>
-      <a href="./crispy-pepperoni-chicken.html" target="_blank"  style="border-color:green">Crispy Pepperoni Chicken</a>
-      <a href="./chicken-korma.html" target="_blank"  style="border-color: darkkhaki">Chicken Korma</a>
-      <a href="./quick-chicken-and-stuffing-casserole.html" target="_blank"  style="border-color: green">Chicken and Stuffing
-        Casserole</a>
-      <a href="./cheesy-chicken-parmesan-meatballs.html" target="_blank"  style="border-color: darkkhaki">Chicken Parmesan Meatballs</a>
-      <a href="./chicken-divan.html" target="_blank"  style="border-color:darkkhaki">Chicken Divan</a>
-      <a href="./chinese-chicken-casserole.html" target="_blank"  style="border-color:green">Chinese Chicken Casserole</a>
-      <a href="./chicken-enchilada.html" target="_blank"  style="border-color:darkkhaki">Chicken Enchilada</a>
-    </p>
-
-    <h3>Beef Dinners</h3>
-    <a href="./grandmas-casserole.html" target="_blank"  style="border-color:darkred">Grandma’s Casserole</a>
-    <a href="./beef-enchiladas.html" target="_blank"  style="border-color:darkkhaki">Beef Enchiladas</a>
-    <a href="./goulash.html" target="_blank"  style="border-color:darkkhaki">Goulash</a>
-    <a href="./ground-beef-spinach-casserole.html" target="_blank"  style="border-color:darkkhaki">Ground Beef and Spinach Casserole</a>
-    <a href="./hamburger-potato-casserole.html" target="_blank"  style="border-color:darkkhaki">Hamburger Potato Casserole</a>
-    <a href="./easy-korean-ground-beef-bowl.html" target="_blank"  style="border-color:green">Easy Korean Ground Beef Bowl</a>
-    <a href="./lasagna.html" target="_blank"  style="border-color:darkred">World’s Best Lasagna</a>
-    <a href="./mexican-lasagna.html" target="_blank"  style="border-color:darkkhaki">Mexican Lasagna</a>
-    <a href="./shepherds-pie-vi.html" target="_blank"  style="border-color:darkkhaki">Shepherd’s Pie</a>
-    <a href="./taco-bake-casserole.html" target="_blank"  style="border-color:green">Taco Bake Casserole</a>
-    <a href="./one-pot-ground-beef-stroganoff.html" target="_blank"  style="border-color:green">One-Pot Ground Beef Stroganoff</a>
-    <a href="./spicy-creamy-weeknight-bolognese.html" target="_blank"  style="border-color:darkkhaki">Spicy Creamy Weeknight
-      Bolognese</a>
-    <a href="./smothered-hamburger-steak.html" target="_blank"  style="border-color:green">Smothered Hamburger Steak</a>
-    <a href="./slow-cooker-chili.html" target="_blank"  style="border-color:darkred">Slow Cooker Chili</a>
-    <a href="./slow-cooker-short-ribs.html" target="_blank"  style="border-color:darkkhaki">Slow Cooker Short Ribs</a>
-    <a href="./shredded-beef-tacos.html" target="_blank"  style="border-color:darkkhaki">Shredded Beef Tacos</a>
-    <a href="./sloppy-ottos.html" target="_blank"  style="border-color:green">Sloppy Ottos</a>
-    <a href="./hamburger-rice-casserole.html" target="_blank"  style="border-color:green">Hamburger and Rice Casserole</a>
-    <a href="./cheddar-tomato-mac.html" target="_blank"  style="border-color:darkkhaki">One-Pot Cheddar Tomato Mac</a>
-    <a href="./cheesburger-rice.html" target="_blank"  style="border-color:darkkhaki">Cheesburger Rice</a>
-
-
-    <h3>Other Dinners</h3>
-    <a href="./jambalaya.html" target="_blank"  style="border-color: darkred">Jambalaya</a>
-    <a href="./moussaka.html" target="_blank"  style="border-color: darkred">Moussaka</a>
-    <a href="./ragu-alla-petrellese.html" target="_blank"  style="border-color: darkred">Moussaka</a>
-    <a href="./mac-cheese-nyt.html" target="_blank"  style="border-color: green">NYT Mac and Cheese</a>
-    <a href="./crispy-gnocchi-sausage-broccoli.html" target="_blank"  style="border-color: green">Crispy Gnocchi with Sausage and
-      Broccoli</a>
-    <a href="./cheesy-gnocchi.html" target="_blank"  style="border-color: green">Cheesy Gnocchi with Corn and Pesto</a>
-    <a href="./homemade-four-cheese-ravioli.html" target="_blank"  style="border-color: darkkhaki">Homemade Four-Cheese Ravioli</a>
-    <a href="./hot-dog-casserole.html" target="_blank"  style="border-color:green">Hot Dog Casserole</a>
-    <a href="./pork-potstickers.html" target="_blank"  style="border-color: darkred">Pork and Garlic-Chive Potstickers</a>
-
-    <h3>Options without Recipes</h3>
-    <p class="no-recipe" style="border-color: green">Takeout Pizza</p>
-    <p class="no-recipe" style="border-color: darkred">Homemade Pizza</p>
-    <p class="no-recipe" style="border-color: darkkhaki">Grilled Cheese</p>
-    <p class="no-recipe" style="border-color: green">Eat Out</p>
-    <p class="no-recipe" style="border-color: green">Chili Dogs</p>
-    <p class="no-recipe" style="border-color: green">Burgers</p>
-    <p class="no-recipe" style="border-color: green">Steaks</p>
-    <p class="no-recipe" style="border-color: darkkhaki">Pasta</p>
-    <p class="no-recipe" style="border-color: green">Slow Cooked Sausage</p>
-    <p class="no-recipe" style="border-color: green">Leftovers</p>
-    <p class="no-recipe" style="border-color: green">Gyros</p>
-    <p class="no-recipe" style="border-color: darkkhaki">Mexican Lasagna</p>
-
-    <h2 class="section-title">🥗 Side Dishes</h2>
-    <a href="./mushroom-risotto.html" target="_blank"  style="border-color: green">Instant Pot Mushroom Risotto</a>
-    <a href="./instant-pot-mexican-rice.html" target="_blank"  style="border-color: green">Instant Pot Mexican Rice</a>
-    <a href="./queso-dip.html" target="_blank"  style="border-color: green">Queso Dip</a>
-    <a href="./royal-caribbean-mushroom-soup.html" target="_blank"  style="border-color: darkred">Royal Caribbean Mushroom Soup</a>
-
-    <h2 class="section-title">🍞 Breads & Rolls</h2>
-    <a href="./sourdough-english-muffins.html" target="_blank"  style="border-color: darkkhaki">Sourdough English Muffins</a>
-    <a href="./easy-sourdough-sandwich-bread.html" target="_blank"  style="border-color: darkkhaki">Sourdough Sandwich Bread</a>
-    <a href="./the-best-dinner-rolls.html" target="_blank"  style="border-color: darkkhaki">Dinner Rolls</a>
-    <a href="./garlic-knots.html" target="_blank"  style="border-color: darkkhaki">Garlic Knots</a>
-    <a href="./pretzel-rolls.html" target="_blank"  style="border-color: darkred">Pretzel Rolls</a>
-
-    <h2 class="section-title">🍰 Desserts</h2>
-    <a href="./easy-sugar-cookies.html" target="_blank"  style="border-color: green">Easy Sugar Cookies</a>
-    <a href="./pumpkin-crumb-cake.html" target="_blank"  style="border-color: darkkhaki">Pumpkin Crumb Cake</a>
-
-    <h2 class="section-title">🍸 Drinks</h2>
-    <a href="./pp-martini.html" target="_blank"  style="border-color: green">Pumpkin Pie Martini</a>
+    <footer>
+      <span>DavidB.xyz · Useful things, thoughtfully built.</span>
+      <a href="/">Back to the project hub</a>
+    </footer>
   </div>
 
-  <div class="modal" id="shopping-modal" role="dialog" aria-modal="true" aria-labelledby="shopping-title">
-    <div class="modal-card">
-      <div class="modal-head">
-        <h2 id="shopping-title">Shopping List</h2>
-        <div>
-          <button class="btn btn-ghost" id="btn-copy">Copy</button>
-          <button class="btn btn-danger" id="btn-close">Close</button>
-        </div>
-      </div>
-      <div class="modal-body">
-        <p id="shopping-summary"></p>
-        <ol id="shopping-list" class="list"></ol>
-        <div id="shopping-warnings"></div>
-        <div id="shopping-errors" class="errors"></div>
-      </div>
-    </div>
-  </div>
-
-  <script src="handler.js"></script>
+  <script type="module" src="/recipes/collection.js"></script>
 </body>
-
 </html>

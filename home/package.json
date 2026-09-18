@@ -4,7 +4,12 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "sync:recipes": "node ../scripts/sync-recipe-assets.mjs",
+    "predev": "npm run sync:recipes",
+    "dev": "wrangler dev",
+    "predeploy": "npm run sync:recipes",
+    "deploy": "wrangler deploy",
+    "test": "node --input-type=module --check < public/meals/meals.js && node --input-type=module --check < ../shared/recipes/recipe-collection.js"
   },
   "keywords": [],
   "author": "",

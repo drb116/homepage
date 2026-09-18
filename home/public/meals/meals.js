@@ -1,8 +1,9 @@
+import { mountRecipeCollection } from "/shared/recipes/recipe-collection.js";
+
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const STORAGE_KEY = "familyMeals.local.v1";
 const DIRTY_KEY = "familyMeals.dirty.v1";
 const AUTO_REFRESH_MS = 60_000;
-const LIBRARY = Array.isArray(window.RECIPE_LIBRARY) ? window.RECIPE_LIBRARY : [];
 const $ = (selector, context = document) => context.querySelector(selector);
 const $$ = (selector, context = document) => Array.from(context.querySelectorAll(selector));
 
@@ -11,18 +12,31 @@ let weeks = loadWeeks();
 let dirtyWeeks = loadDirtyWeeks();
 let saveQueue = Promise.resolve();
 const saveRevisions = {};
-const selectedCategories = new Set();
 let pendingAddItem = null;
 let refreshInProgress = false;
 
 const weekGrid = $("#week-grid");
-const recipeGrid = $("#recipe-grid");
 
 buildWeekScaffold();
 renderWeek();
-buildCategoryFilter();
-renderRecipeLibrary();
 wireEvents();
+mountRecipeCollection({
+  root: "#recipe-collection",
+  dataUrl: "/shared/recipes/recipe-data.json",
+  actionLabel: "+ Add",
+  draggable: true,
+  linkTarget: "_blank",
+  onAction: openAddModal,
+  onDragStart(event, item) {
+    event.dataTransfer.setData("application/json", JSON.stringify({
+      kind: "library-item",
+      entry: libraryItemToEntry(item)
+    }));
+    event.dataTransfer.effectAllowed = "copy";
+  }
+}).catch(error => {
+  console.error("Could not initialize recipe collection:", error);
+});
 refreshCurrentWeek({ showLoading: true, source: "initial" });
 startAutoRefresh();
 
@@ -485,148 +499,10 @@ function addDayDropHandlers(dayElement) {
   });
 }
 
-function renderRecipeLibrary() {
-  const search = ($("#recipe-search")?.value || "").trim().toLowerCase();
-  const sectionFilter = $("#section-filter")?.value || "all";
-  const effortFilter = $("#effort-filter")?.value || "all";
-
-  const filtered = LIBRARY.filter(item => {
-    const categories = itemCategories(item);
-    const matchesSearch =
-      !search ||
-      item.title.toLowerCase().includes(search) ||
-      categories.some(category => category.toLowerCase().includes(search));
-
-    const matchesSection =
-      sectionFilter === "all" ||
-      libraryGroup(item) === sectionFilter;
-
-    const matchesEffort =
-      effortFilter === "all" ||
-      item.effort === effortFilter;
-
-    const matchesCategories = [...selectedCategories].every(selectedCategory =>
-      categories.includes(selectedCategory)
-    );
-
-    return matchesSearch && matchesSection && matchesEffort && matchesCategories;
-  });
-
-  recipeGrid.innerHTML = "";
-
-  filtered.forEach((item, index) => {
-    const card = document.createElement("article");
-    card.className = "recipe-card";
-    card.dataset.effort = item.effort || "medium";
-    card.draggable = true;
-
-    const effortLabel =
-      item.effort === "quick" ? "Quick" :
-      item.effort === "long" ? "Longer" : "Medium";
-
-    const categoryLabel = itemCategories(item).map(cleanCategory).join(" · ") || "Dinner";
-
-    card.innerHTML = `
-      <div class="recipe-meta">
-        <i class="effort-dot ${escapeHtml(item.effort || "medium")}"></i>
-        <span>${escapeHtml(effortLabel)} · ${escapeHtml(categoryLabel)}</span>
-      </div>
-      <h3>${escapeHtml(item.title)}</h3>
-      <div class="recipe-card-actions">
-        ${item.href
-          ? `<a class="recipe-link" href="${escapeAttribute(normalizeHref(item.href))}" target="_blank" rel="noopener">View recipe ↗</a>`
-          : `<span class="recipe-link">No recipe needed</span>`
-        }
-        <button class="add-button" type="button" data-add-index="${index}">+ Add</button>
-      </div>
-    `;
-
-    card.addEventListener("dragstart", event => {
-      event.dataTransfer.setData("application/json", JSON.stringify({
-        kind: "library-item",
-        entry: libraryItemToEntry(item)
-      }));
-      event.dataTransfer.effectAllowed = "copy";
-    });
-
-    const addButton = $(".add-button", card);
-    addButton.addEventListener("click", () => openAddModal(item));
-
-    recipeGrid.appendChild(card);
-  });
-
-  $("#recipe-count").textContent = `${filtered.length} item${filtered.length === 1 ? "" : "s"}`;
-  $("#recipe-empty").hidden = filtered.length !== 0;
-}
-
 function libraryItemToEntry(item) {
   return item.href
     ? { type: "recipe", title: item.title, href: normalizeHref(item.href) }
     : { type: "manual", title: item.title };
-}
-
-function libraryGroup(item) {
-  const section = (item.section || "").toLowerCase();
-  if (section.includes("side")) return "sides";
-  if (section.includes("bread")) return "breads";
-  if (section.includes("dessert")) return "desserts";
-  if (section.includes("drink")) return "drinks";
-  return "dinners";
-}
-
-function itemCategories(item) {
-  if (Array.isArray(item.category)) {
-    return item.category.map(String).map(category => category.trim()).filter(Boolean);
-  }
-
-  return item.category ? [String(item.category).trim()].filter(Boolean) : [];
-}
-
-function cleanCategory(category = "") {
-  return String(category)
-    .replace(/^[^\p{L}\p{N}]+/u, "")
-    .replace(/\s+Dinners$/i, "")
-    .trim() || "Dinner";
-}
-
-function buildCategoryFilter() {
-  const options = $("#category-options");
-  if (!options) return;
-
-  const categories = [...new Set(LIBRARY.flatMap(itemCategories))]
-    .sort((left, right) => cleanCategory(left).localeCompare(cleanCategory(right)));
-
-  categories.forEach(category => {
-    const label = document.createElement("label");
-    label.className = "category-option";
-
-    const input = document.createElement("input");
-    input.type = "checkbox";
-    input.value = category;
-
-    const text = document.createElement("span");
-    text.textContent = cleanCategory(category);
-
-    label.append(input, text);
-    options.appendChild(label);
-  });
-}
-
-function updateCategoryFilterLabel() {
-  const value = $("#category-filter-value");
-  if (!value) return;
-
-  if (selectedCategories.size === 0) {
-    value.textContent = "All categories";
-    return;
-  }
-
-  if (selectedCategories.size === 1) {
-    value.textContent = cleanCategory([...selectedCategories][0]);
-    return;
-  }
-
-  value.textContent = `${selectedCategories.size} selected`;
 }
 
 function openAddModal(item) {
@@ -736,37 +612,6 @@ function wireEvents() {
       if (text && text.trim()) {
         addEntry(day, { type: "note", text: text.trim() });
       }
-    }
-  });
-
-  $("#recipe-search").addEventListener("input", renderRecipeLibrary);
-  $("#section-filter").addEventListener("change", renderRecipeLibrary);
-  $("#effort-filter").addEventListener("change", renderRecipeLibrary);
-
-  $("#category-options").addEventListener("change", event => {
-    const input = event.target.closest('input[type="checkbox"]');
-    if (!input) return;
-
-    if (input.checked) selectedCategories.add(input.value);
-    else selectedCategories.delete(input.value);
-
-    updateCategoryFilterLabel();
-    renderRecipeLibrary();
-  });
-
-  $("#category-clear").addEventListener("click", () => {
-    selectedCategories.clear();
-    $$('#category-options input[type="checkbox"]').forEach(input => {
-      input.checked = false;
-    });
-    updateCategoryFilterLabel();
-    renderRecipeLibrary();
-  });
-
-  document.addEventListener("click", event => {
-    const categoryFilter = $("#category-filter");
-    if (categoryFilter?.open && !categoryFilter.contains(event.target)) {
-      categoryFilter.removeAttribute("open");
     }
   });
 
