@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Local Family Home camera wall.">
+  <title>Camera Wall | Family Home</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/cameras/cameras.css">
+</head>
+<body>
+  <main class="camera-wall-shell">
+    <header class="camera-wall-toolbar">
+      <a class="camera-wall-home" href="/" aria-label="Back to Family Home">
+        <span class="brand-mark">DB</span>
+        <span>Family Home</span>
+      </a>
+
+      <div class="camera-wall-actions">
+        <span class="camera-wall-status" id="camera-wall-status" aria-live="polite">Connecting to local cameras…</span>
+        <button class="camera-wall-button" id="btn-camera-setup" type="button" title="Camera settings" aria-label="Camera settings">⚙</button>
+        <button class="camera-wall-button" id="btn-fullscreen" type="button" title="Toggle full screen" aria-label="Toggle full screen">⛶</button>
+        <a class="camera-wall-button camera-wall-back" href="/" title="Back to Family Home" aria-label="Back to Family Home">←</a>
+      </div>
+    </header>
+
+    <section class="camera-grid" id="camera-grid" aria-label="Home security cameras">
+      <article class="camera-tile" data-channel="1"><img alt="Camera 1"><span>Camera 1</span></article>
+      <article class="camera-tile" data-channel="8"><img alt="Camera 8"><span>Camera 8</span></article>
+      <article class="camera-tile" data-channel="9"><img alt="Camera 9"><span>Camera 9</span></article>
+      <article class="camera-tile" data-channel="2"><img alt="Camera 2"><span>Camera 2</span></article>
+      <article class="camera-tile" data-channel="0"><img alt="Camera 0"><span>Camera 0</span></article>
+      <article class="camera-tile" data-channel="6"><img alt="Camera 6"><span>Camera 6</span></article>
+      <article class="camera-tile" data-channel="3"><img alt="Camera 3"><span>Camera 3</span></article>
+      <article class="camera-tile" data-channel="5"><img alt="Camera 5"><span>Camera 5</span></article>
+      <article class="camera-tile" data-channel="7"><img alt="Camera 7"><span>Camera 7</span></article>
+    </section>
+  </main>
+
+  <dialog class="camera-setup-dialog" id="camera-setup-dialog" aria-labelledby="camera-setup-heading">
+    <form class="camera-setup-form" id="camera-setup-form">
+      <div>
+        <p class="camera-setup-kicker">Local setup</p>
+        <h2 id="camera-setup-heading">Home cameras</h2>
+        <p class="camera-setup-copy">Uses the same browser-only Reolink credentials as the Family Home dashboard.</p>
+      </div>
+      <label class="camera-field">
+        <span>Username</span>
+        <input id="camera-username" type="text" autocomplete="username" value="familyHome" required>
+      </label>
+      <label class="camera-field">
+        <span>Password</span>
+        <input id="camera-password" type="password" autocomplete="current-password" required>
+      </label>
+      <div class="camera-dialog-actions">
+        <button class="camera-dialog-button secondary" id="btn-camera-cancel" type="button">Cancel</button>
+        <button class="camera-dialog-button primary" type="submit">Save camera</button>
+      </div>
+    </form>
+  </dialog>
+
+  <script src="/cameras/cameras.js"></script>
+</body>
+</html>

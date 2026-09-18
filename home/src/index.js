@@ -260,6 +260,47 @@ async function handleCalendarApi(request, env) {
     }
 }
 
+async function handleSenateApi(request) {
+    if (request.method !== "GET") {
+        return new Response("Method not allowed", {
+            status: 405,
+            headers: { Allow: "GET" }
+        });
+    }
+
+    try {
+        const response = await fetch("https://api.davidb.xyz/senate", {
+            headers: {
+                Accept: "application/json"
+            }
+        });
+
+        const data = await response.json().catch(() => null);
+
+        if (!response.ok || !data) {
+            const detail =
+                data?.error || `Senate API returned HTTP ${response.status}`;
+
+            return jsonResponse({
+                ok: false,
+                error: detail
+            }, 502);
+        }
+
+        return jsonResponse({
+            ...data,
+            ok: true
+        });
+    } catch (error) {
+        console.error("Senate API error:", error);
+
+        return jsonResponse({
+            ok: false,
+            error: "Could not load Senate status."
+        }, 502);
+    }
+}
+
 function googleSetupError(message) {
     return htmlResponse(`<!doctype html>
 <html lang="en">
@@ -373,6 +414,10 @@ export default {
 
         if (url.pathname === "/api/calendar") {
             return handleCalendarApi(request, env);
+        }
+
+        if (url.pathname === "/api/senate") {
+            return handleSenateApi(request);
         }
 
         if (url.pathname === "/api/google/connect" && request.method === "GET") {

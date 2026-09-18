@@ -4,7 +4,7 @@
 
 .dashboard-topbar {
   align-items: center;
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 .dashboard-header-left {
@@ -37,6 +37,22 @@
 
 #header-time {
   white-space: nowrap;
+}
+
+.dashboard-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-refresh {
+  flex: 0 0 auto;
+}
+
+.page-refresh:hover,
+.page-refresh:focus-visible {
+  border-color: color-mix(in srgb, var(--cyan) 52%, transparent);
+  background: rgba(89, 225, 220, 0.08);
 }
 
 .dashboard-section {
@@ -160,9 +176,25 @@
   color: var(--text);
 }
 
+.camera-wall-button {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  text-decoration: none;
+  font: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
 
 .glance-section {
-  margin-top: 30px;
+  margin-top: 20px;
 }
 
 .glance-grid {
@@ -172,14 +204,14 @@
 }
 
 .glance-grid.camera-available {
-  grid-template-columns: minmax(250px, 0.72fr) minmax(330px, 1fr) minmax(380px, 1.18fr);
+  grid-template-columns: minmax(250px, 0.72fr) minmax(330px, 1.18fr) minmax(380px, 1fr);
 }
 
 .weather-card,
 .camera-card,
 .dinner-card {
   position: relative;
-  min-height: 330px;
+  min-height: 315px;
   overflow: hidden;
   padding: 26px;
   border: 1px solid var(--border);
@@ -666,9 +698,14 @@
     margin-bottom: 24px;
   }
 
+  .dashboard-header-actions {
+    width: 100%;
+    justify-content: space-between;
+  }
+
   .dashboard-clock {
     display: flex;
-    width: 100%;
+    min-width: 0;
     justify-content: flex-start;
     gap: 9px;
     font-size: 0.84rem;
@@ -737,8 +774,61 @@
 }
 
 .calendar-section {
-  margin-top: 30px;
+  min-width: 0;
+  margin-top: 0;
 }
+
+.dashboard-lower-grid {
+  display: grid;
+  grid-template-columns: minmax(250px, 0.78fr) minmax(0, 3.22fr);
+  gap: 18px;
+  align-items: start;
+  margin-top: 20px;
+}
+
+.senate-card {
+  position: relative;
+  min-height: 230px;
+  overflow: hidden;
+  padding: 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-large);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.03), transparent 48%), var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.senate-card::before {
+  content: "";
+  position: absolute;
+  width: 210px;
+  height: 210px;
+  right: -100px;
+  top: -110px;
+  border-radius: 50%;
+  background: var(--purple);
+  opacity: 0.07;
+  filter: blur(14px);
+  pointer-events: none;
+}
+
+.senate-kicker { color: var(--purple); }
+.senate-card-heading h2 { margin: 0; font-size: 1.25rem; }
+.senate-headline {
+  margin: 24px 0 20px;
+  color: var(--text);
+  font-size: clamp(1.55rem, 2.5vw, 2rem);
+  font-weight: 850;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+.senate-details { display: grid; gap: 14px; margin: 0; }
+.senate-details div { padding-top: 12px; border-top: 1px solid rgba(148, 180, 215, 0.1); }
+.senate-details dt { color: var(--muted); font-size: 0.68rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
+.senate-details dd { margin: 4px 0 0; color: var(--text); font-size: 0.83rem; font-weight: 700; line-height: 1.35; }
+.senate-status { margin-top: 16px; color: var(--muted); font-size: 0.72rem; }
+.senate-status.error { color: #ff9b9b; }
+.senate-refresh:hover,
+.senate-refresh:focus-visible { border-color: color-mix(in srgb, var(--purple) 52%, transparent); background: rgba(167, 139, 250, 0.08); }
 
 .calendar-kicker {
   color: var(--cyan);
@@ -783,13 +873,13 @@
 
 .calendar-days {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   min-height: 230px;
 }
 
 .calendar-day {
   min-width: 0;
-  padding: 20px 18px 22px;
+  padding: 16px 18px 17px;
   border-left: 1px solid rgba(148, 180, 215, 0.1);
 }
 
@@ -907,18 +997,17 @@
 }
 
 @media (max-width: 1050px) {
+  .dashboard-lower-grid { grid-template-columns: 1fr; }
+
   .calendar-days {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
   }
+}
 
-  .calendar-day:nth-child(4),
-  .calendar-day:nth-child(5) {
-    border-top: 1px solid rgba(148, 180, 215, 0.1);
-  }
-
-  .calendar-day:nth-child(4) {
-    border-left: 0;
-  }
+@media (max-width: 850px) {
+  .calendar-days { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .calendar-day:nth-child(3) { border-left: 0; }
+  .calendar-day:nth-child(3), .calendar-day:nth-child(4) { border-top: 1px solid rgba(148, 180, 215, 0.1); }
 }
 
 @media (max-width: 700px) {
@@ -940,4 +1029,44 @@
   .calendar-day-heading {
     min-height: 0;
   }
+}
+
+/* Compact Senate card */
+@media (min-width: 1051px) {
+  .dashboard-lower-grid {
+    /* Match the Senate column to the Weather card width. */
+    grid-template-columns: minmax(300px, 0.72fr) minmax(0, 2.18fr);
+  }
+}
+
+.senate-card {
+  min-height: 0;
+  padding: 20px 22px;
+}
+
+.senate-card-heading h2 {
+  font-size: 1.15rem;
+}
+
+.senate-headline {
+  margin: 16px 0 14px;
+  font-size: clamp(1.35rem, 2vw, 1.72rem);
+}
+
+.senate-details {
+  gap: 8px;
+}
+
+.senate-details div {
+  padding-top: 9px;
+}
+
+.senate-details dd {
+  margin-top: 3px;
+  font-size: 0.8rem;
+  line-height: 1.25;
+}
+
+.senate-status {
+  margin-top: 10px;
 }

@@ -5,8 +5,17 @@
   "compatibility_date": "2026-08-15",
   "workers_dev": false,
 
+  "rules": [
+    {
+      "type": "Data",
+      "globs": ["**/*.woff2"],
+      "fallthrough": true
+    }
+  ],
+
   "vars": {
-    "YOLINK_TEMPERATURE_DEVICE_ID": "d88b4c01000e3f7c"
+    "YOLINK_TEMPERATURE_DEVICE_ID": "d88b4c01000e3f7c",
+    "YOLINK_INDOOR_DEVICE_ID": "d88b4c0100119cb3"
   },
 
   "routes": [

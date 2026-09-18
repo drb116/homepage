@@ -80,6 +80,14 @@ window.RECIPE_LIBRARY = [
     "manual": false
   },
   {
+    "title": "Ragù alla Petrellese",
+    "href": "/recipes/ragu-alla-petrellese.html",
+    "section": "🍽️ Dinners",
+    "category": "Other  Dinners",
+    "effort": "long",
+    "manual": false
+  },
+  {
     "title": "Crispy Pepperoni Chicken",
     "href": "/recipes/crispy-pepperoni-chicken.html",
     "section": "🍽️ Dinners",

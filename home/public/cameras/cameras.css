@@ -1,0 +1,179 @@
+html, body {
+  margin: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  background: #06101c;
+}
+
+body {
+  color: var(--text);
+}
+
+.camera-wall-shell {
+  box-sizing: border-box;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 10px;
+  width: 100%;
+  height: 100vh;
+  padding: 10px;
+  background:
+    radial-gradient(circle at 15% 0%, rgba(86, 168, 255, 0.09), transparent 30%),
+    radial-gradient(circle at 90% 0%, rgba(89, 225, 220, 0.06), transparent 28%),
+    #06101c;
+}
+
+.camera-wall-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  min-height: 46px;
+  padding: 0 4px;
+}
+
+.camera-wall-home {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 850;
+}
+
+.camera-wall-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  min-width: 0;
+}
+
+.camera-wall-status {
+  margin-right: 4px;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.camera-wall-button {
+  box-sizing: border-box;
+  display: grid;
+  place-items: center;
+  width: 40px;
+  height: 40px;
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--text);
+  text-decoration: none;
+  font: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+.camera-wall-button:hover,
+.camera-wall-button:focus-visible,
+.camera-wall-home:focus-visible {
+  border-color: rgba(89, 225, 220, 0.45);
+  background: rgba(89, 225, 220, 0.08);
+  outline: none;
+}
+
+.camera-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-rows: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  min-width: 0;
+  min-height: 0;
+}
+
+.camera-tile {
+  position: relative;
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  border: 1px solid rgba(148, 180, 215, 0.16);
+  border-radius: 12px;
+  background: #02060b;
+}
+
+.camera-tile img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.camera-tile > span {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  padding: 4px 7px;
+  border: 1px solid rgba(255,255,255,0.12);
+  border-radius: 999px;
+  background: rgba(3, 8, 15, 0.76);
+  color: #e8f1fa;
+  font-size: 0.66rem;
+  font-weight: 850;
+  letter-spacing: 0.035em;
+  backdrop-filter: blur(5px);
+}
+
+.camera-tile.error::after {
+  content: "Unavailable";
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: #7f91a4;
+  font-size: 0.8rem;
+  background: #05080d;
+}
+
+.camera-setup-dialog {
+  width: min(460px, calc(100% - 32px));
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  background: var(--panel);
+  color: var(--text);
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.48);
+}
+
+.camera-setup-dialog::backdrop {
+  background: rgba(3, 8, 15, 0.72);
+  backdrop-filter: blur(4px);
+}
+
+.camera-setup-form {
+  display: grid;
+  gap: 18px;
+  padding: 26px;
+}
+
+.camera-setup-form h2 { margin: 0; font-size: 1.7rem; }
+.camera-setup-kicker { margin: 0 0 7px; color: var(--yellow); font-size: 0.72rem; font-weight: 850; letter-spacing: 0.15em; text-transform: uppercase; }
+.camera-setup-copy { margin: 10px 0 0; color: var(--muted); font-size: 0.84rem; line-height: 1.5; }
+.camera-field { display: grid; gap: 7px; }
+.camera-field span { color: var(--muted); font-size: 0.76rem; font-weight: 800; text-transform: uppercase; }
+.camera-field input { box-sizing: border-box; width: 100%; min-height: 44px; padding: 0 12px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,0.035); color: var(--text); font: inherit; }
+.camera-dialog-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.camera-dialog-button { min-height: 42px; padding: 0 15px; border: 1px solid var(--border); border-radius: 12px; font: inherit; font-weight: 800; cursor: pointer; }
+.camera-dialog-button.secondary { background: rgba(255,255,255,0.035); color: var(--muted); }
+.camera-dialog-button.primary { background: rgba(247,214,107,0.12); color: var(--text); }
+
+@media (max-width: 700px) {
+  html, body { overflow: auto; }
+  .camera-wall-shell { height: auto; min-height: 100vh; }
+  .camera-wall-toolbar { align-items: flex-start; }
+  .camera-wall-status { display: none; }
+  .camera-grid { grid-template-columns: 1fr; grid-template-rows: none; }
+  .camera-tile { aspect-ratio: 16 / 9; }
+}

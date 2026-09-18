@@ -12,5 +12,9 @@
   "type": "commonjs",
   "devDependencies": {
     "wrangler": "^4.123.0"
+  },
+  "dependencies": {
+    "@cf-wasm/resvg": "^0.4.0",
+    "@fontsource/source-sans-3": "^5.3.0"
   }
 }

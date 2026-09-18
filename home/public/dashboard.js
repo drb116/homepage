@@ -1,18 +1,22 @@
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const AUTO_REFRESH_MS = 60_000;
+const SENATE_REFRESH_MS = 3 * 60_000;
+const SENATE_API_URL = "/api/senate";
 const DINNER_DAY_COUNT = 6; // Today + next five days
-const CALENDAR_DAY_COUNT = 5;
+const CALENDAR_DAY_COUNT = 4;
 const CAMERA_BASE_URL = "http://192.168.1.119";
-const CAMERA_CHANNEL = 1;
-const CAMERA_REFRESH_MS = 3_000;
+const CAMERA_CHANNELS = [1, 7, 8, 9];
+const CAMERA_REFRESH_MS = 5_000;
 const CAMERA_RETRY_MS = 30_000;
 const CAMERA_STORAGE_KEY = "familyHome.reolink.credentials.v1";
 
 let mealRefreshInProgress = false;
 let calendarRefreshInProgress = false;
 let weatherRefreshInProgress = false;
+let senateRefreshInProgress = false;
 let cameraRefreshTimer = null;
 let cameraCredentials = null;
+let cameraChannelIndex = 0;
 
 const $ = selector => document.querySelector(selector);
 
@@ -20,6 +24,7 @@ updateClock();
 loadCalendarDashboard({ showLoading: true });
 loadMealDashboard({ showLoading: true });
 loadWeatherDashboard({ showLoading: true });
+loadSenateDashboard({ showLoading: true });
 wireDashboardEvents();
 initCameraDashboard();
 startDashboardRefresh();
@@ -66,6 +71,18 @@ function normalizeWeek(value) {
   });
 
   return week;
+}
+
+async function toggleFullscreen() {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+    } else {
+      await document.exitFullscreen();
+    }
+  } catch (error) {
+    console.warn("Fullscreen request was not available:", error);
+  }
 }
 
 function updateClock() {
@@ -165,12 +182,12 @@ function renderDinnerList(today, currentWeekStart, currentWeek, nextWeek) {
 
     const mealHtml = meals.length
       ? meals.map(meal => {
-          const title = escapeHtml(meal.title);
-          if (meal.href) {
-            return `<a class="dinner-meal recipe" href="${escapeAttribute(normalizeRecipeHref(meal.href))}" target="_blank" rel="noopener">${title}</a>`;
-          }
-          return `<span class="dinner-meal">${title}</span>`;
-        }).join("")
+        const title = escapeHtml(meal.title);
+        if (meal.href) {
+          return `<a class="dinner-meal recipe" href="${escapeAttribute(normalizeRecipeHref(meal.href))}" target="_blank" rel="noopener">${title}</a>`;
+        }
+        return `<span class="dinner-meal">${title}</span>`;
+      }).join("")
       : `<span class="dinner-empty">Not planned</span>`;
 
     const noteHtml = notes.length
@@ -263,6 +280,43 @@ function setWeatherStatus(text, isError = false) {
   const status = $("#weather-status");
   status.textContent = text;
   status.className = `weather-status${isError ? " error" : ""}`;
+}
+
+async function loadSenateDashboard({ showLoading = false } = {}) {
+  if (senateRefreshInProgress) return;
+  senateRefreshInProgress = true;
+
+  const button = $("#btn-refresh-senate");
+  if (button) button.disabled = true;
+  if (showLoading) setSenateStatus("Refreshing…");
+
+  try {
+    const response = await fetch(SENATE_API_URL, { cache: "no-store" });
+    const data = await response.json().catch(() => null);
+
+    if (!response.ok || !data?.ok) {
+      throw new Error(data?.error || `Senate request failed (${response.status})`);
+    }
+
+    const display = data.display || {};
+    $("#senate-headline").textContent = display.headline || "STATUS UNAVAILABLE";
+    $("#senate-next-session").textContent = display.next_session || data.next_session || "Not scheduled";
+    $("#senate-next-vote").textContent = display.next_vote || data.next_vote || "Not scheduled";
+    setSenateStatus("Updated just now");
+  } catch (error) {
+    console.error("Could not refresh Senate status:", error);
+    $("#senate-headline").textContent = "STATUS UNAVAILABLE";
+    setSenateStatus("Senate status unavailable", true);
+  } finally {
+    senateRefreshInProgress = false;
+    if (button) button.disabled = false;
+  }
+}
+
+function setSenateStatus(text, isError = false) {
+  const status = $("#senate-status");
+  status.textContent = text;
+  status.className = `senate-status${isError ? " error" : ""}`;
 }
 
 // Calendar code below is intentionally unchanged from the current dashboard.
@@ -415,7 +469,7 @@ function cameraSnapshotUrl() {
 
   const url = new URL("/cgi-bin/api.cgi", CAMERA_BASE_URL);
   url.searchParams.set("cmd", "Snap");
-  url.searchParams.set("channel", String(CAMERA_CHANNEL));
+  url.searchParams.set("channel", String(CAMERA_CHANNELS[cameraChannelIndex]));
   url.searchParams.set("rs", String(Date.now()));
   url.searchParams.set("user", cameraCredentials.user);
   url.searchParams.set("password", cameraCredentials.password);
@@ -429,8 +483,8 @@ function initCameraDashboard() {
 
   if (!image || !frame || !openLink) return;
 
-  frame.href = CAMERA_BASE_URL;
-  openLink.href = CAMERA_BASE_URL;
+  frame.href = "/cameras/";
+  openLink.href = "/cameras/";
 
   image.addEventListener("load", handleCameraLoad);
   image.addEventListener("error", handleCameraError);
@@ -500,15 +554,28 @@ function handleCameraLoad() {
   const card = $("#camera-card");
   const grid = $(".glance-grid");
   const status = $("#camera-status");
+
+  const channel = CAMERA_CHANNELS[cameraChannelIndex];
+
   if (card) card.hidden = false;
   if (grid) grid.classList.add("camera-available");
-  if (status) status.textContent = "Local network • updates every 3 seconds";
+
+  if (status) {
+    status.textContent =
+      `Camera ${channel} • Local network • rotates every 5 seconds`;
+  }
+
+  cameraChannelIndex =
+    (cameraChannelIndex + 1) % CAMERA_CHANNELS.length;
+
   scheduleCameraRefresh(CAMERA_REFRESH_MS);
 }
 
 function handleCameraError() {
-  hideCameraCard();
-  scheduleCameraRefresh(CAMERA_RETRY_MS);
+  cameraChannelIndex =
+    (cameraChannelIndex + 1) % CAMERA_CHANNELS.length;
+
+  scheduleCameraRefresh(1000);
 }
 
 function hideCameraCard() {
@@ -532,6 +599,10 @@ function clearCameraRefreshTimer() {
 }
 
 function wireDashboardEvents() {
+  $("#btn-refresh-page")?.addEventListener("click", () => {
+    location.reload();
+  });
+  $("#btn-fullscreen")?.addEventListener("click", toggleFullscreen);
   $("#btn-refresh-meals").addEventListener("click", () => {
     loadMealDashboard({ showLoading: true });
   });
@@ -544,12 +615,20 @@ function wireDashboardEvents() {
     loadWeatherDashboard({ showLoading: true });
   });
 
+  $("#btn-refresh-senate")?.addEventListener("click", () => {
+    loadSenateDashboard({ showLoading: true });
+  });
+
   $("#btn-camera-settings")?.addEventListener("click", openCameraSetup);
   $("#btn-camera-cancel")?.addEventListener("click", closeCameraSetup);
   $("#camera-setup-form")?.addEventListener("submit", handleCameraSetupSubmit);
 }
 
 function startDashboardRefresh() {
+  window.setInterval(() => {
+    if (!document.hidden) loadSenateDashboard();
+  }, SENATE_REFRESH_MS);
+
   window.setInterval(() => {
     if (document.hidden) return;
     loadMealDashboard();
@@ -567,6 +646,7 @@ function startDashboardRefresh() {
     loadMealDashboard();
     loadCalendarDashboard();
     loadWeatherDashboard();
+    loadSenateDashboard();
     refreshCamera();
   });
 }
