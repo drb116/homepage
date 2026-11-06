@@ -2,7 +2,7 @@ name: Auto retry
 
 on:
   workflow_run:
-    workflows: ["My Job"]
+    workflows: ["Build GFS-Wave Frames"]
     types: [completed]
 
 permissions:
